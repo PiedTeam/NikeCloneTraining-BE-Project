@@ -141,6 +141,7 @@ dist
 # SvelteKit build / generate output
 .svelte-kit
 
+<<<<<<< HEAD
 ### macOS ###
 # General
 .DS_Store
@@ -174,4 +175,6 @@ Temporary Items
 # iCloud generated files
 *.icloud
 
+=======
+>>>>>>> 91c64018b301f27dc514a007c06dbf00889861d3
 # End of https://www.toptal.com/developers/gitignore/api/node
