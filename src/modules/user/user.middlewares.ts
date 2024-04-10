@@ -1,5 +1,7 @@
-import { ParamSchema } from 'express-validator'
-import { USER_MESSAGES } from './user.messages'
+import { USER_MESSAGES } from '~/modules/user/user.messages'
+import usersService from './user.services'
+import { checkSchema, ParamSchema } from 'express-validator'
+import { validate } from '~/utils/validation'
 
 const usernameSchema: ParamSchema = {
     notEmpty: {
@@ -124,3 +126,18 @@ const lastnameSchema: ParamSchema = {
         errorMessage: USER_MESSAGES.LAST_NAME_LENGTH_MUST_BE_FROM_1_TO_50
     }
 }
+
+export const registerValidator = validate(
+    checkSchema(
+        {
+            username: usernameSchema,
+            first_name: firstnameSchema,
+            last_name: lastnameSchema,
+            email: emailSchema,
+            password: passwordSchema,
+            confirm_password: confirmPasswordSchema,
+            phone_number: phone_numberSchema
+        },
+        ['body']
+    )
+)

@@ -16,7 +16,7 @@ interface UserType {
     avatar_url?: string
 }
 
-class User {
+export default class User {
     _id?: ObjectId
     username: string
     first_name: string
@@ -45,5 +45,3 @@ class User {
         this.avatar_url = user.avatar_url || ''
     }
 }
-
-export default User

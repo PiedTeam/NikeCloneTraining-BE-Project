@@ -33,5 +33,9 @@ export const USER_MESSAGES = {
     LAST_NAME_IS_REQUIRED: 'Last name is required',
     LAST_NAME_MUST_BE_STRING: 'Last name must be a string',
     LAST_NAME_LENGTH_MUST_BE_FROM_1_TO_50:
-        'Last name must be between 1 and 50 characters'
+        'Last name must be between 1 and 50 characters',
+
+    // user messages
+    REGISTER_SUCCESS: 'Register successfully',
+    REGISTER_FAILED: 'Register failed'
 }
