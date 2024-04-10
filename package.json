@@ -40,9 +40,7 @@
         "cryptojs": "^2.5.3",
         "dotenv": "^16.4.5",
         "express": "^4.19.2",
-        "express-validation": "^4.1.0",
         "express-validator": "^7.0.1",
-        "jsonwebtoken": "^9.0.2",
         "mongodb": "^6.5.0"
     }
 }
