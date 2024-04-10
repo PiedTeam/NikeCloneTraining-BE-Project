@@ -137,6 +137,18 @@ const emailSchema: ParamSchema = {
         }
     }
 }
+const phoneNumberSchema: ParamSchema = {
+    notEmpty: {
+        errorMessage: USERS_MESSAGES.PHONE_NUMBER_IS_REQUIRED
+    },
+    isString: {
+        errorMessage: USERS_MESSAGES.PHONE_NUMBER_MUST_BE_A_STRING
+    },
+    isMobilePhone: {
+        options: ['vi-VN'],
+        errorMessage: USERS_MESSAGES.PHONE_NUMBER_IS_INVALID
+    }
+}
 
 export const registerValidator = validate(
     checkSchema(
@@ -146,7 +158,8 @@ export const registerValidator = validate(
             last_name: lastnameSchema,
             email: emailSchema,
             password: passwordSchema,
-            confirm_password: confirmPasswordSchema
+            confirm_password: confirmPasswordSchema,
+            phone_number: phoneNumberSchema
         },
         ['body']
     )

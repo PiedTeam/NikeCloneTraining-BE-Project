@@ -37,6 +37,12 @@ export const USERS_MESSAGES = {
     CONFIRM_PASSWORD_MUST_BE_THE_SAME_AS_PASSWORD:
         'Confirm password must be the same as password',
 
+    //Phone
+    PHONE_NUMBER_IS_REQUIRED: 'Phone number is required',
+    PHONE_NUMBER_MUST_BE_A_STRING: 'Phone number must be a string',
+    PHONE_NUMBER_IS_INVALID: 'Phone number is invalid',
+    PHONE_NUMBER_LENGTH_MUST_BE_10: 'Phone number length must be 10',
+
     // User messages
     REGISTER_SUCCESS: 'Register successfully',
     REGISTER_FAIL: 'Register failed'
