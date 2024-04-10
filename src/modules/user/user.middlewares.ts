@@ -1,6 +1,5 @@
 import { ParamSchema } from 'express-validator'
 import { USER_MESSAGES } from './user.messages'
-import { error } from 'console'
 
 const usernameSchema: ParamSchema = {
     notEmpty: {
@@ -23,10 +22,10 @@ const emailSchema: ParamSchema = {
     notEmpty: {
         errorMessage: USER_MESSAGES.EMAIL_IS_REQUIRED
     },
+    trim: true,
     isEmail: {
         errorMessage: USER_MESSAGES.EMAIL_IS_INVALID
-    },
-    trim: true
+    }
 }
 
 const phone_numberSchema: ParamSchema = {
