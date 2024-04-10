@@ -6,5 +6,5 @@ export enum UserVerifyStatus {
 
 export enum UserRole {
     Admin,
-    User
+    Customer
 }

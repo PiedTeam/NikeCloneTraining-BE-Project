@@ -9,14 +9,14 @@ interface UserType {
     phone_number?: string
     password: string
     email: string
-    role: UserRole
+    role?: UserRole
     created_at?: Date
     updated_at?: Date
     status?: UserVerifyStatus
     avatar_url?: string
 }
 
-class User {
+export default class User {
     _id?: ObjectId
     username: string
     first_name: string
@@ -38,12 +38,10 @@ class User {
         this.phone_number = user.phone_number || ''
         this.password = user.password
         this.email = user.email || ''
-        this.role = user.role
+        this.role = user.role || UserRole.Customer
         this.created_at = user.created_at || date
         this.updated_at = user.updated_at || date
         this.status = user.status || UserVerifyStatus.Unverified
         this.avatar_url = user.avatar_url || ''
     }
 }
-
-export default User

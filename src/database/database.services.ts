@@ -5,7 +5,7 @@ import Otp from '~/modules/otp/otp.schema'
 import RefreshToken from '~/modules/refreshToken/refreshToken.schema'
 config()
 
-const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@piednike.tq8fhlk.mongodb.net/?retryWrites=true&w=majority&appName=PiedNike`
+const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@piednike.tq8fhlk.mongodb.net/`
 
 class DatabaseService {
     private client: MongoClient
