@@ -37,5 +37,9 @@ export const USER_MESSAGES = {
 
     // user messages
     REGISTER_SUCCESS: 'Register successfully',
-    REGISTER_FAILED: 'Register failed'
+    REGISTER_FAILED: 'Register failed',
+
+    // register
+    USERNAME_ALREADY_EXISTS: 'Username is already exist',
+    EMAIL_ALREADY_EXISTS: 'Email is already exist'
 }

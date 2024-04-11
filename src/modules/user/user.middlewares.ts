@@ -1,16 +1,17 @@
 import { USER_MESSAGES } from '~/modules/user/user.messages'
-import usersService from './user.services'
 import { checkSchema, ParamSchema } from 'express-validator'
 import { validate } from '~/utils/validation'
+import usersService from './user.services'
+import { encrypt } from '~/utils/crypto'
 
 const usernameSchema: ParamSchema = {
+    trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.USERNAME_IS_REQUIRED
     },
     isString: {
         errorMessage: USER_MESSAGES.USERNAME_MUST_BE_STRING
     },
-    trim: true,
     isLength: {
         options: {
             min: 1,
@@ -21,16 +22,22 @@ const usernameSchema: ParamSchema = {
 }
 
 const emailSchema: ParamSchema = {
+    trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.EMAIL_IS_REQUIRED
     },
-    trim: true,
     isEmail: {
         errorMessage: USER_MESSAGES.EMAIL_IS_INVALID
     }
 }
 
 const phone_numberSchema: ParamSchema = {
+    optional: {
+        options: {
+            nullable: true
+        }
+    },
+    trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.PHONE_NUMBER_IS_REQUIRED
     },
@@ -44,13 +51,13 @@ const phone_numberSchema: ParamSchema = {
 }
 
 const passwordSchema: ParamSchema = {
+    trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.PASSWORD_IS_REQUIRED
     },
     isString: {
         errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING
     },
-    trim: true,
     isStrongPassword: {
         options: {
             minLength: 8,
@@ -64,13 +71,13 @@ const passwordSchema: ParamSchema = {
 }
 
 const confirmPasswordSchema: ParamSchema = {
+    trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.PASSWORD_IS_REQUIRED
     },
     isString: {
         errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING
     },
-    trim: true,
     isStrongPassword: {
         options: {
             minLength: 8,
@@ -94,13 +101,13 @@ const confirmPasswordSchema: ParamSchema = {
 }
 
 const firstnameSchema: ParamSchema = {
+    trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.FIRST_NAME_IS_REQUIRED
     },
     isString: {
         errorMessage: USER_MESSAGES.FIRST_NAME_MUST_BE_STRING
     },
-    trim: true,
     isLength: {
         options: {
             min: 1,
@@ -111,13 +118,13 @@ const firstnameSchema: ParamSchema = {
 }
 
 const lastnameSchema: ParamSchema = {
+    trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.LAST_NAME_IS_REQUIRED
     },
     isString: {
         errorMessage: USER_MESSAGES.LAST_NAME_MUST_BE_STRING
     },
-    trim: true,
     isLength: {
         options: {
             min: 1,
@@ -130,12 +137,39 @@ const lastnameSchema: ParamSchema = {
 export const registerValidator = validate(
     checkSchema(
         {
-            username: usernameSchema,
+            username: {
+                custom: {
+                    options: async (value) => {
+                        const isExist =
+                            await usersService.checkUsernameExist(value)
+                        if (isExist) {
+                            throw new Error(
+                                USER_MESSAGES.USERNAME_ALREADY_EXISTS
+                            )
+                        }
+                        return true
+                    }
+                },
+                ...usernameSchema
+            },
             first_name: firstnameSchema,
             last_name: lastnameSchema,
-            email: emailSchema,
             password: passwordSchema,
             confirm_password: confirmPasswordSchema,
+            email: {
+                custom: {
+                    options: async (value) => {
+                        const isExist = await usersService.checkEmailExist(
+                            encrypt(value)
+                        )
+                        if (isExist) {
+                            throw new Error(USER_MESSAGES.EMAIL_ALREADY_EXISTS)
+                        }
+                        return true
+                    }
+                },
+                ...emailSchema
+            },
             phone_number: phone_numberSchema
         },
         ['body']
