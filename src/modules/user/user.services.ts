@@ -5,8 +5,13 @@ import { RegisterReqBody } from './user.requests'
 
 class UsersService {
     async checkEmailExist(email: string) {
-        const users = await databaseService.users.findOne({ email })
-        return Boolean(users)
+        const user = await databaseService.users.findOne({ email })
+        return Boolean(user)
+    }
+
+    async checkUsernameExist(username: string) {
+        const user = await databaseService.users.findOne({ username })
+        return Boolean(user)
     }
 
     async register(payload: RegisterReqBody) {
@@ -16,7 +21,10 @@ class UsersService {
                 ...payload,
                 _id: user_id,
                 email: payload.email,
-                phone_number: payload.phone_number,
+                phone_number:
+                    payload.phone_number === undefined
+                        ? ''
+                        : payload.phone_number,
                 password: payload.password
             })
         )

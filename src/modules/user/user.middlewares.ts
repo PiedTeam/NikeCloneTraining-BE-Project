@@ -1,7 +1,7 @@
 import { USER_MESSAGES } from '~/modules/user/user.messages'
-import usersService from './user.services'
 import { checkSchema, ParamSchema } from 'express-validator'
 import { validate } from '~/utils/validation'
+import usersService from './user.services'
 
 const usernameSchema: ParamSchema = {
     trim: true,
@@ -31,8 +31,12 @@ const emailSchema: ParamSchema = {
 }
 
 const phone_numberSchema: ParamSchema = {
+    optional: {
+        options: {
+            nullable: true
+        }
+    },
     trim: true,
-    optional: { options: { nullable: true } },
     notEmpty: {
         errorMessage: USER_MESSAGES.PHONE_NUMBER_IS_REQUIRED
     },
@@ -132,12 +136,38 @@ const lastnameSchema: ParamSchema = {
 export const registerValidator = validate(
     checkSchema(
         {
-            username: usernameSchema,
+            username: {
+                custom: {
+                    options: async (value) => {
+                        const isExist =
+                            await usersService.checkUsernameExist(value)
+                        if (isExist) {
+                            throw new Error(
+                                USER_MESSAGES.USERNAME_ALREADY_EXISTS
+                            )
+                        }
+                        return true
+                    }
+                },
+                ...usernameSchema
+            },
             first_name: firstnameSchema,
             last_name: lastnameSchema,
-            email: emailSchema,
             password: passwordSchema,
             confirm_password: confirmPasswordSchema,
+            email: {
+                custom: {
+                    options: async (value) => {
+                        const isExist =
+                            await usersService.checkEmailExist(value)
+                        if (isExist) {
+                            throw new Error(USER_MESSAGES.EMAIL_ALREADY_EXISTS)
+                        }
+                        return true
+                    }
+                },
+                ...emailSchema
+            },
             phone_number: phone_numberSchema
         },
         ['body']
