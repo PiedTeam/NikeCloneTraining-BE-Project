@@ -4,13 +4,13 @@ import { checkSchema, ParamSchema } from 'express-validator'
 import { validate } from '~/utils/validation'
 
 const usernameSchema: ParamSchema = {
+    trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.USERNAME_IS_REQUIRED
     },
     isString: {
         errorMessage: USER_MESSAGES.USERNAME_MUST_BE_STRING
     },
-    trim: true,
     isLength: {
         options: {
             min: 1,
@@ -21,16 +21,17 @@ const usernameSchema: ParamSchema = {
 }
 
 const emailSchema: ParamSchema = {
+    trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.EMAIL_IS_REQUIRED
     },
-    trim: true,
     isEmail: {
         errorMessage: USER_MESSAGES.EMAIL_IS_INVALID
     }
 }
 
 const phone_numberSchema: ParamSchema = {
+    trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.PHONE_NUMBER_IS_REQUIRED
     },
@@ -44,13 +45,13 @@ const phone_numberSchema: ParamSchema = {
 }
 
 const passwordSchema: ParamSchema = {
+    trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.PASSWORD_IS_REQUIRED
     },
     isString: {
         errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING
     },
-    trim: true,
     isStrongPassword: {
         options: {
             minLength: 8,
@@ -64,13 +65,13 @@ const passwordSchema: ParamSchema = {
 }
 
 const confirmPasswordSchema: ParamSchema = {
+    trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.PASSWORD_IS_REQUIRED
     },
     isString: {
         errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING
     },
-    trim: true,
     isStrongPassword: {
         options: {
             minLength: 8,
@@ -94,13 +95,13 @@ const confirmPasswordSchema: ParamSchema = {
 }
 
 const firstnameSchema: ParamSchema = {
+    trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.FIRST_NAME_IS_REQUIRED
     },
     isString: {
         errorMessage: USER_MESSAGES.FIRST_NAME_MUST_BE_STRING
     },
-    trim: true,
     isLength: {
         options: {
             min: 1,
@@ -111,13 +112,13 @@ const firstnameSchema: ParamSchema = {
 }
 
 const lastnameSchema: ParamSchema = {
+    trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.LAST_NAME_IS_REQUIRED
     },
     isString: {
         errorMessage: USER_MESSAGES.LAST_NAME_MUST_BE_STRING
     },
-    trim: true,
     isLength: {
         options: {
             min: 1,
