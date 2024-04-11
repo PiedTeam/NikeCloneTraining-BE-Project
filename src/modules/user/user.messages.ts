@@ -41,5 +41,8 @@ export const USER_MESSAGES = {
 
     // register
     USERNAME_ALREADY_EXISTS: 'Username is already exist',
-    EMAIL_ALREADY_EXISTS: 'Email is already exist'
-}
+    EMAIL_ALREADY_EXISTS: 'Email is already exist',
+
+    // error messages
+    UNPROCESSABLE_ENTITY: 'Validation: Unprocessable Entity'
+} as const

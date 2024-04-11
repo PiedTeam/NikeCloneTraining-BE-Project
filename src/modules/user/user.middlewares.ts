@@ -3,6 +3,8 @@ import { checkSchema, ParamSchema } from 'express-validator'
 import { validate } from '~/utils/validation'
 import usersService from './user.services'
 import { encrypt } from '~/utils/crypto'
+import { ErrorWithStatus } from '~/errors/errors.entityError'
+import { NextFunction } from 'express'
 
 const usernameSchema: ParamSchema = {
     trim: true,
@@ -32,11 +34,7 @@ const emailSchema: ParamSchema = {
 }
 
 const phone_numberSchema: ParamSchema = {
-    optional: {
-        options: {
-            nullable: true
-        }
-    },
+    optional: true,
     trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.PHONE_NUMBER_IS_REQUIRED
@@ -142,6 +140,7 @@ export const registerValidator = validate(
                     options: async (value) => {
                         const isExist =
                             await usersService.checkUsernameExist(value)
+
                         if (isExist) {
                             throw new Error(
                                 USER_MESSAGES.USERNAME_ALREADY_EXISTS

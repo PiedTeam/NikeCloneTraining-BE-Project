@@ -18,6 +18,7 @@ const usersRouter = Router()
     last_name: string
   }
 */
+
 usersRouter.post('/register', registerValidator, wrapAsync(registerController))
 
 export default usersRouter
