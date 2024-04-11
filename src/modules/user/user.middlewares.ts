@@ -32,6 +32,7 @@ const emailSchema: ParamSchema = {
 
 const phone_numberSchema: ParamSchema = {
     trim: true,
+    optional: { options: { nullable: true } },
     notEmpty: {
         errorMessage: USER_MESSAGES.PHONE_NUMBER_IS_REQUIRED
     },
