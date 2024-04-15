@@ -13,3 +13,8 @@ export enum TokenType {
     Access,
     Refresh
 }
+
+export enum Subscription {
+    False,
+    True
+}

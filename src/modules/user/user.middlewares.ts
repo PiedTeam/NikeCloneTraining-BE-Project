@@ -3,8 +3,7 @@ import { checkSchema, ParamSchema } from 'express-validator'
 import { validate } from '~/utils/validation'
 import usersService from './user.services'
 import { encrypt } from '~/utils/crypto'
-import { ErrorWithStatus } from '~/errors/errors.entityError'
-import { NextFunction } from 'express'
+import { min } from 'lodash'
 
 const usernameSchema: ParamSchema = {
     trim: true,
@@ -154,22 +153,7 @@ export const registerValidator = validate(
             first_name: firstnameSchema,
             last_name: lastnameSchema,
             password: passwordSchema,
-            confirm_password: confirmPasswordSchema,
-            email: {
-                custom: {
-                    options: async (value) => {
-                        const isExist = await usersService.checkEmailExist(
-                            encrypt(value)
-                        )
-                        if (isExist) {
-                            throw new Error(USER_MESSAGES.EMAIL_ALREADY_EXISTS)
-                        }
-                        return true
-                    }
-                },
-                ...emailSchema
-            },
-            phone_number: phone_numberSchema
+            confirm_password: confirmPasswordSchema
         },
         ['body']
     )

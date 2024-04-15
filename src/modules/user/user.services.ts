@@ -50,6 +50,8 @@ class UsersService {
         const user_id = new ObjectId()
 
         // verify email
+        const { username, first_name, last_name, password, subscription } =
+            payload
 
         const [access_token, refresh_token] =
             await this.signAccessAndRefreshToken(user_id.toString())
@@ -58,14 +60,12 @@ class UsersService {
 
         await databaseService.users.insertOne(
             new User({
-                ...payload,
+                username,
+                first_name,
+                last_name,
                 _id: user_id,
-                email: encrypt(payload.email),
-                phone_number:
-                    payload.phone_number === undefined
-                        ? ''
-                        : encrypt(payload.phone_number),
-                password: hashPassword(payload.password)
+                password: hashPassword(password),
+                subscription: subscription
             })
         )
 
