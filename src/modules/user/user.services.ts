@@ -20,7 +20,7 @@ class UsersService {
             new User({
                 ...payload,
                 _id: user_id,
-                email: payload.email,
+                email: payload.email as string,
                 phone_number:
                     payload.phone_number === undefined
                         ? ''
