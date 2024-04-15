@@ -45,6 +45,6 @@ export default class User {
         this.updated_at = user.updated_at || date
         this.status = user.status || UserVerifyStatus.Unverified
         this.avatar_url = user.avatar_url || ''
-        this.subscription = user.subscription
+        this.subscription = user.subscription || Subscription.False
     }
 }
