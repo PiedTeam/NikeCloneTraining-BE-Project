@@ -42,13 +42,6 @@ body: {
   last_name: string
 }
 */
-// oauthRouter.get(
-//     '/google/callback',
-//     passport.authenticate('google', {
-//         failureRedirect: process.env.LOGIN_FAIL_URL,
-//         successRedirect: process.env.LOGIN_SUCCESS_URL
-//     })
-// )
 oauthRouter.get(
     '/google/callback',
     (req, res, next) => {

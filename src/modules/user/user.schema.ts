@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb'
-import { UserRole, UserVerifyStatus } from './user.enum'
+import { Subscription, UserRole, UserVerifyStatus } from './user.enum'
 
 interface UserType {
     _id?: ObjectId
@@ -8,12 +8,13 @@ interface UserType {
     last_name: string
     phone_number?: string
     password: string
-    email: string
+    email?: string
     role?: UserRole
     created_at?: Date
     updated_at?: Date
     status?: UserVerifyStatus
     avatar_url?: string
+    subscription: Subscription
 }
 
 export default class User {
@@ -29,6 +30,7 @@ export default class User {
     updated_at: Date
     status: UserVerifyStatus
     avatar_url: string
+    subscription: Subscription
     constructor(user: UserType) {
         const date = new Date()
         this._id = user._id || new ObjectId()
@@ -43,5 +45,6 @@ export default class User {
         this.updated_at = user.updated_at || date
         this.status = user.status || UserVerifyStatus.Unverified
         this.avatar_url = user.avatar_url || ''
+        this.subscription = user.subscription || Subscription.False
     }
 }

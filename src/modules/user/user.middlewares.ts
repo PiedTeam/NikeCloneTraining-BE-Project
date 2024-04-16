@@ -2,6 +2,8 @@ import { USER_MESSAGES } from '~/modules/user/user.messages'
 import { checkSchema, ParamSchema } from 'express-validator'
 import { validate } from '~/utils/validation'
 import usersService from './user.services'
+import { encrypt } from '~/utils/crypto'
+import { min } from 'lodash'
 
 const usernameSchema: ParamSchema = {
     trim: true,
@@ -31,11 +33,7 @@ const emailSchema: ParamSchema = {
 }
 
 const phone_numberSchema: ParamSchema = {
-    optional: {
-        options: {
-            nullable: true
-        }
-    },
+    optional: true,
     trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.PHONE_NUMBER_IS_REQUIRED
@@ -141,6 +139,7 @@ export const registerValidator = validate(
                     options: async (value) => {
                         const isExist =
                             await usersService.checkUsernameExist(value)
+
                         if (isExist) {
                             throw new Error(
                                 USER_MESSAGES.USERNAME_ALREADY_EXISTS
@@ -154,21 +153,7 @@ export const registerValidator = validate(
             first_name: firstnameSchema,
             last_name: lastnameSchema,
             password: passwordSchema,
-            confirm_password: confirmPasswordSchema,
-            email: {
-                custom: {
-                    options: async (value) => {
-                        const isExist =
-                            await usersService.checkEmailExist(value)
-                        if (isExist) {
-                            throw new Error(USER_MESSAGES.EMAIL_ALREADY_EXISTS)
-                        }
-                        return true
-                    }
-                },
-                ...emailSchema
-            },
-            phone_number: phone_numberSchema
+            confirm_password: confirmPasswordSchema
         },
         ['body']
     )

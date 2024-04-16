@@ -2,7 +2,7 @@ import { Strategy } from 'passport-google-oauth20'
 import passport from 'passport'
 import usersService from './src/modules/user/user.services'
 import { RegisterReqBody } from '~/modules/user/user.requests'
-import databaseService from '~/database/database.services'
+import { encrypt } from '~/utils/crypto'
 
 const GoogleStrategy = Strategy
 
@@ -14,22 +14,23 @@ passport.use(
             callbackURL: process.env.CLIENT_URL
         },
         async function (accessToken, refreshToken, profile, callback) {
-            const { id, displayName, emails, name, photos } = profile
+            const { id, displayName, emails, name, photos, provider } = profile
             const data: RegisterReqBody = {
                 username: displayName,
                 email: emails?.length ? emails[0].value : '',
                 first_name: name?.familyName as string,
                 last_name: name?.givenName as string,
                 password: id,
-                avatar_url: photos?.length ? photos[0].value : ''
+                avatar_url: photos?.length ? photos[0].value : '',
+                subscription: 1
             }
             console.log(data)
 
-            const user = await usersService.checkEmailExist(
-                data.email as string
+            const isExist = await usersService.checkEmailExist(
+                encrypt(data.email) as string
             )
-            if (!user) {
-                await usersService.register(data)
+            if (!isExist) {
+                await usersService.register(data, profile.provider as string)
             }
 
             return callback(null, profile)
