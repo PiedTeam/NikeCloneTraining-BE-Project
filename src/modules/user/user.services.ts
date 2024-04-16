@@ -1,11 +1,12 @@
 import databaseService from '~/database/database.services'
 import User from './user.schema'
 import { ObjectId } from 'mongodb'
-import { RegisterReqBody } from './user.requests'
+import { RegisterOauthReqBody, RegisterReqBody } from './user.requests'
 import { encrypt, hashPassword } from '~/utils/crypto'
 import { signToken, verifyToken } from '~/utils/jwt'
 import { TokenType, UserRole } from './user.enum'
 import RefreshToken from '../refreshToken/refreshToken.schema'
+import { omit } from 'lodash'
 
 class UsersService {
     private decodeRefreshToken(refresh_token: string) {
@@ -46,28 +47,41 @@ class UsersService {
         return Boolean(user)
     }
 
-    async register(payload: RegisterReqBody) {
+    async register(
+        payload: RegisterReqBody | RegisterOauthReqBody,
+        provider?: string
+    ) {
         const user_id = new ObjectId()
-
-        // verify email
-        const { username, first_name, last_name, password, subscription } =
-            payload
 
         const [access_token, refresh_token] =
             await this.signAccessAndRefreshToken(user_id.toString())
 
         const { iat, exp } = await this.decodeRefreshToken(refresh_token)
+        console.log(user_id)
 
-        await databaseService.users.insertOne(
-            new User({
-                username,
-                first_name,
-                last_name,
-                _id: user_id,
-                password: hashPassword(password),
-                subscription: subscription
-            })
-        )
+        if (provider === 'google') {
+            await databaseService.users.insertOne(
+                new User({
+                    _id: user_id,
+                    ...(omit(payload, [
+                        'phone_number'
+                    ]) as RegisterOauthReqBody),
+                    password: hashPassword(payload.password),
+                    email: encrypt(payload.email)
+                })
+            )
+        } else {
+            await databaseService.users.insertOne(
+                new User({
+                    _id: user_id,
+                    ...(omit(payload, [
+                        'phone_number',
+                        'email'
+                    ]) as RegisterReqBody),
+                    password: hashPassword(payload.password)
+                })
+            )
+        }
 
         await databaseService.refreshTokens.insertOne(
             new RefreshToken({
