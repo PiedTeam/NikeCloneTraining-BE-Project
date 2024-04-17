@@ -57,7 +57,6 @@ class UsersService {
             await this.signAccessAndRefreshToken(user_id.toString())
 
         const { iat, exp } = await this.decodeRefreshToken(refresh_token)
-        console.log(user_id)
 
         if (provider === 'google') {
             await databaseService.users.insertOne(
