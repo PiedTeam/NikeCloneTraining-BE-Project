@@ -1,10 +1,14 @@
 import databaseService from '~/database/database.services'
 import User from './user.schema'
 import { ObjectId } from 'mongodb'
-import { RegisterOauthReqBody, RegisterReqBody } from './user.requests'
+import {
+    LoginRequestBody,
+    RegisterOauthReqBody,
+    RegisterReqBody
+} from './user.requests'
 import { encrypt, hashPassword } from '~/utils/crypto'
 import { signToken, verifyToken } from '~/utils/jwt'
-import { TokenType, UserRole } from './user.enum'
+import { TokenType, UserRole, UserVerifyStatus } from './user.enum'
 import RefreshToken from '../refreshToken/refreshToken.schema'
 import { omit } from 'lodash'
 
@@ -81,6 +85,24 @@ class UsersService {
                 })
             )
         }
+
+        await databaseService.refreshTokens.insertOne(
+            new RefreshToken({
+                token: refresh_token,
+                user_id: new ObjectId(user_id),
+                iat,
+                exp
+            })
+        )
+
+        return { access_token, refresh_token }
+    }
+
+    async login(user_id: string) {
+        const [access_token, refresh_token] =
+            await this.signAccessAndRefreshToken(user_id)
+
+        const { iat, exp } = await this.decodeRefreshToken(refresh_token)
 
         await databaseService.refreshTokens.insertOne(
             new RefreshToken({

@@ -2,8 +2,11 @@ import { USER_MESSAGES } from '~/modules/user/user.messages'
 import { checkSchema, ParamSchema } from 'express-validator'
 import { validate } from '~/utils/validation'
 import usersService from './user.services'
-import { encrypt } from '~/utils/crypto'
-import { min } from 'lodash'
+import { encrypt, hashPassword } from '~/utils/crypto'
+import databaseService from '~/database/database.services'
+import { Request, Response, NextFunction } from 'express'
+import { LoginRequestBody } from './user.requests'
+import { ParamsDictionary } from 'express-serve-static-core'
 
 const usernameSchema: ParamSchema = {
     trim: true,
@@ -12,6 +15,14 @@ const usernameSchema: ParamSchema = {
     },
     isString: {
         errorMessage: USER_MESSAGES.USERNAME_MUST_BE_STRING
+    },
+    custom: {
+        options: (value: string) => {
+            if (!/[a-zA-Z]/.test(value)) {
+                throw new Error(USER_MESSAGES.USERNAME_MUST_CONTAIN_ALPHABET)
+            }
+            return true
+        }
     },
     isLength: {
         options: {
@@ -33,7 +44,6 @@ const emailSchema: ParamSchema = {
 }
 
 const phone_numberSchema: ParamSchema = {
-    optional: true,
     trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.PHONE_NUMBER_IS_REQUIRED
@@ -154,6 +164,82 @@ export const registerValidator = validate(
             last_name: lastnameSchema,
             password: passwordSchema
             // confirm_password: confirmPasswordSchema
+        },
+        ['body']
+    )
+)
+
+export const loginValidator = validate(
+    checkSchema(
+        {
+            username: {
+                optional: true,
+                ...usernameSchema,
+                custom: {
+                    options: async (value, { req }) => {
+                        const user = await databaseService.users.findOne({
+                            username: value
+                        })
+                        if (user === null) {
+                            throw new Error(USER_MESSAGES.USERNAME_NOT_FOUND)
+                        }
+                        if (user.password !== hashPassword(req.body.password)) {
+                            throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
+                        }
+                        req.user = user
+                        return true
+                    }
+                }
+            },
+            email: {
+                optional: true,
+                ...emailSchema,
+                custom: {
+                    options: async (value, { req }) => {
+                        const user = await databaseService.users.findOne({
+                            email: encrypt(value)
+                        })
+                        if (user === null) {
+                            throw new Error(USER_MESSAGES.EMAIL_NOT_FOUND)
+                        }
+                        if (user.password !== hashPassword(req.body.password)) {
+                            throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
+                        }
+                        req.user = user
+                        return true
+                    }
+                }
+            },
+            phone_number: {
+                optional: true,
+                ...phone_numberSchema,
+                custom: {
+                    options: async (value, { req }) => {
+                        const user = await databaseService.users.findOne({
+                            phone_number: encrypt(value)
+                        })
+                        if (user === null) {
+                            throw new Error(
+                                USER_MESSAGES.PHONE_NUMBER_NOT_FOUND
+                            )
+                        }
+                        if (user.password !== hashPassword(req.body.password)) {
+                            throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
+                        }
+                        req.user = user
+                        return true
+                    }
+                }
+            },
+            password: {
+                trim: true,
+                notEmpty: {
+                    errorMessage: 'Password is required'
+                },
+                isString: {
+                    errorMessage: 'Password must be a string'
+                }
+            }
         },
         ['body']
     )
