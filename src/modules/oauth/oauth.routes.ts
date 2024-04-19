@@ -92,8 +92,8 @@ body: {
 oauthRouter.get(
     '/facebook/callback',
     (req, res, next) => {
-        passport.authenticate('facebook', (err: Error, profile: Profile) => {
-            req.user = profile
+        passport.authenticate('facebook', (err: Error, result: Profile) => {
+            req.body = result
             next()
         })(req, res, next)
     },

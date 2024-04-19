@@ -4,6 +4,9 @@ import passport from 'passport'
 import usersService from './src/modules/user/user.services'
 import { RegisterReqBody } from '~/modules/user/user.requests'
 import { encrypt } from '~/utils/crypto'
+import { result } from 'lodash'
+import databaseService from '~/database/database.services'
+import User from '~/modules/user/user.schema'
 
 const GoogleStrategy = Google_Strategy
 const FacebookStrategy = Facebook_Strategy
@@ -30,11 +33,30 @@ passport.use(
             const isExist = await usersService.checkEmailExist(
                 encrypt(data.email) as string
             )
-            if (!isExist) {
-                await usersService.register(data, provider as string)
+            const result = {
+                new_user: isExist ? false : true,
+                access_token: '',
+                refresh_token: ''
             }
 
-            return callback(null, profile)
+            if (!isExist) {
+                const { access_token, refresh_token } =
+                    await usersService.register(data, provider as string)
+
+                result.access_token = access_token
+                result.refresh_token = refresh_token
+            } else {
+                const user = await databaseService.users.findOne({
+                    encrypt_email: encrypt(data.email)
+                })
+                const { access_token, refresh_token } =
+                    await usersService.login(user?._id.toString() as string)
+
+                result.access_token = access_token
+                result.refresh_token = refresh_token
+            }
+
+            return callback(null, result)
         }
     )
 )
@@ -62,11 +84,31 @@ passport.use(
             const isExist = await usersService.checkEmailExist(
                 encrypt(data.email) as string
             )
-            if (!isExist) {
-                await usersService.register(data, provider as string)
+
+            const result = {
+                new_user: isExist ? false : true,
+                access_token: '',
+                refresh_token: ''
             }
 
-            return callback(null, profile)
+            if (!isExist) {
+                const { access_token, refresh_token } =
+                    await usersService.register(data, provider as string)
+
+                result.access_token = access_token
+                result.refresh_token = refresh_token
+            } else {
+                const user = await databaseService.users.findOne({
+                    encrypt_email: encrypt(data.email)
+                })
+                const { access_token, refresh_token } =
+                    await usersService.login(user?._id.toString() as string)
+
+                result.access_token = access_token
+                result.refresh_token = refresh_token
+            }
+
+            return callback(null, result)
         }
     )
 )
