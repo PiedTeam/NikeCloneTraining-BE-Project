@@ -12,6 +12,13 @@ export interface RegisterReqBody {
     subscription: Subscription
 }
 
+export interface LoginRequestBody {
+    username?: string
+    email?: string
+    phone_number?: string
+    password: string
+}
+
 export interface RegisterOauthReqBody extends RegisterReqBody {
     username: string
     first_name: string

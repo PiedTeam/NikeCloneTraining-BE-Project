@@ -93,6 +93,23 @@ class UsersService {
 
         return { access_token, refresh_token }
     }
+    async login(user_id: string) {
+        const [access_token, refresh_token] =
+            await this.signAccessAndRefreshToken(user_id)
+
+        const { iat, exp } = await this.decodeRefreshToken(refresh_token)
+
+        await databaseService.refreshTokens.insertOne(
+            new RefreshToken({
+                token: refresh_token,
+                user_id: new ObjectId(user_id),
+                iat,
+                exp
+            })
+        )
+
+        return { access_token, refresh_token }
+    }
 }
 
 const usersService = new UsersService()
