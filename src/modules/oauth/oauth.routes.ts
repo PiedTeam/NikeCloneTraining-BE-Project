@@ -102,53 +102,6 @@ oauthRouter.get(
     }
 )
 
-/*
-  route: register or login by Facebook
-  path: oauth/facebook
-  method: GET
-  body: {
-    username: string,
-    password: string,
-    email: string,
-    phone_number: string,
-    first_name: string,
-    last_name: string
-  }
-*/
-oauthRouter.get(
-    '/facebook',
-    passport.authenticate('facebook', {
-        session: false,
-        scope: ['email']
-    })
-)
-
-/*
-route: callback after login by Facebook
-path: oauth/facebook/callback
-method: GET
-body: {
-  username: string,
-  password: string,
-  email: string,
-  phone_number: string,
-  first_name: string,
-  last_name: string
-}
-*/
-oauthRouter.get(
-    '/facebook/callback',
-    (req, res, next) => {
-        passport.authenticate('facebook', (err: Error, profile: Profile) => {
-            req.user = profile
-            next()
-        })(req, res, next)
-    },
-    (req, res) => {
-        res.redirect(`${process.env.LOGIN_SUCCESS_URL}`)
-    }
-)
-
 oauthRouter.post('/login-success', wrapAsync(loginSuccessController))
 
 oauthRouter.post('/login-fail', wrapAsync(loginFailController))
