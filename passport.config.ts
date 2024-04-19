@@ -92,6 +92,7 @@ passport.use(
             }
 
             if (!isExist) {
+
                 const { access_token, refresh_token } =
                     await usersService.register(data, provider as string)
 
@@ -106,6 +107,7 @@ passport.use(
 
                 result.access_token = access_token
                 result.refresh_token = refresh_token
+
             }
 
             return callback(null, result)
