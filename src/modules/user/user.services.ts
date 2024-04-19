@@ -62,7 +62,7 @@ class UsersService {
 
         const { iat, exp } = await this.decodeRefreshToken(refresh_token)
 
-        if (provider === 'google') {
+        if (provider === 'google' || provider === 'facebook') {
             await databaseService.users.insertOne(
                 new User({
                     _id: user_id,

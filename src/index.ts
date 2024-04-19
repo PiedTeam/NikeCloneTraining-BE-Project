@@ -12,8 +12,14 @@ const app = express()
 const port = 3000
 
 app.use(express.json())
-app.options('*', cors())
-app.use(cors())
+
+const corsOptions = {
+    origin: '*',
+    credentials: true, // access-control-allow-credentials:true
+    allowedHeaders: ['Content-Type', 'Authorization'], // access-control-allow-headers
+    optionSuccessStatus: 200
+}
+app.use(cors(corsOptions))
 
 databaseService.connect()
 
