@@ -106,6 +106,7 @@ passport.use(
 
                 result.access_token = access_token
                 result.refresh_token = refresh_token
+
             }
 
             return callback(null, result)
