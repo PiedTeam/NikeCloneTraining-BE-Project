@@ -20,7 +20,7 @@ const usernameSchema: ParamSchema = {
     }
 }
 
-const emailSchema: ParamSchema = {
+export const emailSchema: ParamSchema = {
     trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.EMAIL_IS_REQUIRED
@@ -30,7 +30,7 @@ const emailSchema: ParamSchema = {
     }
 }
 
-const phone_numberSchema: ParamSchema = {
+export const phone_numberSchema: ParamSchema = {
     optional: {
         options: {
             nullable: true

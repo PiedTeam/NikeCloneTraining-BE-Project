@@ -14,6 +14,11 @@ class UsersService {
         return Boolean(user)
     }
 
+    async checkPhoneExist(phone_number: string) {
+        const user = await databaseService.users.findOne({ phone_number })
+        return Boolean(user)
+    }
+
     async register(payload: RegisterReqBody) {
         const user_id = new ObjectId()
         const result = await databaseService.users.insertOne(
