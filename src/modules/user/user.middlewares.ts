@@ -7,6 +7,8 @@ import databaseService from '~/database/database.services'
 import { Request, Response, NextFunction } from 'express'
 import { LoginRequestBody } from './user.requests'
 import { ParamsDictionary } from 'express-serve-static-core'
+import { ErrorEntity } from '~/errors/errors.entityError'
+import { HTTP_STATUS } from '~/constants/httpStatus'
 
 const usernameSchema: ParamSchema = {
     trim: true,
@@ -16,6 +18,13 @@ const usernameSchema: ParamSchema = {
     isString: {
         errorMessage: USER_MESSAGES.USERNAME_MUST_BE_STRING
     },
+    isLength: {
+        options: {
+            min: 1,
+            max: 50
+        },
+        errorMessage: USER_MESSAGES.USERNAME_LENGTH_MUST_BE_FROM_1_TO_50
+    },
     custom: {
         options: (value: string) => {
             if (!/[a-zA-Z]/.test(value)) {
@@ -23,13 +32,6 @@ const usernameSchema: ParamSchema = {
             }
             return true
         }
-    },
-    isLength: {
-        options: {
-            min: 1,
-            max: 50
-        },
-        errorMessage: USER_MESSAGES.USERNAME_LENGTH_MUST_BE_FROM_1_TO_50
     }
 }
 
@@ -145,8 +147,15 @@ export const registerValidator = validate(
     checkSchema(
         {
             username: {
+                ...usernameSchema,
                 custom: {
                     options: async (value) => {
+                        if (!/[a-zA-Z]/.test(value)) {
+                            throw new Error(
+                                USER_MESSAGES.USERNAME_MUST_CONTAIN_ALPHABET
+                            )
+                        }
+
                         const isExist =
                             await usersService.checkUsernameExist(value)
 
@@ -157,8 +166,7 @@ export const registerValidator = validate(
                         }
                         return true
                     }
-                },
-                ...usernameSchema
+                }
             },
             first_name: firstnameSchema,
             last_name: lastnameSchema,
@@ -169,6 +177,26 @@ export const registerValidator = validate(
     )
 )
 
+export const loginCheckMissingField = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    const body = req.body as LoginRequestBody
+    if (!body.username && !body.email && !body.phone_number) {
+        next(
+            new ErrorEntity({
+                message: USER_MESSAGES.UNPROCESSABLE_ENTITY,
+                status: HTTP_STATUS.UNPROCESSABLE_ENTITY,
+                data: {
+                    field: { msg: USER_MESSAGES.FIELD_IS_REQUIRED }
+                }
+            })
+        )
+    }
+    next()
+}
+
 export const loginValidator = validate(
     checkSchema(
         {
@@ -177,6 +205,12 @@ export const loginValidator = validate(
                 ...usernameSchema,
                 custom: {
                     options: async (value, { req }) => {
+                        if (!/[a-zA-Z]/.test(value)) {
+                            throw new Error(
+                                USER_MESSAGES.USERNAME_MUST_CONTAIN_ALPHABET
+                            )
+                        }
+
                         const user = await databaseService.users.findOne({
                             username: value
                         })
