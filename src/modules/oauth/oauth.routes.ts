@@ -46,7 +46,7 @@ oauthRouter.get(
     '/google/callback',
     (req, res, next) => {
         passport.authenticate('google', (err: Error, profile: Profile) => {
-            req.user = profile
+            req.body = profile
             next()
         })(req, res, next)
     },
@@ -92,8 +92,8 @@ body: {
 oauthRouter.get(
     '/facebook/callback',
     (req, res, next) => {
-        passport.authenticate('facebook', (err: Error, result: Profile) => {
-            req.body = result
+        passport.authenticate('facebook', (err: Error, profile: Profile) => {
+            req.body = profile
             next()
         })(req, res, next)
     },
