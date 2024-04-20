@@ -51,7 +51,10 @@ oauthRouter.get(
         })(req, res, next)
     },
     (req, res) => {
-        res.redirect(`${process.env.LOGIN_SUCCESS_URL}`)
+        const { access_token, refresh_token, new_user } = req.body
+        res.redirect(
+            `${process.env.LOGIN_SUCCESS_URL}/?access_token=${access_token}&refresh_token=${refresh_token}&new_user=${new_user}`
+        )
     }
 )
 
@@ -102,6 +105,6 @@ oauthRouter.get(
     }
 )
 
-oauthRouter.post('/login-success', wrapAsync(loginSuccessController))
+oauthRouter.get('/login-success', wrapAsync(loginSuccessController))
 
-oauthRouter.post('/login-fail', wrapAsync(loginFailController))
+oauthRouter.get('/login-fail', wrapAsync(loginFailController))

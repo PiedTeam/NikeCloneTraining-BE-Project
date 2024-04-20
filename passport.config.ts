@@ -6,7 +6,6 @@ import { RegisterReqBody } from '~/modules/user/user.requests'
 import { encrypt } from '~/utils/crypto'
 import { result } from 'lodash'
 import databaseService from '~/database/database.services'
-import User from '~/modules/user/user.schema'
 
 const GoogleStrategy = Google_Strategy
 const FacebookStrategy = Facebook_Strategy
