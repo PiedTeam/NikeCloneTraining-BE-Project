@@ -4,8 +4,9 @@ import passport from 'passport'
 import usersService from './src/modules/user/user.services'
 import { RegisterReqBody } from '~/modules/user/user.requests'
 import { encrypt } from '~/utils/crypto'
-import { result } from 'lodash'
+import { ObjectId } from 'mongodb'
 import databaseService from '~/database/database.services'
+import exp from 'constants'
 
 const GoogleStrategy = Google_Strategy
 const FacebookStrategy = Facebook_Strategy
@@ -32,10 +33,14 @@ passport.use(
             const isExist = await usersService.checkEmailExist(
                 encrypt(data.email) as string
             )
-            const result = {
-                new_user: isExist ? false : true,
-                access_token: '',
-                refresh_token: ''
+            const result: {
+                new_user: boolean
+                access_token?: string
+                refresh_token?: string
+                iat?: Date
+                exp?: Date
+            } = {
+                new_user: isExist ? false : true
             }
 
             if (!isExist) {
@@ -54,6 +59,16 @@ passport.use(
                 result.access_token = access_token
                 result.refresh_token = refresh_token
             }
+            const user = await databaseService.users.findOne({
+                email: encrypt(data.email)
+            })
+
+            const user_refesh_token =
+                await databaseService.refreshTokens.findOne({
+                    user_id: user?._id
+                })
+            result.iat = user_refesh_token?.iat
+            result.exp = user_refesh_token?.exp
 
             return callback(null, result)
         }
@@ -84,10 +99,14 @@ passport.use(
                 encrypt(data.email) as string
             )
 
-            const result = {
-                new_user: isExist ? false : true,
-                access_token: '',
-                refresh_token: ''
+            const result: {
+                new_user: boolean
+                access_token?: string
+                refresh_token?: string
+                iat?: Date
+                exp?: Date
+            } = {
+                new_user: isExist ? false : true
             }
 
             if (!isExist) {
@@ -106,6 +125,18 @@ passport.use(
                 result.access_token = access_token
                 result.refresh_token = refresh_token
             }
+
+            const user = await databaseService.users.findOne({
+                email: encrypt(data.email)
+            })
+
+            const user_refesh_token =
+                await databaseService.refreshTokens.findOne({
+                    user_id: user?._id
+                })
+
+            result.iat = user_refesh_token?.iat
+            result.exp = user_refesh_token?.exp
 
             return callback(null, result)
         }
