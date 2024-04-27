@@ -146,31 +146,64 @@ const lastnameSchema: ParamSchema = {
 export const registerValidator = validate(
     checkSchema(
         {
-            username: {
-                ...usernameSchema,
+            // username: {
+            //     ...usernameSchema,
+            //     custom: {
+            //         options: async (value) => {
+            //             if (!/[a-zA-Z]/.test(value)) {
+            //                 throw new Error(
+            //                     USER_MESSAGES.USERNAME_MUST_CONTAIN_ALPHABET
+            //                 )
+            //             }
+
+            //             const isExist =
+            //                 await usersService.checkUsernameExist(value)
+
+            //             if (isExist) {
+            //                 throw new Error(
+            //                     USER_MESSAGES.USERNAME_ALREADY_EXISTS
+            //                 )
+            //             }
+            //             return true
+            //         }
+            //     }
+            // },
+            first_name: firstnameSchema,
+            last_name: lastnameSchema,
+            password: passwordSchema,
+            phone_number: {
+                optional: true,
+                ...phone_numberSchema,
                 custom: {
                     options: async (value) => {
-                        if (!/[a-zA-Z]/.test(value)) {
-                            throw new Error(
-                                USER_MESSAGES.USERNAME_MUST_CONTAIN_ALPHABET
-                            )
-                        }
-
                         const isExist =
-                            await usersService.checkUsernameExist(value)
-
+                            await usersService.checkPhoneNumberExist(
+                                encrypt(value)
+                            )
                         if (isExist) {
                             throw new Error(
-                                USER_MESSAGES.USERNAME_ALREADY_EXISTS
+                                USER_MESSAGES.PHONE_NUMBER_ALREADY_EXISTS
                             )
                         }
                         return true
                     }
                 }
             },
-            first_name: firstnameSchema,
-            last_name: lastnameSchema,
-            password: passwordSchema
+            email: {
+                optional: true,
+                ...emailSchema,
+                custom: {
+                    options: async (value) => {
+                        const isExist = await usersService.checkEmailExist(
+                            encrypt(value)
+                        )
+                        if (isExist) {
+                            throw new Error(USER_MESSAGES.EMAIL_ALREADY_EXISTS)
+                        }
+                        return true
+                    }
+                }
+            }
             // confirm_password: confirmPasswordSchema
         },
         ['body']
@@ -190,6 +223,38 @@ export const loginCheckMissingField = (
                 status: HTTP_STATUS.UNPROCESSABLE_ENTITY,
                 data: {
                     field: { msg: USER_MESSAGES.FIELD_IS_REQUIRED }
+                }
+            })
+        )
+    }
+    next()
+}
+
+export const checkEmailOrPhone = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    const body = req.body as ParamsDictionary
+    const email_phone = body.email_phone
+
+    if (
+        email_phone.match(
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        )
+    ) {
+        req.body.email = email_phone
+    } else if (
+        email_phone.match(/^\+?[0-9]{1,4}[\s.-]?[0-9]{1,4}[\s.-]?[0-9]{4,10}$/)
+    ) {
+        req.body.phone_number = email_phone
+    } else {
+        next(
+            new ErrorEntity({
+                message: USER_MESSAGES.UNPROCESSABLE_ENTITY,
+                status: HTTP_STATUS.UNPROCESSABLE_ENTITY,
+                data: {
+                    field: { msg: USER_MESSAGES.FIELD_ERROR_FORMAT }
                 }
             })
         )

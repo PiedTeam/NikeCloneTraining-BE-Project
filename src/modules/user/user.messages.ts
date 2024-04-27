@@ -14,6 +14,7 @@ export const USER_MESSAGES = {
     PHONE_NUMBER_IS_REQUIRED: 'Phone number is required',
     PHONE_NUMBER_MUST_BE_STRING: 'Phone number must be a string',
     PHONE_NUMBER_IS_INVALID: 'Phone number is invalid',
+    PHONE_NUMBER_ALREADY_EXISTS: 'Phone number is already exist',
 
     // password
     PASSWORD_IS_REQUIRED: 'Password is required',
@@ -45,12 +46,13 @@ export const USER_MESSAGES = {
     EMAIL_ALREADY_EXISTS: 'Email is already exist',
 
     // login
-    FIELD_IS_REQUIRED: 'Username, email or phone number is required',
+    FIELD_IS_REQUIRED: 'Email or phone number is required',
     USERNAME_NOT_FOUND: 'Username is not found',
     PASSWORD_IS_WRONG: 'Password is wrong',
     EMAIL_NOT_FOUND: 'Email is not found',
     PHONE_NUMBER_NOT_FOUND: 'Phone number is not found',
     LOGIN_SUCCESS: 'Login successfully',
+    FIELD_ERROR_FORMAT: 'Should be an email or phone number',
 
     // error messages
     UNPROCESSABLE_ENTITY: 'Validation: Unprocessable Entity'
