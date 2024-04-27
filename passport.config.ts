@@ -123,7 +123,7 @@ passport.use(
                 const user = await databaseService.users.findOne({
                     email: encrypt(data.email)
                 })
-                console.log(user?._id.toString() as string)
+
                 const { access_token, refresh_token } =
                     await usersService.login(user?._id.toString() as string)
 
