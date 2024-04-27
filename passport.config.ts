@@ -42,7 +42,7 @@ passport.use(
                 iat?: Date
                 exp?: Date
             } = {
-                new_user: isExist ? false : true
+                new_user: isExist
             }
 
             if (!isExist) {
