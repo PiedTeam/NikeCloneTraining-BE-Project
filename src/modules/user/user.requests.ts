@@ -2,7 +2,7 @@ import { JwtPayload } from 'jsonwebtoken'
 import { Subscription, TokenType, UserVerifyStatus } from './user.enum'
 
 export interface RegisterReqBody {
-    username: string
+    email_phone: string
     first_name: string
     last_name: string
     password: string
@@ -19,13 +19,14 @@ export interface LoginRequestBody {
     password: string
 }
 
-export interface RegisterOauthReqBody extends RegisterReqBody {
+export interface RegisterOauthReqBody {
     username: string
     first_name: string
     last_name: string
     avatar_url: string
     email?: string
     phone_number?: string
+    password: string
     subscription: Subscription
 }
 

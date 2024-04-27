@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { loginController, registerController } from './user.contrtollers'
 import {
+    checkEmailOrPhone,
     loginCheckMissingField,
     loginValidator,
     registerValidator
@@ -22,7 +23,12 @@ const usersRouter = Router()
     last_name: string
   }
 */
-usersRouter.post('/register', registerValidator, wrapAsync(registerController))
+usersRouter.post(
+    '/register',
+    checkEmailOrPhone,
+    registerValidator,
+    wrapAsync(registerController)
+)
 
 /*
 route: login
@@ -37,7 +43,8 @@ body: {
 */
 usersRouter.post(
     '/login',
-    loginCheckMissingField,
+    // loginCheckMissingField,
+    checkEmailOrPhone,
     loginValidator,
     wrapAsync(loginController)
 )

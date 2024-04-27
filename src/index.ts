@@ -5,6 +5,7 @@ import usersRouter from './modules/user/user.routes'
 import { oauthRouter } from './modules/oauth/oauth.routes'
 import { defaultErrorHandler } from './errors/errors.middlewares'
 import { config } from 'dotenv'
+import cookieParser from 'cookie-parser'
 import '../passport.config'
 config()
 
@@ -12,6 +13,7 @@ const app = express()
 const port = 3000
 
 app.use(express.json())
+app.use(cookieParser())
 
 const corsOptions = {
     origin: '*',
