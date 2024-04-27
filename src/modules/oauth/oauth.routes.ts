@@ -51,7 +51,10 @@ oauthRouter.get(
         })(req, res, next)
     },
     (req, res) => {
-        res.redirect(`${process.env.LOGIN_SUCCESS_URL}`)
+        const { access_token, refresh_token, new_user, iat, exp } = req.body
+        res.redirect(
+            `${process.env.LOGIN_SUCCESS_URL}/?access_token=${access_token}&refresh_token=${refresh_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
+        )
     }
 )
 
@@ -98,7 +101,10 @@ oauthRouter.get(
         })(req, res, next)
     },
     (req, res) => {
-        res.redirect(`${process.env.LOGIN_SUCCESS_URL}`)
+        const { access_token, refresh_token, new_user, iat, exp } = req.body
+        res.redirect(
+            `${process.env.LOGIN_SUCCESS_URL}/?access_token=${access_token}&refresh_token=${refresh_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
+        )
     }
 )
 
