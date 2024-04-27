@@ -51,6 +51,11 @@ class UsersService {
         return Boolean(user)
     }
 
+    async checkPhoneNumberExist(phone_number: string) {
+        const user = await databaseService.users.findOne({ phone_number })
+        return Boolean(user)
+    }
+
     async register(
         payload: RegisterReqBody | RegisterOauthReqBody,
         provider?: string
@@ -77,11 +82,13 @@ class UsersService {
             await databaseService.users.insertOne(
                 new User({
                     _id: user_id,
-                    ...(omit(payload, [
-                        'phone_number',
-                        'email'
-                    ]) as RegisterReqBody),
-                    password: hashPassword(payload.password)
+                    ...(omit(payload, ['email_phone']) as RegisterReqBody),
+                    password: hashPassword(payload.password),
+                    username: payload.first_name + ' ' + payload.last_name,
+                    email: payload.email?.length ? encrypt(payload.email) : '',
+                    phone_number: payload.phone_number?.length
+                        ? encrypt(payload.phone_number)
+                        : ''
                 })
             )
         }

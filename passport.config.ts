@@ -2,7 +2,10 @@ import { Strategy as Google_Strategy } from 'passport-google-oauth20'
 import { Strategy as Facebook_Strategy } from 'passport-facebook'
 import passport from 'passport'
 import usersService from './src/modules/user/user.services'
-import { RegisterReqBody } from '~/modules/user/user.requests'
+import {
+    RegisterOauthReqBody,
+    RegisterReqBody
+} from '~/modules/user/user.requests'
 import { encrypt } from '~/utils/crypto'
 import databaseService from '~/database/database.services'
 
@@ -18,7 +21,7 @@ passport.use(
         },
         async function (accessToken, refreshToken, profile, callback) {
             const { id, displayName, emails, name, photos, provider } = profile
-            const data: RegisterReqBody = {
+            const data: RegisterOauthReqBody = {
                 username: displayName,
                 email: emails?.length ? emails[0].value : '',
                 first_name: name?.familyName as string,
@@ -50,7 +53,7 @@ passport.use(
                 result.refresh_token = refresh_token
             } else {
                 const user = await databaseService.users.findOne({
-                    encrypt_email: encrypt(data.email)
+                    email: encrypt(data.email)
                 })
                 const { access_token, refresh_token } =
                     await usersService.login(user?._id.toString() as string)
@@ -84,7 +87,7 @@ passport.use(
         },
         async function (accessToken, refreshToken, profile, callback) {
             const { id, displayName, emails, name, photos, provider } = profile
-            const data: RegisterReqBody = {
+            const data: RegisterOauthReqBody = {
                 username: displayName,
                 email: emails?.length ? emails[0].value : '',
                 first_name: name?.familyName as string,
@@ -98,6 +101,8 @@ passport.use(
                 encrypt(data.email) as string
             )
 
+            // console.log(isExist)
+
             const result: {
                 new_user: boolean
                 access_token?: string
@@ -105,7 +110,7 @@ passport.use(
                 iat?: Date
                 exp?: Date
             } = {
-                new_user: isExist ? false : true
+                new_user: isExist
             }
 
             if (!isExist) {
@@ -116,8 +121,9 @@ passport.use(
                 result.refresh_token = refresh_token
             } else {
                 const user = await databaseService.users.findOne({
-                    encrypt_email: encrypt(data.email)
+                    email: encrypt(data.email)
                 })
+                console.log(user?._id.toString() as string)
                 const { access_token, refresh_token } =
                     await usersService.login(user?._id.toString() as string)
 
