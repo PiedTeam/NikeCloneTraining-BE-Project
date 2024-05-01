@@ -42,7 +42,7 @@ passport.use(
                 iat?: Date
                 exp?: Date
             } = {
-                new_user: isExist
+                new_user: !isExist
             }
 
             if (!isExist) {
@@ -110,7 +110,7 @@ passport.use(
                 iat?: Date
                 exp?: Date
             } = {
-                new_user: isExist
+                new_user: !isExist
             }
 
             if (!isExist) {
