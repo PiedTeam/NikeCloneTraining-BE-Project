@@ -18,6 +18,7 @@ import otpGenerator from 'otp-generator'
 import { SendOtpViaMailReqBody } from '../otp/otp.requests'
 import otpService from '../otp/otp.services'
 import { OTP_MESSAGES } from '../otp/otp.messages'
+import { OTP_KIND } from '../otp/otp.enum'
 config()
 
 class UsersService {
@@ -139,7 +140,11 @@ class UsersService {
             specialChars: false
         })
 
-        const result = await otpService.sendEmail({ email, otp })
+        const result = await otpService.sendEmail({
+            email,
+            otp,
+            kind: OTP_KIND.PasswordRecovery
+        })
 
         return { otp_id: result.insertedId, otp: otp }
     }
