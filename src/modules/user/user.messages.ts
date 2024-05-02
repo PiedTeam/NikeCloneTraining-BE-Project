@@ -9,12 +9,14 @@ export const USER_MESSAGES = {
     // email
     EMAIL_IS_REQUIRED: 'Email is required',
     EMAIL_IS_INVALID: 'Email is invalid',
+    EMAIL_IS_NOT_REGISTERED: 'Email is not registered!',
 
     // phone number
     PHONE_NUMBER_IS_REQUIRED: 'Phone number is required',
     PHONE_NUMBER_MUST_BE_STRING: 'Phone number must be a string',
     PHONE_NUMBER_IS_INVALID: 'Phone number is invalid',
-    PHONE_NUMBER_ALREADY_EXISTS: 'Phone number is already exist',
+    PHONE_NUMBER_IS_ALREADY_EXISTED: 'Phone number is already existed!',
+    PHONE_NUMBER_IS_NOT_REGISTERED: 'Phone number is not registered!',
 
     // password
     PASSWORD_IS_REQUIRED: 'Password is required',

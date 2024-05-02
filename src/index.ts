@@ -8,10 +8,10 @@ import { config } from 'dotenv'
 import cookieParser from 'cookie-parser'
 import '../passport.config'
 config()
+import otpRouter from './modules/otp/otp.routes'
 
 const app = express()
-const port = 3000
-
+const PORT = process.env.PORT || 3000
 app.use(express.json())
 app.use(cookieParser())
 
@@ -31,10 +31,10 @@ app.get('/', (req: Request, res: Response) => {
 
 app.use('/user', usersRouter)
 app.use('/oauth', oauthRouter)
-
+app.use('/otp', otpRouter)
 // Create route to handle error for all routes in this app
 app.use(defaultErrorHandler)
 
-app.listen(port, () => {
-    console.log(`Project Nike này đang chạy trên post ${port}`)
+app.listen(PORT, () => {
+    console.log(`Project Nike is running on http://localhost:${PORT}/`)
 })

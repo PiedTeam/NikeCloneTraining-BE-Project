@@ -3,7 +3,7 @@ import {
     forgotPasswordController,
     loginController,
     registerController
-} from './user.contrtollers'
+} from './user.controllers'
 import {
     checkEmailOrPhone,
     forgotPasswordValidator,
