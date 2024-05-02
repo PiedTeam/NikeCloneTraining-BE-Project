@@ -343,3 +343,47 @@ export const loginValidator = validate(
         ['body']
     )
 )
+
+export const forgotPasswordValidator = validate(
+    checkSchema(
+        {
+            email: {
+                optional: true,
+                ...emailSchema,
+                custom: {
+                    options: async (value, { req }) => {
+                        const user = await databaseService.users.findOne({
+                            email: encrypt(value)
+                        })
+                        if (user === null) {
+                            throw new Error(USER_MESSAGES.EMAIL_NOT_FOUND)
+                        }
+                        req.user = user
+                        return true
+                    }
+                }
+            },
+            phone_number: {
+                optional: true,
+                ...phone_numberSchema,
+                custom: {
+                    options: async (value, { req }) => {
+                        const user = await databaseService.users.findOne({
+                            phone_number: encrypt(value)
+                        })
+                        if (user === null) {
+                            throw new Error(
+                                USER_MESSAGES.PHONE_NUMBER_NOT_FOUND
+                            )
+                        }
+                        req.user = user
+                        return true
+                    }
+                }
+            }
+        },
+        ['body']
+    )
+)
+
+export const verifyForgotPasswordTokenValidator = validate(checkSchema({}))

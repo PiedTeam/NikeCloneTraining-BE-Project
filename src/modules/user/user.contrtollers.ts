@@ -39,3 +39,16 @@ export const loginController = async (
         data: result
     })
 }
+
+export const forgotPasswordController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    const { _id, status } = req.user as User
+    const result = await usersService.forgotPassword({
+        user_id: (_id as ObjectId).toString(),
+        status
+    })
+    return res.json({ result })
+}
