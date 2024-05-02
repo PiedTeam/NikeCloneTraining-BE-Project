@@ -4,6 +4,7 @@ export const USER_MESSAGES = {
     USERNAME_MUST_BE_STRING: 'Username must be a string',
     USERNAME_LENGTH_MUST_BE_FROM_1_TO_50:
         'Username must be between 1 and 50 characters',
+    USERNAME_MUST_CONTAIN_ALPHABET: 'Username must contain alphabet',
 
     // email
     EMAIL_IS_REQUIRED: 'Email is required',
@@ -44,5 +45,17 @@ export const USER_MESSAGES = {
 
     // register
     USERNAME_ALREADY_EXISTS: 'Username is already exist',
-    EMAIL_ALREADY_EXISTS: 'Email is already exist'
-}
+    EMAIL_ALREADY_EXISTS: 'Email is already exist',
+
+    // login
+    FIELD_IS_REQUIRED: 'Email or phone number is required',
+    USERNAME_NOT_FOUND: 'Username is not found',
+    PASSWORD_IS_WRONG: 'Password is wrong',
+    EMAIL_NOT_FOUND: 'Email is not found',
+    PHONE_NUMBER_NOT_FOUND: 'Phone number is not found',
+    LOGIN_SUCCESS: 'Login successfully',
+    FIELD_ERROR_FORMAT: 'Should be an email or phone number',
+
+    // error messages
+    UNPROCESSABLE_ENTITY: 'Validation: Unprocessable Entity'
+} as const
