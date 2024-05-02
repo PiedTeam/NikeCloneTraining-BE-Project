@@ -62,7 +62,7 @@ oauthRouter.get(
         })
 
         res.redirect(
-            `${process.env.FE_REDIRECT_URL}/?access_token=${access_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
+            `${process.env.FE_REDIRECT_URL}?access_token=${access_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
         )
     }
 )
@@ -120,7 +120,7 @@ oauthRouter.get(
             maxAge: Number(process.env.COOKIE_EXPIRE)
         })
         res.redirect(
-            `${process.env.FE_REDIRECT_URL}/?access_token=${access_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
+            `${process.env.FE_REDIRECT_URL}?access_token=${access_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
         )
     }
 )
