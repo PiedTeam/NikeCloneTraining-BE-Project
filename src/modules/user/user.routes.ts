@@ -2,15 +2,18 @@ import { Router } from 'express'
 import {
     forgotPasswordController,
     loginController,
-    registerController
-} from './user.contrtollers'
+    registerController,
+    resetPasswordController,
+    verifyForgotPasswordTokenController
+} from './user.controllers'
 import {
     checkEmailOrPhone,
     forgotPasswordValidator,
     loginCheckMissingField,
     loginValidator,
     registerValidator,
-    verifyForgotPasswordTokenValidator
+    resetPasswordValidator,
+    verifyForgotPasswordOTPValidator
 } from './user.middlewares'
 import { wrapAsync } from '~/utils/handler'
 import { Request, Response } from 'express'
@@ -57,6 +60,7 @@ usersRouter.post(
 )
 
 /*
+  description: send otp forgot password to user's email or phone number
   path: /user/forgot-password
   method: 'POST'
   body: { email_phone: string }
@@ -69,18 +73,38 @@ usersRouter.post(
 )
 
 /*
+description: verify otp
   path: /users/reset-password
   method: 'POST'
-  body: { forgot_password_token: string }
+  body: { 
+          email_phone: string, 
+          forgot_password_otp: string 
+        }
 */
 usersRouter.post(
-    '/verify-forgot-password',
-    verifyForgotPasswordTokenValidator
-    // wrapAsync(verifyForgotPasswordTokenController)
+    '/verify-otp',
+    checkEmailOrPhone,
+    verifyForgotPasswordOTPValidator,
+    wrapAsync(verifyForgotPasswordTokenController)
 )
 
-usersRouter.get('/login-success', (req: Request, res: Response) => {
-    res.send('Welcome to Nike Clone Training Project')
-})
+/*
+des: reset password
+path: '/reset-password'
+method: POST
+body: { 
+        email_phone: string,
+        forgot_password_otp: string,
+        confirm_password: string, 
+        password: string
+      }
+*/
+usersRouter.post(
+    '/reset-password',
+    resetPasswordValidator,
+    checkEmailOrPhone,
+    verifyForgotPasswordOTPValidator,
+    wrapAsync(resetPasswordController)
+)
 
 export default usersRouter

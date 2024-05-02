@@ -5,16 +5,19 @@ export const USER_MESSAGES = {
     USERNAME_LENGTH_MUST_BE_FROM_1_TO_50:
         'Username must be between 1 and 50 characters',
     USERNAME_MUST_CONTAIN_ALPHABET: 'Username must contain alphabet',
+    USER_NOT_FOUND: 'User is not found',
 
     // email
     EMAIL_IS_REQUIRED: 'Email is required',
     EMAIL_IS_INVALID: 'Email is invalid',
+    EMAIL_IS_NOT_REGISTERED: 'Email is not registered!',
 
     // phone number
     PHONE_NUMBER_IS_REQUIRED: 'Phone number is required',
     PHONE_NUMBER_MUST_BE_STRING: 'Phone number must be a string',
     PHONE_NUMBER_IS_INVALID: 'Phone number is invalid',
-    PHONE_NUMBER_ALREADY_EXISTS: 'Phone number is already exist',
+    PHONE_NUMBER_IS_ALREADY_EXISTED: 'Phone number is already existed!',
+    PHONE_NUMBER_IS_NOT_REGISTERED: 'Phone number is not registered!',
 
     // password
     PASSWORD_IS_REQUIRED: 'Password is required',
@@ -59,5 +62,12 @@ export const USER_MESSAGES = {
 
     // forgot password
     CHECK_EMAIL_TO_RESET_PASSWORD:
-        'Check your email to get OTP code to reset password'
+        'Check your email to get OTP code to reset password',
+    FORGOT_PASSWORD_OTP_IS_REQUIRED: 'Forgot password otp is required',
+    SEND_OTP_SUCCESSFULLY: 'Send OTP successfully!',
+    OTP_IS_INCORRECT: 'OTP is incorrect',
+    VERIFY_OTP_SUCCESSFULLY: 'Verify OTP successfully',
+    RESET_PASSWORD_SUCCESSFULLY: 'Reset password successfully',
+    OTP_NOT_FOUND: 'OTP is not found',
+    REQUIRE_FIELD_IS_INVALID: 'Require field is invalid'
 } as const

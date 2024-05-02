@@ -9,6 +9,9 @@ import { LoginRequestBody } from './user.requests'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { ErrorEntity } from '~/errors/errors.entityError'
 import { HTTP_STATUS } from '~/constants/httpStatus'
+import { ErrorWithStatus } from '~/models/Error'
+import { verifyToken } from '~/utils/jwt'
+import { OTP_STATUS } from '../otp/otp.enum'
 
 const usernameSchema: ParamSchema = {
     trim: true,
@@ -35,7 +38,7 @@ const usernameSchema: ParamSchema = {
     }
 }
 
-const emailSchema: ParamSchema = {
+export const emailSchema: ParamSchema = {
     trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.EMAIL_IS_REQUIRED
@@ -45,7 +48,12 @@ const emailSchema: ParamSchema = {
     }
 }
 
-const phone_numberSchema: ParamSchema = {
+export const phone_numberSchema: ParamSchema = {
+    optional: {
+        options: {
+            nullable: true
+        }
+    },
     trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.PHONE_NUMBER_IS_REQUIRED
@@ -182,7 +190,7 @@ export const registerValidator = validate(
                             )
                         if (isExist) {
                             throw new Error(
-                                USER_MESSAGES.PHONE_NUMBER_ALREADY_EXISTS
+                                USER_MESSAGES.PHONE_NUMBER_IS_ALREADY_EXISTED
                             )
                         }
                         return true
@@ -244,10 +252,12 @@ export const checkEmailOrPhone = (
         )
     ) {
         req.body.email = email_phone
+        req.body.type = 'email'
     } else if (
         email_phone.match(/^\+?[0-9]{1,4}[\s.-]?[0-9]{1,4}[\s.-]?[0-9]{4,10}$/)
     ) {
         req.body.phone_number = email_phone
+        req.body.type = 'phone_number'
     } else {
         next(
             new ErrorEntity({
@@ -259,6 +269,7 @@ export const checkEmailOrPhone = (
             })
         )
     }
+    delete req.body.email_phone
     next()
 }
 
@@ -386,4 +397,66 @@ export const forgotPasswordValidator = validate(
     )
 )
 
-export const verifyForgotPasswordTokenValidator = validate(checkSchema({}))
+export const verifyForgotPasswordOTPValidator = validate(
+    checkSchema(
+        {
+            forgot_password_otp: {
+                trim: true,
+                custom: {
+                    options: async (value, { req }) => {
+                        if (!value) {
+                            throw new Error(
+                                USER_MESSAGES.FORGOT_PASSWORD_OTP_IS_REQUIRED
+                            )
+                        }
+                        const user =
+                            req.body.type === 'email'
+                                ? await databaseService.users.findOne({
+                                      email: encrypt(req.body.email)
+                                  })
+                                : await databaseService.users.findOne({
+                                      phone_number: encrypt(
+                                          req.body.phone_number
+                                      )
+                                  })
+                        if (!user) {
+                            throw new Error(USER_MESSAGES.USER_NOT_FOUND)
+                        }
+                        const result = await databaseService.OTP.findOne({
+                            user_id: user._id,
+                            status: OTP_STATUS.Available
+                        })
+                        if (!result) {
+                            throw new Error(USER_MESSAGES.OTP_NOT_FOUND)
+                        }
+                        if (
+                            (result?.type === 1 &&
+                                req.body.type === 'phone_number') ||
+                            (result?.type === 0 && req.body.type === 'email')
+                        ) {
+                            throw new Error(
+                                USER_MESSAGES.REQUIRE_FIELD_IS_INVALID
+                            )
+                        }
+                        const otp = result?.OTP
+                        if (value !== otp) {
+                            throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
+                        }
+                        req.body.user_id = user._id
+                    }
+                }
+            }
+        },
+        ['body']
+    )
+)
+
+export const resetPasswordValidator = validate(
+    checkSchema(
+        {
+            password: passwordSchema,
+            confirm_password: confirmPasswordSchema
+        },
+        ['body']
+    )
+)
