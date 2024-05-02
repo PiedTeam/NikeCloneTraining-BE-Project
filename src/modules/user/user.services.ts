@@ -13,6 +13,11 @@ import RefreshToken from '../refreshToken/refreshToken.schema'
 import { omit } from 'lodash'
 import { USER_MESSAGES } from './user.messages'
 import { config } from 'dotenv'
+import { sendOtpMailController } from '../otp/otp.controllers'
+import otpGenerator from 'otp-generator'
+import { SendOtpViaMailReqBody } from '../otp/otp.requests'
+import otpService from '../otp/otp.services'
+import { OTP_MESSAGES } from '../otp/otp.messages'
 config()
 
 class UsersService {
@@ -42,24 +47,6 @@ class UsersService {
             this.signAccessToken(user_id),
             this.signRefreshToken(user_id)
         ])
-    }
-
-    private signForgotPasswordToken({
-        user_id,
-        status
-    }: {
-        user_id: string
-        status: UserVerifyStatus
-    }) {
-        return signToken({
-            payload: {
-                user_id,
-                status,
-                token_type: TokenType.ForgotPasswordToken
-            },
-            options: { expiresIn: process.env.FORGOT_PASSWORD_TOKEN_EXPIRE_IN },
-            privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
-        })
     }
 
     async checkEmailExist(email: string) {
@@ -144,29 +131,48 @@ class UsersService {
         return { access_token, refresh_token }
     }
 
-    async forgotPassword({
-        user_id,
-        status
-    }: {
-        user_id: string
-        status: UserVerifyStatus
-    }) {
-        const forgot_password_token = await this.signForgotPasswordToken({
-            user_id,
-            status
+    async sendForgotPasswordOTPByEmail(email: string) {
+        // send otp to email
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false
         })
 
-        await databaseService.users.updateOne({ _id: new ObjectId(user_id) }, [
-            {
-                $set: {
-                    forgot_password_token,
-                    updated_at: '$$NOW'
-                }
-            }
-        ])
-        // Giả lập gửi email
-        console.log(forgot_password_token)
-        return { message: USER_MESSAGES.CHECK_EMAIL_TO_RESET_PASSWORD }
+        const result = await otpService.sendEmail({ email, otp })
+
+        return { otp_id: result.insertedId, otp: otp }
+    }
+
+    async sendForgotPasswordOTPByPhone(phone_number: string) {
+        // send otp to phone
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false
+        })
+
+        const result = await otpService.sendOtpPhone({ phone_number, otp })
+
+        return { otp_id: result.insertedId, otp: otp }
+    }
+
+    async disableOTP(user_id: ObjectId) {
+        await otpService.checkExistOtp(user_id)
+        return true
+    }
+
+    async resetPassword(user_id: ObjectId, password: string) {
+        const hashedPassword = hashPassword(password)
+
+        await databaseService.users.updateOne(
+            { _id: user_id },
+            { $set: { password: hashedPassword } }
+        )
+
+        await this.disableOTP(user_id)
+
+        return true
     }
 }
 

@@ -50,7 +50,6 @@ export const sendOtpMailController = async (
         lowerCaseAlphabets: false,
         specialChars: false
     })
-
     //* Nhét thêm otp vào req.body
     const result = await otpService.sendEmail({ ...req.body, otp })
 

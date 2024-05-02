@@ -5,6 +5,7 @@ export const USER_MESSAGES = {
     USERNAME_LENGTH_MUST_BE_FROM_1_TO_50:
         'Username must be between 1 and 50 characters',
     USERNAME_MUST_CONTAIN_ALPHABET: 'Username must contain alphabet',
+    USER_NOT_FOUND: 'User is not found',
 
     // email
     EMAIL_IS_REQUIRED: 'Email is required',
@@ -62,5 +63,11 @@ export const USER_MESSAGES = {
     // forgot password
     CHECK_EMAIL_TO_RESET_PASSWORD:
         'Check your email to get OTP code to reset password',
-    FORGOT_PASSWORD_TOKEN_IS_REQUIRED: 'Forgot password token is required'
+    FORGOT_PASSWORD_OTP_IS_REQUIRED: 'Forgot password otp is required',
+    SEND_OTP_SUCCESSFULLY: 'Send OTP successfully!',
+    OTP_IS_INCORRECT: 'OTP is incorrect',
+    VERIFY_OTP_SUCCESSFULLY: 'Verify OTP successfully',
+    RESET_PASSWORD_SUCCESSFULLY: 'Reset password successfully',
+    OTP_NOT_FOUND: 'OTP is not found',
+    REQUIRE_FIELD_IS_INVALID: 'Require field is invalid'
 } as const

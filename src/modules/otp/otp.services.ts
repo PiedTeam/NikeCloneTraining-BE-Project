@@ -6,11 +6,35 @@ import { OTP_STATUS, OTP_TYPE } from './otp.enum'
 import { OTP_MESSAGES } from './otp.messages'
 import nodemailer from 'nodemailer'
 import { encrypt } from '~/utils/crypto'
+import { ObjectId } from 'mongodb'
 
 class OtpService {
-    async sendOtpPhone(payload: { phone_number: string; otp: string }) {
+    async checkExistOtp(user_id: ObjectId) {
+        const exsitOtp = await databaseService.OTP.findOne({
+            user_id,
+            status: OTP_STATUS.Available
+        })
+
+        if (exsitOtp) {
+            await databaseService.OTP.updateOne(
+                {
+                    _id: exsitOtp._id
+                },
+                { $set: { status: OTP_STATUS.Unavailable } }
+            )
+        }
+
+        return true
+    }
+    async sendOtpPhone({
+        phone_number,
+        otp
+    }: {
+        phone_number: string
+        otp: string
+    }) {
         const user = await databaseService.users.findOne({
-            phone_number: encrypt(payload.phone_number)
+            phone_number: encrypt(phone_number)
         })
 
         if (!user) {
@@ -19,12 +43,12 @@ class OtpService {
                 status: StatusCodes.NOT_FOUND
             })
         }
-
+        await this.checkExistOtp(user._id)
         // lưu otp vào db
         const result = await databaseService.OTP.insertOne(
             new Otp({
                 user_id: user._id,
-                OTP: payload.otp,
+                OTP: otp,
                 type: OTP_TYPE.PhoneNumber,
                 status: OTP_STATUS.Available
             })
@@ -43,13 +67,17 @@ class OtpService {
         })
 
         // const user = await usersService.checkEmailExist(email)
-        const user = await databaseService.users.findOne({ email })
+        const user = await databaseService.users.findOne({
+            email: encrypt(email)
+        })
         if (!user) {
             throw new ErrorWithStatus({
                 message: OTP_MESSAGES.USER_NOT_FOUND,
                 status: StatusCodes.NOT_FOUND
             })
         }
+
+        await this.checkExistOtp(user._id)
 
         const result = await databaseService.OTP.insertOne(
             new Otp({
