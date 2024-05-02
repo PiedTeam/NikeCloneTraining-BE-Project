@@ -79,8 +79,8 @@ usersRouter.post(
     // wrapAsync(verifyForgotPasswordTokenController)
 )
 
-usersRouter.get('/login-success', (req: Request, res: Response) => {
-    res.send('Welcome to Nike Clone Training Project')
-})
+// usersRouter.get('/login-success', (req: Request, res: Response) => {
+//     res.send('Welcome to Nike Clone Training Project')
+// })
 
 export default usersRouter
