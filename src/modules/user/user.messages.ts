@@ -61,5 +61,6 @@ export const USER_MESSAGES = {
 
     // forgot password
     CHECK_EMAIL_TO_RESET_PASSWORD:
-        'Check your email to get OTP code to reset password'
+        'Check your email to get OTP code to reset password',
+    FORGOT_PASSWORD_TOKEN_IS_REQUIRED: 'Forgot password token is required'
 } as const

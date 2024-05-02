@@ -9,6 +9,8 @@ import { LoginRequestBody } from './user.requests'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { ErrorEntity } from '~/errors/errors.entityError'
 import { HTTP_STATUS } from '~/constants/httpStatus'
+import { ErrorWithStatus } from '~/models/Error'
+import { verifyToken } from '~/utils/jwt'
 
 const usernameSchema: ParamSchema = {
     trim: true,
@@ -391,4 +393,6 @@ export const forgotPasswordValidator = validate(
     )
 )
 
-export const verifyForgotPasswordTokenValidator = validate(checkSchema({}))
+export const verifyForgotPasswordTokenValidator = validate(
+    checkSchema({}, ['body'])
+)
