@@ -6,8 +6,26 @@ import { OTP_KIND, OTP_STATUS, OTP_TYPE } from './otp.enum'
 import { OTP_MESSAGES } from './otp.messages'
 import nodemailer from 'nodemailer'
 import { encrypt } from '~/utils/crypto'
+import { ObjectId } from 'mongodb'
 
 class OtpService {
+    async checkExistOtp(user_id: ObjectId) {
+        const exsitOtp = await databaseService.OTP.findOne({
+            user_id,
+            status: OTP_STATUS.Available
+        })
+
+        if (exsitOtp) {
+            await databaseService.OTP.updateOne(
+                {
+                    _id: exsitOtp._id
+                },
+                { $set: { status: OTP_STATUS.Unavailable } }
+            )
+        }
+
+        return true
+    }
     async sendOtpPhone(payload: { phone_number: string; otp: string }) {
         const user = await databaseService.users.findOne({
             phone_number: encrypt(payload.phone_number)
@@ -19,7 +37,7 @@ class OtpService {
                 status: StatusCodes.NOT_FOUND
             })
         }
-
+        await this.checkExistOtp(user._id)
         // lưu otp vào db
         const result = await databaseService.OTP.insertOne(
             new Otp({
@@ -35,7 +53,6 @@ class OtpService {
 
     async sendEmail(payload: { email: string; otp: string; kind: OTP_KIND }) {
         const { email, otp, kind } = payload
-
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -48,13 +65,14 @@ class OtpService {
         const user = await databaseService.users.findOne({
             email: encrypt(email)
         })
-
         if (!user) {
             throw new ErrorWithStatus({
                 message: OTP_MESSAGES.USER_NOT_FOUND,
                 status: StatusCodes.NOT_FOUND
             })
         }
+
+        await this.checkExistOtp(user._id)
 
         const result = await databaseService.OTP.insertOne(
             new Otp({

@@ -1,11 +1,18 @@
 import { NextFunction, Request, Response } from 'express'
 import usersService from './user.services'
-import { LoginRequestBody, RegisterReqBody } from './user.requests'
+import {
+    LoginRequestBody,
+    RegisterReqBody,
+    ResetPasswordReqBody
+} from './user.requests'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { USER_MESSAGES } from './user.messages'
 import User from './user.schema'
 import { ObjectId } from 'mongodb'
 import { config } from 'dotenv'
+import { body } from 'express-validator'
+import { result } from 'lodash'
+import otpService from '../otp/otp.services'
 config()
 
 export const registerController = async (
@@ -45,10 +52,38 @@ export const forgotPasswordController = async (
     res: Response,
     next: NextFunction
 ) => {
-    const { _id, status } = req.user as User
-    const result = await usersService.forgotPassword({
-        user_id: (_id as ObjectId).toString(),
-        status
+    // let result = null
+    // if (req.body.type === 'email') {
+    //     result = await usersService.sendForgotPasswordOTPByEmail(req.body.email)
+    // }
+    const result =
+        req.body.type === 'email'
+            ? await usersService.sendForgotPasswordOTPByEmail(req.body.email)
+            : await usersService.sendForgotPasswordOTPByPhone(
+                  req.body.phone_number
+              )
+    return res.status(200).json({
+        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY,
+        details: result
     })
-    return res.json({ result })
+}
+
+export const verifyForgotPasswordTokenController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    return res.status(200).json({
+        message: USER_MESSAGES.VERIFY_OTP_SUCCESSFULLY
+    })
+}
+
+export const resetPasswordController = async (req: Request, res: Response) => {
+    const user_id = req.body.user_id
+    const password = req.body.password
+    const result = await usersService.resetPassword(user_id, password)
+    return res.status(200).json({
+        message: USER_MESSAGES.RESET_PASSWORD_SUCCESSFULLY,
+        details: result
+    })
 }

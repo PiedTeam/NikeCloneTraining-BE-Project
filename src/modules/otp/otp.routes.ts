@@ -5,6 +5,7 @@ import {
     sendOtpPhoneNumberController
 } from './otp.controllers'
 import { emailValidator, phoneNumberValidator } from './otp.middlewares'
+import { verify } from 'crypto'
 
 const otpRouter = Router()
 
