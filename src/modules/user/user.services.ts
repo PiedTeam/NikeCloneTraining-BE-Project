@@ -50,6 +50,24 @@ class UsersService {
         ])
     }
 
+    private signForgotPasswordToken({
+        user_id,
+        status
+    }: {
+        user_id: string
+        status: UserVerifyStatus
+    }) {
+        return signToken({
+            payload: {
+                user_id,
+                status,
+                token_type: TokenType.ForgotPasswordToken
+            },
+            options: { expiresIn: process.env.FORGOT_PASSWORD_TOKEN_EXPIRE_IN },
+            privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
+        })
+    }
+
     async checkEmailExist(email: string) {
         const user = await databaseService.users.findOne({ email })
         return Boolean(user)
