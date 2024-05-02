@@ -11,6 +11,9 @@ import { signToken, verifyToken } from '~/utils/jwt'
 import { TokenType, UserRole, UserVerifyStatus } from './user.enum'
 import RefreshToken from '../refreshToken/refreshToken.schema'
 import { omit } from 'lodash'
+import { USER_MESSAGES } from './user.messages'
+import { config } from 'dotenv'
+config()
 
 class UsersService {
     private decodeRefreshToken(refresh_token: string) {
@@ -39,6 +42,24 @@ class UsersService {
             this.signAccessToken(user_id),
             this.signRefreshToken(user_id)
         ])
+    }
+
+    private signForgotPasswordToken({
+        user_id,
+        status
+    }: {
+        user_id: string
+        status: UserVerifyStatus
+    }) {
+        return signToken({
+            payload: {
+                user_id,
+                status,
+                token_type: TokenType.ForgotPasswordToken
+            },
+            options: { expiresIn: process.env.FORGOT_PASSWORD_TOKEN_EXPIRE_IN },
+            privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
+        })
     }
 
     async checkEmailExist(email: string) {
@@ -121,6 +142,31 @@ class UsersService {
         )
 
         return { access_token, refresh_token }
+    }
+
+    async forgotPassword({
+        user_id,
+        status
+    }: {
+        user_id: string
+        status: UserVerifyStatus
+    }) {
+        const forgot_password_token = await this.signForgotPasswordToken({
+            user_id,
+            status
+        })
+
+        await databaseService.users.updateOne({ _id: new ObjectId(user_id) }, [
+            {
+                $set: {
+                    forgot_password_token,
+                    updated_at: '$$NOW'
+                }
+            }
+        ])
+        // Giả lập gửi email
+        console.log(forgot_password_token)
+        return { message: USER_MESSAGES.CHECK_EMAIL_TO_RESET_PASSWORD }
     }
 }
 
