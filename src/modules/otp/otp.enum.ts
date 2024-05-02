@@ -1,9 +1,9 @@
-export enum OtpsType {
+export enum OTP_TYPE {
     PhoneNumber,
     Email
 }
 
-export enum OtpsStatus {
+export enum OTP_STATUS {
     Unavailable,
     Available
 }

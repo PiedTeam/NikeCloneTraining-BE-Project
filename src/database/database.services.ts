@@ -31,7 +31,7 @@ class DatabaseService {
         return this.db.collection(process.env.DB_USERS_COLLECTION as string)
     }
 
-    get otps(): Collection<Otp> {
+    get OTP(): Collection<Otp> {
         return this.db.collection(process.env.DB_OTPS_COLLECTION as string)
     }
 

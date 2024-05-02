@@ -35,7 +35,7 @@ const usernameSchema: ParamSchema = {
     }
 }
 
-const emailSchema: ParamSchema = {
+export const emailSchema: ParamSchema = {
     trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.EMAIL_IS_REQUIRED
@@ -45,7 +45,12 @@ const emailSchema: ParamSchema = {
     }
 }
 
-const phone_numberSchema: ParamSchema = {
+export const phone_numberSchema: ParamSchema = {
+    optional: {
+        options: {
+            nullable: true
+        }
+    },
     trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.PHONE_NUMBER_IS_REQUIRED
@@ -182,7 +187,7 @@ export const registerValidator = validate(
                             )
                         if (isExist) {
                             throw new Error(
-                                USER_MESSAGES.PHONE_NUMBER_ALREADY_EXISTS
+                                USER_MESSAGES.PHONE_NUMBER_IS_ALREADY_EXISTED
                             )
                         }
                         return true
