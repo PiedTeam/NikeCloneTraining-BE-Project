@@ -1,13 +1,11 @@
 import { Request, Response } from 'express'
-
 import { ParamsDictionary } from 'express-serve-static-core'
-
 import { StatusCodes } from 'http-status-codes'
 import otpGenerator from 'otp-generator'
-import { Twilio } from 'twilio'
 import otpService from './otp.services'
 import { OTP_MESSAGES } from './otp.messages'
 import { SendOtpViaMailReqBody, SendOtpViaPhoneReqBody } from './otp.requests'
+// import { Twilio } from 'twilio'
 
 //! Config Twilio
 const accountSid = process.env.TWILIO_ACCOUNT_SID
@@ -18,8 +16,7 @@ export const sendOtpPhoneNumberController = async (
     req: Request<ParamsDictionary, any, SendOtpViaPhoneReqBody>,
     res: Response
 ) => {
-    const { phone_number } = req.body
-    // OTP have 6 digits(not characters and special characters)
+    // const { phone_number } = req.body
     const otp = otpGenerator.generate(6, {
         upperCaseAlphabets: false,
         lowerCaseAlphabets: false,
