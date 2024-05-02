@@ -1,12 +1,19 @@
 import { Router } from 'express'
-import { loginController, registerController } from './user.contrtollers'
+import {
+    forgotPasswordController,
+    loginController,
+    registerController
+} from './user.contrtollers'
 import {
     checkEmailOrPhone,
+    forgotPasswordValidator,
     loginCheckMissingField,
     loginValidator,
-    registerValidator
+    registerValidator,
+    verifyForgotPasswordTokenValidator
 } from './user.middlewares'
 import { wrapAsync } from '~/utils/handler'
+import { Request, Response } from 'express'
 
 const usersRouter = Router()
 
@@ -48,5 +55,32 @@ usersRouter.post(
     loginValidator,
     wrapAsync(loginController)
 )
+
+/*
+  path: /user/forgot-password
+  method: 'POST'
+  body: { email_phone: string }
+*/
+usersRouter.post(
+    '/forgot-password',
+    checkEmailOrPhone,
+    forgotPasswordValidator,
+    wrapAsync(forgotPasswordController)
+)
+
+/*
+  path: /users/reset-password
+  method: 'POST'
+  body: { forgot_password_token: string }
+*/
+usersRouter.post(
+    '/verify-forgot-password',
+    verifyForgotPasswordTokenValidator
+    // wrapAsync(verifyForgotPasswordTokenController)
+)
+
+usersRouter.get('/login-success', (req: Request, res: Response) => {
+    res.send('Welcome to Nike Clone Training Project')
+})
 
 export default usersRouter
