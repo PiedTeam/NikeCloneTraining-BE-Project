@@ -57,5 +57,9 @@ export const USER_MESSAGES = {
     FIELD_ERROR_FORMAT: 'Should be an email or phone number',
 
     // error messages
-    UNPROCESSABLE_ENTITY: 'Validation: Unprocessable Entity'
+    UNPROCESSABLE_ENTITY: 'Validation: Unprocessable Entity',
+
+    // forgot password
+    CHECK_EMAIL_TO_RESET_PASSWORD:
+        'Check your email to get OTP code to reset password'
 } as const

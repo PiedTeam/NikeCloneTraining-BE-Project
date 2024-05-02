@@ -11,7 +11,8 @@ export enum UserRole {
 
 export enum TokenType {
     Access,
-    Refresh
+    Refresh,
+    ForgotPasswordToken
 }
 
 export enum Subscription {
