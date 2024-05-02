@@ -125,6 +125,5 @@ oauthRouter.get(
     }
 )
 
-
 // oauthRouter.get('/login-success', wrapAsync(loginSuccessController))
 // oauthRouter.get('/login-fail', wrapAsync(loginFailController))
