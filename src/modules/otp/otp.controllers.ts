@@ -16,7 +16,8 @@ export const sendOtpPhoneNumberController = async (
     req: Request<ParamsDictionary, any, SendOtpViaPhoneReqBody>,
     res: Response
 ) => {
-    // const { phone_number } = req.body
+    const { phone_number } = req.body
+    console.log('🚀 ~ phone_number:', phone_number)
     const otp = otpGenerator.generate(6, {
         upperCaseAlphabets: false,
         lowerCaseAlphabets: false,
@@ -24,7 +25,7 @@ export const sendOtpPhoneNumberController = async (
     })
 
     //* Nhét thêm otp vào req.body
-    const result = await otpService.sendOtpPhone({ ...req.body, otp })
+    const result = await otpService.sendOtpPhone({ phone_number, otp })
 
     // await twilioClient.messages.create({
     //     from: process.env.TWILIO_PHONE_NUMBER,
@@ -55,7 +56,7 @@ export const sendOtpMailController = async (
 
     // Send OTP to phone number
     return res.status(StatusCodes.OK).json({
-        message: OTP_MESSAGES.SEND_OTP_PHONE_SUCCESS,
+        message: OTP_MESSAGES.SEND_OTP_MAIL_SUCCESS,
         OTP: otp,
         result
     })
