@@ -5,11 +5,12 @@ import { ErrorWithStatus } from '~/models/Error'
 import { OTP_STATUS, OTP_TYPE } from './otp.enum'
 import { OTP_MESSAGES } from './otp.messages'
 import nodemailer from 'nodemailer'
+import { encrypt } from '~/utils/crypto'
 
 class OtpService {
     async sendOtpPhone(payload: { phone_number: string; otp: string }) {
         const user = await databaseService.users.findOne({
-            phone_number: payload.phone_number
+            phone_number: encrypt(payload.phone_number)
         })
 
         if (!user) {

@@ -1,6 +1,11 @@
 import { Router } from 'express'
-import { registerController } from './user.controllers'
-import { registerValidator } from './user.middlewares'
+import {
+    checkEmailOrPhone,
+    loginCheckMissingField,
+    loginValidator,
+    registerValidator
+} from './user.middlewares'
+import { loginController, registerController } from './user.controllers'
 import { wrapAsync } from '~/utils/handler'
 
 const usersRouter = Router()
@@ -18,6 +23,30 @@ const usersRouter = Router()
     last_name: string
   }
 */
-usersRouter.post('/register', registerValidator, wrapAsync(registerController))
+usersRouter.post(
+    '/register',
+    checkEmailOrPhone,
+    registerValidator,
+    wrapAsync(registerController)
+)
+
+/*
+route: login
+path: user/login
+method: POST
+body: {
+  username?: string,
+  email?: string,
+  phone_number?: string,
+  password: string
+}
+*/
+usersRouter.post(
+    '/login',
+    // loginCheckMissingField,
+    checkEmailOrPhone,
+    loginValidator,
+    wrapAsync(loginController)
+)
 
 export default usersRouter

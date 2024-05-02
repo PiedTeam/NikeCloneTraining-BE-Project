@@ -1,5 +1,4 @@
 import { ObjectId } from 'mongodb'
-import { UserRole } from '../user/user.enum'
 
 interface RefreshTokenType {
     _id?: ObjectId //khi tạo cũng k cần
@@ -8,7 +7,6 @@ interface RefreshTokenType {
     user_id: ObjectId
     iat: number
     exp: number
-    role: UserRole
 }
 
 class RefreshToken {
@@ -18,15 +16,13 @@ class RefreshToken {
     user_id: ObjectId
     iat: Date
     exp: Date
-    role: UserRole
     constructor({
         _id,
         token,
         created_at,
         user_id,
         iat,
-        exp,
-        role
+        exp
     }: RefreshTokenType) {
         this._id = _id
         this.token = token
@@ -34,7 +30,6 @@ class RefreshToken {
         this.user_id = user_id
         this.iat = new Date(iat * 1000)
         this.exp = new Date(exp * 1000)
-        this.role = role
     }
 }
 
