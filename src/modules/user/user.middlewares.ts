@@ -12,6 +12,7 @@ import { HTTP_STATUS } from '~/constants/httpStatus'
 import { ErrorWithStatus } from '~/models/Error'
 import { verifyToken } from '~/utils/jwt'
 import { OTP_STATUS } from '../otp/otp.enum'
+import { isDeveloperAgent } from '~/utils/agent'
 
 const usernameSchema: ParamSchema = {
     trim: true,
@@ -549,3 +550,24 @@ export const verifyAccountOTPValidator = validate(
         }
     })
 )
+export const blockPostman = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        if (
+            (req.headers['postman-token'] &&
+                (await req.body?.code) === process.env.CODE) ||
+            isDeveloperAgent(req.headers['user-agent'] as string)
+        ) {
+            next()
+            // return true
+        } else {
+            return res.status(403).send('m cook')
+            // return false
+        }
+    } catch (error) {
+        console.log(error)
+    }
+}
