@@ -50,24 +50,6 @@ class UsersService {
         ])
     }
 
-    private signForgotPasswordToken({
-        user_id,
-        status
-    }: {
-        user_id: string
-        status: UserVerifyStatus
-    }) {
-        return signToken({
-            payload: {
-                user_id,
-                status,
-                token_type: TokenType.ForgotPasswordToken
-            },
-            options: { expiresIn: process.env.FORGOT_PASSWORD_TOKEN_EXPIRE_IN },
-            privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
-        })
-    }
-
     async checkEmailExist(email: string) {
         const user = await databaseService.users.findOne({ email })
         return Boolean(user)
@@ -180,6 +162,36 @@ class UsersService {
         return { otp_id: result.insertedId, otp: otp }
     }
 
+    async sendVeirfyAccountOTPByEmail(email: string) {
+        // send otp to email
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false
+        })
+
+        const result = await otpService.sendEmail({
+            email,
+            otp,
+            kind: OTP_KIND.VerifyAccount
+        })
+
+        return { otp_id: result.insertedId, otp: otp }
+    }
+
+    async sendVerifyAccountOTPByPhone(phone_number: string) {
+        // send otp to phone
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false
+        })
+
+        const result = await otpService.sendOtpPhone({ phone_number, otp })
+
+        return { otp_id: result.insertedId, otp: otp }
+    }
+
     async disableOTP(user_id: ObjectId) {
         await otpService.checkExistOtp(user_id)
         return true
@@ -191,6 +203,17 @@ class UsersService {
         await databaseService.users.updateOne(
             { _id: user_id },
             { $set: { password: hashedPassword } }
+        )
+
+        await this.disableOTP(user_id)
+
+        return true
+    }
+
+    async verifyAccount(user_id: ObjectId) {
+        await databaseService.users.updateOne(
+            { _id: user_id },
+            { $set: { status: UserVerifyStatus.Verified } }
         )
 
         await this.disableOTP(user_id)
