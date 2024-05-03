@@ -6,6 +6,7 @@ import {
 } from './otp.controllers'
 import { emailValidator, phoneNumberValidator } from './otp.middlewares'
 import { verify } from 'crypto'
+import { blockPostman } from '../user/user.middlewares'
 
 const otpRouter = Router()
 
@@ -19,6 +20,7 @@ const otpRouter = Router()
 */
 otpRouter.post(
     '/send-otp-phone',
+    blockPostman,
     phoneNumberValidator,
     wrapAsync(sendOtpPhoneNumberController)
 )
@@ -33,6 +35,7 @@ otpRouter.post(
 */
 otpRouter.post(
     '/send-otp-email',
+    blockPostman,
     emailValidator,
     wrapAsync(sendOtpMailController)
 )

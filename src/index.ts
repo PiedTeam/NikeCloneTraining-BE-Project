@@ -9,6 +9,7 @@ import cookieParser from 'cookie-parser'
 import '../passport.config'
 config()
 import otpRouter from './modules/otp/otp.routes'
+import passwordRouter from './modules/password/pass.routes'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -29,6 +30,7 @@ app.get('/', (req: Request, res: Response) => {
     res.send('Hello Developer')
 })
 
+app.use('/pass', passwordRouter)
 app.use('/user', usersRouter)
 app.use('/oauth', oauthRouter)
 app.use('/otp', otpRouter)
