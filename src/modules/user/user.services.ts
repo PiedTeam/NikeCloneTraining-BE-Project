@@ -162,6 +162,36 @@ class UsersService {
         return { otp_id: result.insertedId, otp: otp }
     }
 
+    async sendVeirfyAccountOTPByEmail(email: string) {
+        // send otp to email
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false
+        })
+
+        const result = await otpService.sendEmail({
+            email,
+            otp,
+            kind: OTP_KIND.VerifyAccount
+        })
+
+        return { otp_id: result.insertedId, otp: otp }
+    }
+
+    async sendVerifyAccountOTPByPhone(phone_number: string) {
+        // send otp to phone
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false
+        })
+
+        const result = await otpService.sendOtpPhone({ phone_number, otp })
+
+        return { otp_id: result.insertedId, otp: otp }
+    }
+
     async disableOTP(user_id: ObjectId) {
         await otpService.checkExistOtp(user_id)
         return true
@@ -173,6 +203,17 @@ class UsersService {
         await databaseService.users.updateOne(
             { _id: user_id },
             { $set: { password: hashedPassword } }
+        )
+
+        await this.disableOTP(user_id)
+
+        return true
+    }
+
+    async verifyAccount(user_id: ObjectId) {
+        await databaseService.users.updateOne(
+            { _id: user_id },
+            { $set: { status: UserVerifyStatus.Verified } }
         )
 
         await this.disableOTP(user_id)

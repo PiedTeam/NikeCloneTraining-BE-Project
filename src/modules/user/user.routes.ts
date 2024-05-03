@@ -4,6 +4,8 @@ import {
     loginController,
     registerController,
     resetPasswordController,
+    sendVerifyAccountOTPController,
+    verifyAccountController,
     verifyForgotPasswordTokenController
 } from './user.controllers'
 import {
@@ -13,10 +15,14 @@ import {
     loginValidator,
     registerValidator,
     resetPasswordValidator,
+    verifyAccountOTPValidator,
+    verifyAccountValidator,
     verifyForgotPasswordOTPValidator
 } from './user.middlewares'
 import { wrapAsync } from '~/utils/handler'
 import { Request, Response } from 'express'
+import { send } from 'process'
+import { wrap } from 'module'
 
 const usersRouter = Router()
 
@@ -107,4 +113,30 @@ usersRouter.post(
     wrapAsync(resetPasswordController)
 )
 
+/*
+  description: send otp verify account to user's email or phone number
+  path: /users/verify-account
+  method: POST
+  body: { email_phone: string }
+*/
+usersRouter.post(
+    '/send-verify-account-otp',
+    checkEmailOrPhone,
+    verifyAccountValidator,
+    wrapAsync(sendVerifyAccountOTPController)
+)
+
+/*
+  description: verify account
+  path: /users/verify-account
+  method: POST
+  body: { email_phone: string, verify_account_otp: string }
+*/
+usersRouter.post(
+    '/verify-account',
+    checkEmailOrPhone,
+    verifyAccountValidator,
+    verifyAccountOTPValidator,
+    wrapAsync(verifyAccountController)
+)
 export default usersRouter
