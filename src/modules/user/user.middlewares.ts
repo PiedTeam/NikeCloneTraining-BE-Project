@@ -107,7 +107,7 @@ const confirmPasswordSchema: ParamSchema = {
     },
     custom: {
         options: (value, { req }) => {
-            if (!value === req.body.password) {
+            if (value !== req.body.password) {
                 throw new Error(
                     USER_MESSAGES.CONFIRM_PASSWORD_MUST_MATCH_PASSWORD
                 )
@@ -459,4 +459,93 @@ export const resetPasswordValidator = validate(
         },
         ['body']
     )
+)
+
+export const verifyAccountValidator = validate(
+    checkSchema(
+        {
+            email: {
+                optional: true,
+                ...emailSchema,
+                custom: {
+                    options: async (value, { req }) => {
+                        const user = await databaseService.users.findOne({
+                            email: encrypt(value)
+                        })
+                        if (user === null) {
+                            throw new Error(USER_MESSAGES.EMAIL_NOT_FOUND)
+                        }
+                        req.user = user
+                        return true
+                    }
+                }
+            },
+            phone_number: {
+                optional: true,
+                ...phone_numberSchema,
+                custom: {
+                    options: async (value, { req }) => {
+                        const user = await databaseService.users.findOne({
+                            phone_number: encrypt(value)
+                        })
+                        if (user === null) {
+                            throw new Error(
+                                USER_MESSAGES.PHONE_NUMBER_NOT_FOUND
+                            )
+                        }
+                        req.user = user
+                        return true
+                    }
+                }
+            }
+        },
+        ['body']
+    )
+)
+
+export const verifyAccountOTPValidator = validate(
+    checkSchema({
+        verify_account_otp: {
+            trim: true,
+            custom: {
+                options: async (value, { req }) => {
+                    if (!value) {
+                        throw new Error(
+                            USER_MESSAGES.VERIFY_ACCOUNT_OTP_IS_REQUIRED
+                        )
+                    }
+                    const user =
+                        req.body.type === 'email'
+                            ? await databaseService.users.findOne({
+                                  email: encrypt(req.body.email)
+                              })
+                            : await databaseService.users.findOne({
+                                  phone_number: encrypt(req.body.phone_number)
+                              })
+                    if (!user) {
+                        throw new Error(USER_MESSAGES.USER_NOT_FOUND)
+                    }
+                    const result = await databaseService.OTP.findOne({
+                        user_id: user._id,
+                        status: OTP_STATUS.Available
+                    })
+                    if (!result) {
+                        throw new Error(USER_MESSAGES.OTP_NOT_FOUND)
+                    }
+                    if (
+                        (result?.type === 1 &&
+                            req.body.type === 'phone_number') ||
+                        (result?.type === 0 && req.body.type === 'email')
+                    ) {
+                        throw new Error(USER_MESSAGES.REQUIRE_FIELD_IS_INVALID)
+                    }
+                    const otp = result?.OTP
+                    if (value !== otp) {
+                        throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
+                    }
+                    req.body.user_id = user._id
+                }
+            }
+        }
+    })
 )

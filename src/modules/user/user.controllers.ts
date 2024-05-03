@@ -52,10 +52,6 @@ export const forgotPasswordController = async (
     res: Response,
     next: NextFunction
 ) => {
-    // let result = null
-    // if (req.body.type === 'email') {
-    //     result = await usersService.sendForgotPasswordOTPByEmail(req.body.email)
-    // }
     const result =
         req.body.type === 'email'
             ? await usersService.sendForgotPasswordOTPByEmail(req.body.email)
@@ -84,6 +80,31 @@ export const resetPasswordController = async (req: Request, res: Response) => {
     const result = await usersService.resetPassword(user_id, password)
     return res.status(200).json({
         message: USER_MESSAGES.RESET_PASSWORD_SUCCESSFULLY,
+        details: result
+    })
+}
+
+export const sendVerifyAccountOTPController = async (
+    req: Request,
+    res: Response
+) => {
+    const result =
+        req.body.type === 'email'
+            ? await usersService.sendVeirfyAccountOTPByEmail(req.body.email)
+            : await usersService.sendVerifyAccountOTPByPhone(
+                  req.body.phone_number
+              )
+    return res.status(200).json({
+        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY,
+        details: result
+    })
+}
+
+export const verifyAccountController = async (req: Request, res: Response) => {
+    const user_id = req.body.user_id
+    const result = await usersService.verifyAccount(user_id)
+    return res.status(200).json({
+        message: USER_MESSAGES.VERIFY_ACCOUNT_SUCCESSFULLY,
         details: result
     })
 }
