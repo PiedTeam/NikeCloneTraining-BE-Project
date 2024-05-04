@@ -1,8 +1,5 @@
 import { Request, Response } from 'express'
-import { loginSuccessService } from './oauth.services'
-import { encrypt } from '~/utils/crypto'
-import { config } from 'dotenv'
-config()
+import 'dotenv/config'
 
 export const loginSuccessController = async (req: Request, res: Response) => {
     const { access_token, refresh_token, new_user, iat, exp } = req.query
