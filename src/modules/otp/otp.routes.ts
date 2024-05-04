@@ -20,6 +20,7 @@ const otpRouter = Router()
 */
 otpRouter.post(
     '/send-otp-phone',
+    blockPostman,
     phoneNumberValidator,
     wrapAsync(sendOtpPhoneNumberController)
 )
@@ -34,6 +35,7 @@ otpRouter.post(
 */
 otpRouter.post(
     '/send-otp-email',
+    blockPostman,
     emailValidator,
     wrapAsync(sendOtpMailController)
 )

@@ -42,6 +42,7 @@ const usersRouter = Router()
 */
 usersRouter.post(
     '/register',
+    blockPostman,
     checkEmailOrPhone,
     registerValidator,
     wrapAsync(registerController)
@@ -61,6 +62,7 @@ body: {
 usersRouter.post(
     '/login',
     // loginCheckMissingField,
+    blockPostman,
     checkEmailOrPhone,
     loginValidator,
     wrapAsync(loginController)
@@ -74,6 +76,7 @@ usersRouter.post(
 */
 usersRouter.post(
     '/forgot-password',
+    blockPostman,
     checkEmailOrPhone,
     forgotPasswordValidator,
     wrapAsync(forgotPasswordController)
@@ -90,6 +93,7 @@ description: verify otp
 */
 usersRouter.post(
     '/verify-otp',
+    blockPostman,
     checkEmailOrPhone,
     verifyForgotPasswordOTPValidator,
     wrapAsync(verifyForgotPasswordTokenController)
@@ -108,6 +112,7 @@ body: {
 */
 usersRouter.post(
     '/reset-password',
+    blockPostman,
     resetPasswordValidator,
     checkEmailOrPhone,
     verifyForgotPasswordOTPValidator,
@@ -122,6 +127,7 @@ usersRouter.post(
 */
 usersRouter.post(
     '/send-verify-account-otp',
+    blockPostman,
     checkEmailOrPhone,
     verifyAccountValidator,
     wrapAsync(sendVerifyAccountOTPController)
@@ -135,6 +141,7 @@ usersRouter.post(
 */
 usersRouter.post(
     '/verify-account',
+    blockPostman,
     checkEmailOrPhone,
     verifyAccountValidator,
     verifyAccountOTPValidator,
