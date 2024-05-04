@@ -1,25 +1,16 @@
 import databaseService from '~/database/database.services'
 import User from './user.schema'
 import { ObjectId } from 'mongodb'
-import {
-    LoginRequestBody,
-    RegisterOauthReqBody,
-    RegisterReqBody
-} from './user.requests'
+import { RegisterOauthReqBody, RegisterReqBody } from './user.requests'
 import { encrypt, hashPassword } from '~/utils/crypto'
 import { signToken, verifyToken } from '~/utils/jwt'
-import { TokenType, UserRole, UserVerifyStatus } from './user.enum'
+import { TokenType, UserVerifyStatus } from './user.enum'
 import RefreshToken from '../refreshToken/refreshToken.schema'
 import { omit } from 'lodash'
-import { USER_MESSAGES } from './user.messages'
-import { config } from 'dotenv'
-import { sendOtpMailController } from '../otp/otp.controllers'
 import otpGenerator from 'otp-generator'
-import { SendOtpViaMailReqBody } from '../otp/otp.requests'
 import otpService from '../otp/otp.services'
-import { OTP_MESSAGES } from '../otp/otp.messages'
 import { OTP_KIND } from '../otp/otp.enum'
-config()
+import 'dotenv/config'
 
 class UsersService {
     private decodeRefreshToken(refresh_token: string) {
@@ -162,7 +153,7 @@ class UsersService {
         return { otp_id: result.insertedId, otp: otp }
     }
 
-    async sendVeirfyAccountOTPByEmail(email: string) {
+    async sendVerifyAccountOTPByEmail(email: string) {
         // send otp to email
         const otp = otpGenerator.generate(6, {
             upperCaseAlphabets: false,

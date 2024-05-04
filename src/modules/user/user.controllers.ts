@@ -1,19 +1,11 @@
 import { NextFunction, Request, Response } from 'express'
 import usersService from './user.services'
-import {
-    LoginRequestBody,
-    RegisterReqBody,
-    ResetPasswordReqBody
-} from './user.requests'
+import { LoginRequestBody, RegisterReqBody } from './user.requests'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { USER_MESSAGES } from './user.messages'
 import User from './user.schema'
 import { ObjectId } from 'mongodb'
-import { config } from 'dotenv'
-import { body } from 'express-validator'
-import { result } from 'lodash'
-import otpService from '../otp/otp.services'
-config()
+import 'dotenv/config'
 
 export const registerController = async (
     req: Request<ParamsDictionary, any, RegisterReqBody>,
@@ -21,6 +13,13 @@ export const registerController = async (
     next: NextFunction
 ) => {
     const result = await usersService.register(req.body)
+    const { refresh_token } = result
+    res.cookie('refresh_token', refresh_token, {
+        httpOnly: true,
+        secure: true,
+        maxAge: Number(process.env.COOKIE_EXPIRE)
+    })
+
     return res.json({
         message: USER_MESSAGES.REGISTER_SUCCESS,
         data: result
@@ -35,7 +34,8 @@ export const loginController = async (
     const user_id = (req.user as User)._id as ObjectId
     const result = await usersService.login(user_id.toString() as string)
 
-    res.cookie('refresh_token', result.refresh_token, {
+    const { refresh_token } = result
+    res.cookie('refresh_token', refresh_token, {
         httpOnly: true,
         secure: true,
         maxAge: Number(process.env.COOKIE_EXPIRE)
@@ -90,7 +90,7 @@ export const sendVerifyAccountOTPController = async (
 ) => {
     const result =
         req.body.type === 'email'
-            ? await usersService.sendVeirfyAccountOTPByEmail(req.body.email)
+            ? await usersService.sendVerifyAccountOTPByEmail(req.body.email)
             : await usersService.sendVerifyAccountOTPByPhone(
                   req.body.phone_number
               )

@@ -9,7 +9,7 @@ import {
     verifyForgotPasswordTokenController
 } from './user.controllers'
 import {
-  blockPostman,
+    blockPostman,
     checkEmailOrPhone,
     forgotPasswordValidator,
     loginCheckMissingField,
@@ -21,9 +21,6 @@ import {
     verifyForgotPasswordOTPValidator
 } from './user.middlewares'
 import { wrapAsync } from '~/utils/handler'
-import { Request, Response } from 'express'
-import { send } from 'process'
-import { wrap } from 'module'
 
 const usersRouter = Router()
 
@@ -147,4 +144,5 @@ usersRouter.post(
     verifyAccountOTPValidator,
     wrapAsync(verifyAccountController)
 )
+
 export default usersRouter
