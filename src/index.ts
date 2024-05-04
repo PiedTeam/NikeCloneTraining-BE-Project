@@ -9,6 +9,7 @@ import cookieParser from 'cookie-parser'
 import '../passport.config'
 import otpRouter from './modules/otp/otp.routes'
 import passwordRouter from './modules/password/pass.routes'
+import { blockPostman } from './modules/user/user.middlewares'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -29,10 +30,10 @@ app.get('/', (req: Request, res: Response) => {
     res.send('Hello Developer')
 })
 
-app.use('/pass', passwordRouter)
-app.use('/user', usersRouter)
+app.use('/pass', blockPostman, passwordRouter)
+app.use('/user', blockPostman, usersRouter)
 app.use('/oauth', oauthRouter)
-app.use('/otp', otpRouter)
+app.use('/otp', blockPostman, otpRouter)
 // Create route to handle error for all routes in this app
 app.use(defaultErrorHandler)
 
