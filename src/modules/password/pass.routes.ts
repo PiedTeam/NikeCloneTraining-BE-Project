@@ -7,7 +7,6 @@ import { blockPostman } from '../user/user.middlewares'
 const passwordRouter = Router()
 passwordRouter.post(
     '/updatePass',
-    blockPostman,
     registerPasswordValidator,
     wrapAsync(registerPassword)
 )

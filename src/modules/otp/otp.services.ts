@@ -7,6 +7,7 @@ import { OTP_MESSAGES } from './otp.messages'
 import nodemailer from 'nodemailer'
 import { encrypt } from '~/utils/crypto'
 import { ObjectId } from 'mongodb'
+import { sendOtpPhone } from '~/utils/sendOtp'
 
 class OtpService {
     async checkExistOtp(user_id: ObjectId) {
@@ -26,7 +27,13 @@ class OtpService {
 
         return true
     }
-    async sendOtpPhone(payload: { phone_number: string; otp: string }) {
+    async sendPhone(payload: {
+        phone_number: string
+        otp: string
+        kind: OTP_KIND
+    }) {
+        const { phone_number, otp, kind } = payload
+
         const user = await databaseService.users.findOne({
             phone_number: encrypt(payload.phone_number)
         })
@@ -47,6 +54,8 @@ class OtpService {
                 status: OTP_STATUS.Available
             })
         )
+
+        await sendOtpPhone({ kind, otp, phone_number, username: user.username })
 
         return result
     }
