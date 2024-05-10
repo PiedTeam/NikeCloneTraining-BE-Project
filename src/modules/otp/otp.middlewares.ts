@@ -16,7 +16,9 @@ export const phoneNumberValidator = validate(
                 custom: {
                     options: async (value) => {
                         const isExist =
-                            await usersService.checkPhoneNumberExist(value)
+                            await usersService.checkPhoneNumberExist(
+                                encrypt(value)
+                            )
                         if (!isExist) {
                             throw new Error(
                                 USER_MESSAGES.PHONE_NUMBER_IS_NOT_REGISTERED
