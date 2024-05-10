@@ -1,39 +1,38 @@
 import databaseService from '~/database/database.services'
 import User from './user.schema'
 import { ObjectId } from 'mongodb'
-import {
-    LoginRequestBody,
-    RegisterOauthReqBody,
-    RegisterReqBody
-} from './user.requests'
+import { RegisterOauthReqBody, RegisterReqBody } from './user.requests'
 import { encrypt, hashPassword } from '~/utils/crypto'
 import { signToken, verifyToken } from '~/utils/jwt'
-import { TokenType, UserRole, UserVerifyStatus } from './user.enum'
+import { TokenType, UserVerifyStatus } from './user.enum'
 import RefreshToken from '../refreshToken/refreshToken.schema'
 import { omit } from 'lodash'
-import { USER_MESSAGES } from './user.messages'
-import { config } from 'dotenv'
-config()
+import otpGenerator from 'otp-generator'
+import otpService from '../otp/otp.services'
+import { OTP_KIND } from '../otp/otp.enum'
+import 'dotenv/config'
 
 class UsersService {
     private decodeRefreshToken(refresh_token: string) {
         return verifyToken({
             token: refresh_token,
-            secretOrPublickey: process.env.JWT_PRIVATE_KEY as string
+            secretOrPublickey: process.env.JWT_SECRET_REFRESH_TOKEN as string
         })
     }
 
     private signAccessToken(user_id: string) {
         return signToken({
             payload: { user_id: user_id, token_type: TokenType.Access },
-            options: { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_MINUTES }
+            options: { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_MINUTES },
+            privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
         })
     }
 
     private signRefreshToken(user_id: string) {
         return signToken({
             payload: { user_id: user_id, token_type: TokenType.Refresh },
-            options: { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_DAYS }
+            options: { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_DAYS },
+            privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
         })
     }
 
@@ -42,24 +41,6 @@ class UsersService {
             this.signAccessToken(user_id),
             this.signRefreshToken(user_id)
         ])
-    }
-
-    private signForgotPasswordToken({
-        user_id,
-        status
-    }: {
-        user_id: string
-        status: UserVerifyStatus
-    }) {
-        return signToken({
-            payload: {
-                user_id,
-                status,
-                token_type: TokenType.ForgotPasswordToken
-            },
-            options: { expiresIn: process.env.FORGOT_PASSWORD_TOKEN_EXPIRE_IN },
-            privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
-        })
     }
 
     async checkEmailExist(email: string) {
@@ -75,6 +56,18 @@ class UsersService {
     async checkPhoneNumberExist(phone_number: string) {
         const user = await databaseService.users.findOne({ phone_number })
         return Boolean(user)
+    }
+
+    async getme(user_id: string) {
+        const user = await databaseService.users.findOne(
+            { _id: new ObjectId(user_id) },
+            {
+                projection: {
+                    password: 0
+                }
+            }
+        )
+        return user as User
     }
 
     async register(
@@ -144,29 +137,101 @@ class UsersService {
         return { access_token, refresh_token }
     }
 
-    async forgotPassword({
-        user_id,
-        status
-    }: {
-        user_id: string
-        status: UserVerifyStatus
-    }) {
-        const forgot_password_token = await this.signForgotPasswordToken({
-            user_id,
-            status
+    async sendForgotPasswordOTPByEmail(email: string) {
+        // send otp to email
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false
         })
 
-        await databaseService.users.updateOne({ _id: new ObjectId(user_id) }, [
-            {
-                $set: {
-                    forgot_password_token,
-                    updated_at: '$$NOW'
-                }
-            }
-        ])
-        // Giả lập gửi email
-        console.log(forgot_password_token)
-        return { message: USER_MESSAGES.CHECK_EMAIL_TO_RESET_PASSWORD }
+        const result = await otpService.sendEmail({
+            email,
+            otp,
+            kind: OTP_KIND.PasswordRecovery
+        })
+
+        return { otp_id: result.insertedId, otp: otp }
+    }
+
+    async sendForgotPasswordOTPByPhone(phone_number: string) {
+        // send otp to phone
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false
+        })
+
+        const result = await otpService.sendPhone({
+            phone_number,
+            otp,
+            kind: OTP_KIND.PasswordRecovery
+        })
+
+        return { otp_id: result.insertedId, otp: otp }
+    }
+
+    async sendVerifyAccountOTPByEmail(email: string) {
+        // send otp to email
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false
+        })
+
+        const result = await otpService.sendEmail({
+            email,
+            otp,
+            kind: OTP_KIND.VerifyAccount
+        })
+
+        return { otp_id: result.insertedId, otp: otp }
+    }
+
+    async sendVerifyAccountOTPByPhone(phone_number: string) {
+        // send otp to phone
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false
+        })
+
+        const result = await otpService.sendPhone({
+            phone_number,
+            otp,
+            kind: OTP_KIND.VerifyAccount
+        })
+
+        return { otp_id: result.insertedId, otp: otp }
+    }
+
+    async disableOTP(user_id: ObjectId) {
+        await otpService.checkExistOtp(user_id)
+        return true
+    }
+
+    async resetPassword(user_id: ObjectId, password: string) {
+        const hashedPassword = hashPassword(password)
+
+        await databaseService.users.updateOne(
+            { _id: user_id },
+            { $set: { password: hashedPassword } }
+        )
+
+        await this.disableOTP(user_id)
+
+        return true
+    }
+
+    async verifyAccount(user_id: ObjectId) {
+        await databaseService.users.updateOne(
+            { _id: user_id },
+            { $set: { status: UserVerifyStatus.Verified } }
+        )
+
+        await this.disableOTP(user_id)
+
+        return true
     }
 }
 

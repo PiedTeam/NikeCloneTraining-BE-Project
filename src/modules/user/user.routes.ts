@@ -1,19 +1,28 @@
 import { Router } from 'express'
 import {
     forgotPasswordController,
+    getMeController,
     loginController,
-    registerController
+    registerController,
+    resetPasswordController,
+    sendVerifyAccountOTPController,
+    verifyAccountController,
+    verifyForgotPasswordTokenController
 } from './user.controllers'
 import {
+    accessTokenValidator,
+    blockPostman,
     checkEmailOrPhone,
     forgotPasswordValidator,
     loginCheckMissingField,
     loginValidator,
     registerValidator,
-    verifyForgotPasswordTokenValidator
+    resetPasswordValidator,
+    verifyAccountOTPValidator,
+    verifyAccountValidator,
+    verifyForgotPasswordOTPValidator
 } from './user.middlewares'
 import { wrapAsync } from '~/utils/handler'
-import { Request, Response } from 'express'
 
 const usersRouter = Router()
 
@@ -50,13 +59,13 @@ body: {
 */
 usersRouter.post(
     '/login',
-    // loginCheckMissingField,
     checkEmailOrPhone,
     loginValidator,
     wrapAsync(loginController)
 )
 
 /*
+  description: send otp forgot password to user's email or phone number
   path: /user/forgot-password
   method: 'POST'
   body: { email_phone: string }
@@ -69,18 +78,74 @@ usersRouter.post(
 )
 
 /*
+description: verify otp
   path: /users/reset-password
   method: 'POST'
-  body: { forgot_password_token: string }
+  body: { 
+          email_phone: string, 
+          forgot_password_otp: string 
+        }
 */
 usersRouter.post(
-    '/verify-forgot-password',
-    verifyForgotPasswordTokenValidator
-    // wrapAsync(verifyForgotPasswordTokenController)
+    '/verify-otp',
+    checkEmailOrPhone,
+    verifyForgotPasswordOTPValidator,
+    wrapAsync(verifyForgotPasswordTokenController)
 )
 
-// usersRouter.get('/login-success', (req: Request, res: Response) => {
-//     res.send('Welcome to Nike Clone Training Project')
-// })
+/*
+des: reset password
+path: '/reset-password'
+method: POST
+body: { 
+        email_phone: string,
+        forgot_password_otp: string,
+        confirm_password: string, 
+        password: string
+      }
+*/
+usersRouter.post(
+    '/reset-password',
+    resetPasswordValidator,
+    checkEmailOrPhone,
+    verifyForgotPasswordOTPValidator,
+    wrapAsync(resetPasswordController)
+)
+
+/*
+  description: send otp verify account to user's email or phone number
+  path: /users/verify-account
+  method: POST
+  body: { email_phone: string }
+*/
+usersRouter.post(
+    '/send-verify-account-otp',
+    checkEmailOrPhone,
+    verifyAccountValidator,
+    wrapAsync(sendVerifyAccountOTPController)
+)
+
+/*
+  description: verify account
+  path: /users/verify-account
+  method: POST
+  body: { email_phone: string, verify_account_otp: string }
+*/
+usersRouter.post(
+    '/verify-account',
+    checkEmailOrPhone,
+    verifyAccountValidator,
+    verifyAccountOTPValidator,
+    wrapAsync(verifyAccountController)
+)
+
+/*
+des: get user's profile
+path: '/me'
+method: get
+Header: {Authorization: Bearer <access_token>}
+body: {}
+*/
+usersRouter.get('/me', accessTokenValidator, wrapAsync(getMeController))
 
 export default usersRouter

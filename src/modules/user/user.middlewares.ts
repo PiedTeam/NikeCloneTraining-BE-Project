@@ -9,6 +9,14 @@ import { LoginRequestBody } from './user.requests'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { ErrorEntity } from '~/errors/errors.entityError'
 import { HTTP_STATUS } from '~/constants/httpStatus'
+import { ErrorWithStatus } from '~/models/Error'
+import { verifyToken } from '~/utils/jwt'
+import { OTP_STATUS } from '../otp/otp.enum'
+import { isDeveloperAgent } from '~/utils/agent'
+import { capitalize, cond } from 'lodash'
+import { JsonWebTokenError } from 'jsonwebtoken'
+import { config } from 'dotenv'
+config()
 
 const usernameSchema: ParamSchema = {
     trim: true,
@@ -104,7 +112,7 @@ const confirmPasswordSchema: ParamSchema = {
     },
     custom: {
         options: (value, { req }) => {
-            if (!value === req.body.password) {
+            if (value !== req.body.password) {
                 throw new Error(
                     USER_MESSAGES.CONFIRM_PASSWORD_MUST_MATCH_PASSWORD
                 )
@@ -249,10 +257,12 @@ export const checkEmailOrPhone = (
         )
     ) {
         req.body.email = email_phone
+        req.body.type = 'email'
     } else if (
         email_phone.match(/^\+?[0-9]{1,4}[\s.-]?[0-9]{1,4}[\s.-]?[0-9]{4,10}$/)
     ) {
         req.body.phone_number = email_phone
+        req.body.type = 'phone_number'
     } else {
         next(
             new ErrorEntity({
@@ -264,6 +274,7 @@ export const checkEmailOrPhone = (
             })
         )
     }
+    delete req.body.email_phone
     next()
 }
 
@@ -391,4 +402,215 @@ export const forgotPasswordValidator = validate(
     )
 )
 
-export const verifyForgotPasswordTokenValidator = validate(checkSchema({}))
+export const verifyForgotPasswordOTPValidator = validate(
+    checkSchema(
+        {
+            forgot_password_otp: {
+                trim: true,
+                custom: {
+                    options: async (value, { req }) => {
+                        if (!value) {
+                            throw new Error(
+                                USER_MESSAGES.FORGOT_PASSWORD_OTP_IS_REQUIRED
+                            )
+                        }
+                        const user =
+                            req.body.type === 'email'
+                                ? await databaseService.users.findOne({
+                                      email: encrypt(req.body.email)
+                                  })
+                                : await databaseService.users.findOne({
+                                      phone_number: encrypt(
+                                          req.body.phone_number
+                                      )
+                                  })
+                        if (!user) {
+                            throw new Error(USER_MESSAGES.USER_NOT_FOUND)
+                        }
+                        const result = await databaseService.OTP.findOne({
+                            user_id: user._id,
+                            status: OTP_STATUS.Available
+                        })
+                        if (!result) {
+                            throw new Error(USER_MESSAGES.OTP_NOT_FOUND)
+                        }
+                        if (
+                            (result?.type === 1 &&
+                                req.body.type === 'phone_number') ||
+                            (result?.type === 0 && req.body.type === 'email')
+                        ) {
+                            throw new Error(
+                                USER_MESSAGES.REQUIRE_FIELD_IS_INVALID
+                            )
+                        }
+                        const otp = result?.OTP
+                        if (value !== otp) {
+                            throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
+                        }
+                        req.body.user_id = user._id
+                    }
+                }
+            }
+        },
+        ['body']
+    )
+)
+
+export const resetPasswordValidator = validate(
+    checkSchema(
+        {
+            password: passwordSchema,
+            confirm_password: confirmPasswordSchema
+        },
+        ['body']
+    )
+)
+
+export const verifyAccountValidator = validate(
+    checkSchema(
+        {
+            email: {
+                optional: true,
+                ...emailSchema,
+                custom: {
+                    options: async (value, { req }) => {
+                        const user = await databaseService.users.findOne({
+                            email: encrypt(value)
+                        })
+                        if (user === null) {
+                            throw new Error(USER_MESSAGES.EMAIL_NOT_FOUND)
+                        }
+                        req.user = user
+                        return true
+                    }
+                }
+            },
+            phone_number: {
+                optional: true,
+                ...phone_numberSchema,
+                custom: {
+                    options: async (value, { req }) => {
+                        const user = await databaseService.users.findOne({
+                            phone_number: encrypt(value)
+                        })
+                        if (user === null) {
+                            throw new Error(
+                                USER_MESSAGES.PHONE_NUMBER_NOT_FOUND
+                            )
+                        }
+                        req.user = user
+                        return true
+                    }
+                }
+            }
+        },
+        ['body']
+    )
+)
+
+export const verifyAccountOTPValidator = validate(
+    checkSchema({
+        verify_account_otp: {
+            trim: true,
+            custom: {
+                options: async (value, { req }) => {
+                    if (!value) {
+                        throw new Error(
+                            USER_MESSAGES.VERIFY_ACCOUNT_OTP_IS_REQUIRED
+                        )
+                    }
+                    const user =
+                        req.body.type === 'email'
+                            ? await databaseService.users.findOne({
+                                  email: encrypt(req.body.email)
+                              })
+                            : await databaseService.users.findOne({
+                                  phone_number: encrypt(req.body.phone_number)
+                              })
+                    if (!user) {
+                        throw new Error(USER_MESSAGES.USER_NOT_FOUND)
+                    }
+                    const result = await databaseService.OTP.findOne({
+                        user_id: user._id,
+                        status: OTP_STATUS.Available
+                    })
+                    if (!result) {
+                        throw new Error(USER_MESSAGES.OTP_NOT_FOUND)
+                    }
+                    if (
+                        (result?.type === 1 &&
+                            req.body.type === 'phone_number') ||
+                        (result?.type === 0 && req.body.type === 'email')
+                    ) {
+                        throw new Error(USER_MESSAGES.REQUIRE_FIELD_IS_INVALID)
+                    }
+                    const otp = result?.OTP
+                    if (value !== otp) {
+                        throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
+                    }
+                    req.body.user_id = user._id
+                }
+            }
+        }
+    })
+)
+export const blockPostman = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        if (
+            (req.headers['postman-token'] &&
+                (await req.body?.code) === process.env.CODE) ||
+            isDeveloperAgent(req.headers['user-agent'] as string)
+        ) {
+            next()
+            // return true
+        } else {
+            return res.status(403).send('m cook')
+            // return false
+        }
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+export const accessTokenValidator = validate(
+    checkSchema(
+        {
+            authorization: {
+                trim: true,
+                custom: {
+                    options: async (value: string, { req }) => {
+                        const access_token = value.split(' ')[1]
+                        if (!access_token) {
+                            throw new ErrorWithStatus({
+                                message: USER_MESSAGES.ACCESS_TOKEN_IS_REQUIRED,
+                                status: HTTP_STATUS.UNAUTHORIZED
+                            })
+                        }
+                        try {
+                            const decoded_authorization = await verifyToken({
+                                token: access_token,
+                                secretOrPublickey: process.env
+                                    .JWT_SECRET_ACCESS_TOKEN as string
+                            })
+                            ;(req as Request).body['decoded_authorization'] =
+                                decoded_authorization
+                        } catch (error) {
+                            throw new ErrorWithStatus({
+                                message: capitalize(
+                                    (error as JsonWebTokenError).message
+                                ),
+                                status: HTTP_STATUS.UNAUTHORIZED
+                            })
+                        }
+                        return true
+                    }
+                }
+            }
+        },
+        ['headers']
+    )
+)

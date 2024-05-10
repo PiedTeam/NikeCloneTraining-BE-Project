@@ -25,13 +25,11 @@ export const sendOtpPhoneNumberController = async (
     })
 
     //* Nhét thêm otp vào req.body
-    const result = await otpService.sendOtpPhone({ phone_number, otp })
-
-    // await twilioClient.messages.create({
-    //     from: process.env.TWILIO_PHONE_NUMBER,
-    //     to: '+84' + phone_number,
-    //     body: `Sent from your Nike verify account - Your OTP is: ${otp}`
-    // })
+    const result = await otpService.sendPhone({
+        phone_number,
+        otp,
+        kind: OTP_KIND.VerifyAccount
+    })
 
     // Send OTP to phone number
     return res.status(StatusCodes.OK).json({
@@ -50,7 +48,6 @@ export const sendOtpMailController = async (
         lowerCaseAlphabets: false,
         specialChars: false
     })
-
     //* Nhét thêm otp vào req.body
     const result = await otpService.sendEmail({
         email: req.body.email,

@@ -37,3 +37,10 @@ export interface TokenPayload extends JwtPayload {
     iat: number
     exp: number
 }
+
+export interface ResetPasswordReqBody {
+    email_phone: string
+    forgot_password_token: string
+    password: string
+    confirm_password: string
+}

@@ -1,7 +1,6 @@
 import * as CryptoJS from 'crypto-js'
 import { createHash } from 'crypto'
-import { config } from 'dotenv'
-config()
+import 'dotenv/config'
 
 function sha256(content: string) {
     return createHash('sha256').update(content).digest('hex')
@@ -17,4 +16,13 @@ export function encrypt(value: any): string {
         iv: parsedKey
     }).toString()
     return ciphertext
+}
+
+// this function is used to decryt the sensitive information
+export default function decrypt(value: any) {
+    const parsedKey = CryptoJS.enc.Utf8.parse(process.env.KEY as any)
+    const decryptedData = CryptoJS.AES.decrypt(value, parsedKey, {
+        iv: parsedKey
+    })
+    return decryptedData.toString(CryptoJS.enc.Utf8)
 }
