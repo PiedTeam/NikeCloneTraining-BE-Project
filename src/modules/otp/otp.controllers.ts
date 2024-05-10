@@ -6,7 +6,6 @@ import otpService from './otp.services'
 import { OTP_MESSAGES } from './otp.messages'
 import { SendOtpViaMailReqBody, SendOtpViaPhoneReqBody } from './otp.requests'
 import { OTP_KIND } from './otp.enum'
-// import { Twilio } from 'twilio'
 
 //! Config Twilio
 const accountSid = process.env.TWILIO_ACCOUNT_SID
