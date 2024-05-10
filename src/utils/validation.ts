@@ -22,7 +22,6 @@ export const validate = (
 
         Object.keys(errorsObject).forEach((key) => {
             const { msg } = errorsObject[key]
-
             if (
                 msg instanceof ErrorWithStatus &&
                 msg.status !== HTTP_STATUS.UNPROCESSABLE_ENTITY
