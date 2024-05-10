@@ -73,5 +73,9 @@ export const USER_MESSAGES = {
 
     // verify account
     VERIFY_ACCOUNT_OTP_IS_REQUIRED: 'Verify account otp is required',
-    VERIFY_ACCOUNT_SUCCESSFULLY: 'Verify account successfully'
+    VERIFY_ACCOUNT_SUCCESSFULLY: 'Verify account successfully',
+
+    //get me
+    ACCESS_TOKEN_IS_REQUIRED: 'Access token is required!',
+    GET_ME_SUCCESSFULLY: 'Get me successfully!'
 } as const

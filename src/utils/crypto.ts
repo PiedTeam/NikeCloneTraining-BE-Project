@@ -17,3 +17,12 @@ export function encrypt(value: any): string {
     }).toString()
     return ciphertext
 }
+
+// this function is used to decryt the sensitive information
+export default function decrypt(value: any) {
+    const parsedKey = CryptoJS.enc.Utf8.parse(process.env.KEY as any)
+    const decryptedData = CryptoJS.AES.decrypt(value, parsedKey, {
+        iv: parsedKey
+    })
+    return decryptedData.toString(CryptoJS.enc.Utf8)
+}

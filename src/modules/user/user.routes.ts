@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
     forgotPasswordController,
+    getMeController,
     loginController,
     registerController,
     resetPasswordController,
@@ -9,6 +10,7 @@ import {
     verifyForgotPasswordTokenController
 } from './user.controllers'
 import {
+    accessTokenValidator,
     blockPostman,
     checkEmailOrPhone,
     forgotPasswordValidator,
@@ -144,5 +146,14 @@ usersRouter.post(
     verifyAccountOTPValidator,
     wrapAsync(verifyAccountController)
 )
+
+/*
+des: get user's profile
+path: '/me'
+method: get
+Header: {Authorization: Bearer <access_token>}
+body: {}
+*/
+usersRouter.get('/me', accessTokenValidator, wrapAsync(getMeController))
 
 export default usersRouter
