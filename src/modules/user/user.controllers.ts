@@ -122,6 +122,7 @@ export const getMeController = async (req: Request, res: Response) => {
     return res.status(200).json({
         message: USER_MESSAGES.GET_ME_SUCCESSFULLY,
         data: {
+            user_id,
             first_name,
             last_name,
             email,
