@@ -16,21 +16,23 @@ class UsersService {
     private decodeRefreshToken(refresh_token: string) {
         return verifyToken({
             token: refresh_token,
-            secretOrPublickey: process.env.JWT_PRIVATE_KEY as string
+            secretOrPublickey: process.env.JWT_SECRET_REFRESH_TOKEN as string
         })
     }
 
     private signAccessToken(user_id: string) {
         return signToken({
             payload: { user_id: user_id, token_type: TokenType.Access },
-            options: { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_MINUTES }
+            options: { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_MINUTES },
+            privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
         })
     }
 
     private signRefreshToken(user_id: string) {
         return signToken({
             payload: { user_id: user_id, token_type: TokenType.Refresh },
-            options: { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_DAYS }
+            options: { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_DAYS },
+            privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
         })
     }
 
@@ -54,6 +56,18 @@ class UsersService {
     async checkPhoneNumberExist(phone_number: string) {
         const user = await databaseService.users.findOne({ phone_number })
         return Boolean(user)
+    }
+
+    async getme(user_id: string) {
+        const user = await databaseService.users.findOne(
+            { _id: new ObjectId(user_id) },
+            {
+                projection: {
+                    password: 0
+                }
+            }
+        )
+        return user as User
     }
 
     async register(

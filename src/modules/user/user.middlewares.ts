@@ -13,6 +13,10 @@ import { ErrorWithStatus } from '~/models/Error'
 import { verifyToken } from '~/utils/jwt'
 import { OTP_STATUS } from '../otp/otp.enum'
 import { isDeveloperAgent } from '~/utils/agent'
+import { capitalize, cond } from 'lodash'
+import { JsonWebTokenError } from 'jsonwebtoken'
+import { config } from 'dotenv'
+config()
 
 const usernameSchema: ParamSchema = {
     trim: true,
@@ -571,3 +575,42 @@ export const blockPostman = async (
         console.log(error)
     }
 }
+
+export const accessTokenValidator = validate(
+    checkSchema(
+        {
+            authorization: {
+                trim: true,
+                custom: {
+                    options: async (value: string, { req }) => {
+                        const access_token = value.split(' ')[1]
+                        if (!access_token) {
+                            throw new ErrorWithStatus({
+                                message: USER_MESSAGES.ACCESS_TOKEN_IS_REQUIRED,
+                                status: HTTP_STATUS.UNAUTHORIZED
+                            })
+                        }
+                        try {
+                            const decoded_authorization = await verifyToken({
+                                token: access_token,
+                                secretOrPublickey: process.env
+                                    .JWT_SECRET_ACCESS_TOKEN as string
+                            })
+                            ;(req as Request).body['decoded_authorization'] =
+                                decoded_authorization
+                        } catch (error) {
+                            throw new ErrorWithStatus({
+                                message: capitalize(
+                                    (error as JsonWebTokenError).message
+                                ),
+                                status: HTTP_STATUS.UNAUTHORIZED
+                            })
+                        }
+                        return true
+                    }
+                }
+            }
+        },
+        ['headers']
+    )
+)

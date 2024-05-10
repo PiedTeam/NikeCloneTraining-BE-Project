@@ -6,6 +6,7 @@ import { USER_MESSAGES } from './user.messages'
 import User from './user.schema'
 import { ObjectId } from 'mongodb'
 import 'dotenv/config'
+import decrypt from '~/utils/crypto'
 
 export const registerController = async (
     req: Request<ParamsDictionary, any, RegisterReqBody>,
@@ -106,5 +107,27 @@ export const verifyAccountController = async (req: Request, res: Response) => {
     return res.status(200).json({
         message: USER_MESSAGES.VERIFY_ACCOUNT_SUCCESSFULLY,
         details: result
+    })
+}
+
+export const getMeController = async (req: Request, res: Response) => {
+    const { user_id } = req.body['decoded_authorization']
+    const user = await usersService.getme(user_id)
+
+    const { first_name, last_name, status } = user
+    const email = user.email !== '' ? await decrypt(user.email) : ''
+    const phone_number =
+        user.phone_number !== '' ? await decrypt(user.phone_number) : ''
+
+    return res.status(200).json({
+        message: USER_MESSAGES.GET_ME_SUCCESSFULLY,
+        data: {
+            user_id,
+            first_name,
+            last_name,
+            email,
+            phone_number,
+            status
+        }
     })
 }
