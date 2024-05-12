@@ -5,7 +5,7 @@ import usersService from './user.services'
 import { encrypt, hashPassword } from '~/utils/crypto'
 import databaseService from '~/database/database.services'
 import { Request, Response, NextFunction } from 'express'
-import { LoginRequestBody } from './user.requests'
+import { LoginRequestBody, TokenPayload } from './user.requests'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { ErrorEntity } from '~/errors/errors.entityError'
 import { HTTP_STATUS } from '~/constants/httpStatus'
@@ -16,6 +16,7 @@ import { isDeveloperAgent } from '~/utils/agent'
 import { capitalize, cond } from 'lodash'
 import { JsonWebTokenError } from 'jsonwebtoken'
 import { config } from 'dotenv'
+import { UserVerifyStatus } from './user.enum'
 config()
 
 const usernameSchema: ParamSchema = {
@@ -153,6 +154,21 @@ const lastnameSchema: ParamSchema = {
             max: 50
         },
         errorMessage: USER_MESSAGES.LAST_NAME_LENGTH_MUST_BE_FROM_1_TO_50
+    }
+}
+
+const imageSchema: ParamSchema = {
+    optional: true,
+    isString: {
+        errorMessage: USER_MESSAGES.IMAGE_URL_MUST_BE_A_STRING
+    },
+    trim: true,
+    isLength: {
+        options: {
+            min: 1,
+            max: 400
+        },
+        errorMessage: USER_MESSAGES.IMAGE_URL_LENGTH_MUST_BE_LESS_THAN_400
     }
 }
 
@@ -613,4 +629,38 @@ export const accessTokenValidator = validate(
         },
         ['headers']
     )
+)
+
+export const verifiedUserValidator = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    const { status } = req.body['decoded_authorization'] as TokenPayload
+    if (status !== UserVerifyStatus.Verified) {
+        return next(
+            new ErrorWithStatus({
+                message: USER_MESSAGES.USER_NOT_VERIFIED,
+                status: HTTP_STATUS.FORBIDDEN
+            })
+        )
+    }
+    next()
+}
+
+export const updateMeValidator = validate(
+    checkSchema({
+        username: { optional: true, ...usernameSchema },
+        first_name: { optional: true, ...firstnameSchema },
+        last_name: { optional: true, ...lastnameSchema },
+        email: {
+            optional: true,
+            ...emailSchema
+        },
+        phone_number: {
+            optional: true,
+            ...phone_numberSchema
+        },
+        avatar_url: { optional: true, ...lastnameSchema }
+    })
 )

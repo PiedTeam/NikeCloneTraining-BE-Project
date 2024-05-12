@@ -77,5 +77,12 @@ export const USER_MESSAGES = {
 
     //get me
     ACCESS_TOKEN_IS_REQUIRED: 'Access token is required!',
-    GET_ME_SUCCESSFULLY: 'Get me successfully!'
+    GET_ME_SUCCESSFULLY: 'Get me successfully!',
+
+    //update me
+    USER_NOT_VERIFIED: 'User is not verified',
+    IMAGE_URL_MUST_BE_A_STRING: 'Image url must be a string',
+    IMAGE_URL_LENGTH_MUST_BE_LESS_THAN_400:
+        'Image url length must be less than 400 characters',
+    UPDATE_ME_SUCCESSFULLY: 'Update me successfully!'
 } as const
