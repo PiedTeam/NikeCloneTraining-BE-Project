@@ -152,6 +152,7 @@ body: {}
 */
 usersRouter.get('/me', accessTokenValidator, wrapAsync(getMeController))
 
+
 /*
   description: update user's profile
   path: '/me'

@@ -77,6 +77,7 @@ export const USER_MESSAGES = {
 
     //get me
     ACCESS_TOKEN_IS_REQUIRED: 'Access token is required!',
+
     GET_ME_SUCCESSFULLY: 'Get me successfully!',
 
     //update me
