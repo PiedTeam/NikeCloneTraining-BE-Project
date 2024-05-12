@@ -56,7 +56,10 @@ passport.use(
                     email: encrypt(data.email)
                 })
                 const { access_token, refresh_token } =
-                    await usersService.login(user?._id.toString() as string)
+                    await usersService.login({
+                        user_id: user?._id.toString() as string,
+                        status: user?.status as number
+                    })
 
                 result.access_token = access_token
                 result.refresh_token = refresh_token
@@ -125,7 +128,10 @@ passport.use(
                 })
 
                 const { access_token, refresh_token } =
-                    await usersService.login(user?._id.toString() as string)
+                    await usersService.login({
+                        user_id: user?._id.toString() as string,
+                        status: user?.status as number
+                    })
 
                 result.access_token = access_token
                 result.refresh_token = refresh_token

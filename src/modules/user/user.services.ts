@@ -1,7 +1,11 @@
 import databaseService from '~/database/database.services'
 import User from './user.schema'
 import { ObjectId } from 'mongodb'
-import { RegisterOauthReqBody, RegisterReqBody } from './user.requests'
+import {
+    RegisterOauthReqBody,
+    RegisterReqBody,
+    UpdateMeReqBody
+} from './user.requests'
 import { encrypt, hashPassword } from '~/utils/crypto'
 import { signToken, verifyToken } from '~/utils/jwt'
 import { TokenType, UserVerifyStatus } from './user.enum'
@@ -20,26 +24,33 @@ class UsersService {
         })
     }
 
-    private signAccessToken(user_id: string) {
+    private signAccessToken(user_id: string, status: UserVerifyStatus) {
         return signToken({
-            payload: { user_id: user_id, token_type: TokenType.Access },
+            payload: { user_id: user_id, token_type: TokenType.Access, status },
             options: { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_MINUTES },
             privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
         })
     }
 
-    private signRefreshToken(user_id: string) {
+    private signRefreshToken(user_id: string, status: UserVerifyStatus) {
         return signToken({
-            payload: { user_id: user_id, token_type: TokenType.Refresh },
+            payload: {
+                user_id: user_id,
+                token_type: TokenType.Refresh,
+                status
+            },
             options: { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_DAYS },
             privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
         })
     }
 
-    private signAccessAndRefreshToken(user_id: string) {
+    private signAccessAndRefreshToken(
+        user_id: string,
+        status: UserVerifyStatus
+    ) {
         return Promise.all([
-            this.signAccessToken(user_id),
-            this.signRefreshToken(user_id)
+            this.signAccessToken(user_id, status),
+            this.signRefreshToken(user_id, status)
         ])
     }
 
@@ -77,7 +88,10 @@ class UsersService {
         const user_id = new ObjectId()
 
         const [access_token, refresh_token] =
-            await this.signAccessAndRefreshToken(user_id.toString())
+            await this.signAccessAndRefreshToken(
+                user_id.toString(),
+                UserVerifyStatus.Unverified
+            )
 
         const { iat, exp } = await this.decodeRefreshToken(refresh_token)
 
@@ -119,9 +133,15 @@ class UsersService {
         return { access_token, refresh_token }
     }
 
-    async login(user_id: string) {
+    async login({
+        user_id,
+        status
+    }: {
+        user_id: string
+        status: UserVerifyStatus
+    }) {
         const [access_token, refresh_token] =
-            await this.signAccessAndRefreshToken(user_id)
+            await this.signAccessAndRefreshToken(user_id, status)
 
         const { iat, exp } = await this.decodeRefreshToken(refresh_token)
 
@@ -162,7 +182,11 @@ class UsersService {
             specialChars: false
         })
 
-        const result = await otpService.sendOtpPhone({ phone_number, otp })
+        const result = await otpService.sendPhone({
+            phone_number,
+            otp,
+            kind: OTP_KIND.PasswordRecovery
+        })
 
         return { otp_id: result.insertedId, otp: otp }
     }
@@ -192,7 +216,11 @@ class UsersService {
             specialChars: false
         })
 
-        const result = await otpService.sendOtpPhone({ phone_number, otp })
+        const result = await otpService.sendPhone({
+            phone_number,
+            otp,
+            kind: OTP_KIND.VerifyAccount
+        })
 
         return { otp_id: result.insertedId, otp: otp }
     }
@@ -224,6 +252,35 @@ class UsersService {
         await this.disableOTP(user_id)
 
         return true
+    }
+
+    async updateMe({
+        user_id,
+        payload
+    }: {
+        user_id: string
+        payload: UpdateMeReqBody
+    }) {
+        const user = await databaseService.users.findOneAndUpdate(
+            { _id: new ObjectId(user_id) },
+            [
+                {
+                    $set: {
+                        ...payload,
+                        updated_at: '$$NOW'
+                    }
+                }
+            ],
+            {
+                returnDocument: 'after',
+                projection: {
+                    password: 0,
+                    email_verify_token: 0,
+                    forgot_password_token: 0
+                }
+            }
+        )
+        return user
     }
 }
 

@@ -6,6 +6,7 @@ import {
     registerController,
     resetPasswordController,
     sendVerifyAccountOTPController,
+    updateMeController,
     verifyAccountController,
     verifyForgotPasswordTokenController
 } from './user.controllers'
@@ -18,11 +19,14 @@ import {
     loginValidator,
     registerValidator,
     resetPasswordValidator,
+    updateMeValidator,
+    verifiedUserValidator,
     verifyAccountOTPValidator,
     verifyAccountValidator,
     verifyForgotPasswordOTPValidator
 } from './user.middlewares'
 import { wrapAsync } from '~/utils/handler'
+import { update } from 'lodash'
 
 const usersRouter = Router()
 
@@ -41,7 +45,6 @@ const usersRouter = Router()
 */
 usersRouter.post(
     '/register',
-    blockPostman,
     checkEmailOrPhone,
     registerValidator,
     wrapAsync(registerController)
@@ -60,8 +63,6 @@ body: {
 */
 usersRouter.post(
     '/login',
-    // loginCheckMissingField,
-    blockPostman,
     checkEmailOrPhone,
     loginValidator,
     wrapAsync(loginController)
@@ -75,7 +76,6 @@ usersRouter.post(
 */
 usersRouter.post(
     '/forgot-password',
-    blockPostman,
     checkEmailOrPhone,
     forgotPasswordValidator,
     wrapAsync(forgotPasswordController)
@@ -92,7 +92,6 @@ description: verify otp
 */
 usersRouter.post(
     '/verify-otp',
-    blockPostman,
     checkEmailOrPhone,
     verifyForgotPasswordOTPValidator,
     wrapAsync(verifyForgotPasswordTokenController)
@@ -111,7 +110,6 @@ body: {
 */
 usersRouter.post(
     '/reset-password',
-    blockPostman,
     resetPasswordValidator,
     checkEmailOrPhone,
     verifyForgotPasswordOTPValidator,
@@ -126,7 +124,6 @@ usersRouter.post(
 */
 usersRouter.post(
     '/send-verify-account-otp',
-    blockPostman,
     checkEmailOrPhone,
     verifyAccountValidator,
     wrapAsync(sendVerifyAccountOTPController)
@@ -140,7 +137,6 @@ usersRouter.post(
 */
 usersRouter.post(
     '/verify-account',
-    blockPostman,
     checkEmailOrPhone,
     verifyAccountValidator,
     verifyAccountOTPValidator,
@@ -155,5 +151,21 @@ Header: {Authorization: Bearer <access_token>}
 body: {}
 */
 usersRouter.get('/me', accessTokenValidator, wrapAsync(getMeController))
+
+
+/*
+  description: update user's profile
+  path: '/me'
+  method: patch
+  header: {Authorization: Bearer <access_token>}
+  body: { first_name: string, last_name: string, email: string, phone_number: string, ...}
+*/
+usersRouter.patch(
+    '/me',
+    accessTokenValidator,
+    verifiedUserValidator,
+    updateMeValidator,
+    wrapAsync(updateMeController)
+)
 
 export default usersRouter

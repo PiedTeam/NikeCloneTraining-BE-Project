@@ -12,7 +12,7 @@ import passwordRouter from './modules/password/pass.routes'
 import { blockPostman } from './modules/user/user.middlewares'
 
 const app = express()
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 4000
 app.use(express.json())
 app.use(cookieParser())
 
