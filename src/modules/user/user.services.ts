@@ -182,7 +182,11 @@ class UsersService {
             specialChars: false
         })
 
-        const result = await otpService.sendOtpPhone({ phone_number, otp })
+        const result = await otpService.sendPhone({
+            phone_number,
+            otp,
+            kind: OTP_KIND.PasswordRecovery
+        })
 
         return { otp_id: result.insertedId, otp: otp }
     }
@@ -212,7 +216,11 @@ class UsersService {
             specialChars: false
         })
 
-        const result = await otpService.sendOtpPhone({ phone_number, otp })
+        const result = await otpService.sendPhone({
+            phone_number,
+            otp,
+            kind: OTP_KIND.VerifyAccount
+        })
 
         return { otp_id: result.insertedId, otp: otp }
     }
