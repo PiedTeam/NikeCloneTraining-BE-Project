@@ -152,7 +152,6 @@ body: {}
 */
 usersRouter.get('/me', accessTokenValidator, wrapAsync(getMeController))
 
-
 /*
   description: update user's profile
   path: '/me'
@@ -167,5 +166,4 @@ usersRouter.patch(
     updateMeValidator,
     wrapAsync(updateMeController)
 )
-
 export default usersRouter

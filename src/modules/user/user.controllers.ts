@@ -142,7 +142,6 @@ export const getMeController = async (req: Request, res: Response) => {
     })
 }
 
-
 export const updateMeController = async (
     req: Request<ParamsDictionary, any, UpdateMeReqBody>,
     res: Response,

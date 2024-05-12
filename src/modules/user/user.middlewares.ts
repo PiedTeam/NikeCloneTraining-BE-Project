@@ -17,7 +17,6 @@ import { capitalize, cond } from 'lodash'
 import { JsonWebTokenError } from 'jsonwebtoken'
 import { config } from 'dotenv'
 import { UserVerifyStatus } from './user.enum'
-
 config()
 
 const usernameSchema: ParamSchema = {
@@ -631,7 +630,6 @@ export const accessTokenValidator = validate(
         ['headers']
     )
 )
-
 
 export const verifiedUserValidator = (
     req: Request,
