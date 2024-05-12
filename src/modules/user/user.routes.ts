@@ -166,5 +166,4 @@ usersRouter.patch(
     updateMeValidator,
     wrapAsync(updateMeController)
 )
-
 export default usersRouter
