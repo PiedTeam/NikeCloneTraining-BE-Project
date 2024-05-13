@@ -30,10 +30,10 @@ app.get('/', (req: Request, res: Response) => {
     res.send('Hello Developer')
 })
 
-app.use('/pass', blockPostman, passwordRouter)
-app.use('/user', blockPostman, usersRouter)
+app.use('/pass', passwordRouter)
+app.use('/user', usersRouter)
 app.use('/oauth', oauthRouter)
-app.use('/otp', blockPostman, otpRouter)
+app.use('/otp', otpRouter)
 // Create route to handle error for all routes in this app
 app.use(defaultErrorHandler)
 
