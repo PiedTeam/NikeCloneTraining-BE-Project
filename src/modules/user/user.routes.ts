@@ -6,6 +6,7 @@ import {
     registerController,
     resetPasswordController,
     sendVerifyAccountOTPController,
+    updateMeController,
     verifyAccountController,
     verifyForgotPasswordTokenController
 } from './user.controllers'
@@ -18,11 +19,14 @@ import {
     loginValidator,
     registerValidator,
     resetPasswordValidator,
+    updateMeValidator,
+    verifiedUserValidator,
     verifyAccountOTPValidator,
     verifyAccountValidator,
     verifyForgotPasswordOTPValidator
 } from './user.middlewares'
 import { wrapAsync } from '~/utils/handler'
+import { update } from 'lodash'
 
 const usersRouter = Router()
 
@@ -148,4 +152,18 @@ body: {}
 */
 usersRouter.get('/me', accessTokenValidator, wrapAsync(getMeController))
 
+/*
+  description: update user's profile
+  path: '/me'
+  method: patch
+  header: {Authorization: Bearer <access_token>}
+  body: { first_name: string, last_name: string, email: string, phone_number: string, ...}
+*/
+usersRouter.patch(
+    '/me',
+    accessTokenValidator,
+    verifiedUserValidator,
+    updateMeValidator,
+    wrapAsync(updateMeController)
+)
 export default usersRouter

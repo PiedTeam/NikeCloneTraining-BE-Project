@@ -1,12 +1,18 @@
 import { NextFunction, Request, Response } from 'express'
 import usersService from './user.services'
-import { LoginRequestBody, RegisterReqBody } from './user.requests'
+import {
+    LoginRequestBody,
+    RegisterReqBody,
+    TokenPayload,
+    UpdateMeReqBody
+} from './user.requests'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { USER_MESSAGES } from './user.messages'
 import User from './user.schema'
 import { ObjectId } from 'mongodb'
 import 'dotenv/config'
 import decrypt from '~/utils/crypto'
+import { omit } from 'lodash'
 
 export const registerController = async (
     req: Request<ParamsDictionary, any, RegisterReqBody>,
@@ -32,8 +38,12 @@ export const loginController = async (
     res: Response,
     next: NextFunction
 ) => {
-    const user_id = (req.user as User)._id as ObjectId
-    const result = await usersService.login(user_id.toString() as string)
+    const user = req.user as User
+    const user_id = user._id as ObjectId
+    const result = await usersService.login({
+        user_id: user_id.toString(),
+        status: user.status
+    })
 
     const { refresh_token } = result
     res.cookie('refresh_token', refresh_token, {
@@ -129,5 +139,23 @@ export const getMeController = async (req: Request, res: Response) => {
             phone_number,
             status
         }
+    })
+}
+
+export const updateMeController = async (
+    req: Request<ParamsDictionary, any, UpdateMeReqBody>,
+    res: Response,
+    next: NextFunction
+) => {
+    const user_id = (req as Request).body['decoded_authorization'].user_id
+    const body = omit(req.body, ['decoded_authorization', 'code'])
+    const user = await usersService.updateMe({
+        user_id,
+        payload: body as UpdateMeReqBody
+    })
+    console.log(body)
+    return res.json({
+        message: USER_MESSAGES.UPDATE_ME_SUCCESSFULLY,
+        user
     })
 }
