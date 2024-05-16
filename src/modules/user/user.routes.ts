@@ -26,6 +26,7 @@ import {
 import { wrapAsync } from '~/utils/handler'
 import { limiter } from '~/config/limitRequest'
 import express from 'express'
+import { update } from 'lodash'
 
 const app = express()
 const usersRouter = Router()

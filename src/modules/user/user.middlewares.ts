@@ -16,7 +16,8 @@ import { isDeveloperAgent } from '~/utils/agent'
 import { capitalize } from 'lodash'
 import { JsonWebTokenError } from 'jsonwebtoken'
 import { UserVerifyStatus } from './user.enum'
-import 'dotenv/config'
+import { config } from 'dotenv'
+config()
 
 const usernameSchema: ParamSchema = {
     trim: true,
