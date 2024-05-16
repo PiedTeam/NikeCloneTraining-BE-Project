@@ -12,10 +12,8 @@ import {
 } from './user.controllers'
 import {
     accessTokenValidator,
-    blockPostman,
     checkEmailOrPhone,
     forgotPasswordValidator,
-    loginCheckMissingField,
     loginValidator,
     registerValidator,
     resetPasswordValidator,
@@ -26,8 +24,10 @@ import {
     verifyForgotPasswordOTPValidator
 } from './user.middlewares'
 import { wrapAsync } from '~/utils/handler'
-import { update } from 'lodash'
+import { limiter } from '~/config/limitRequest'
+import express from 'express'
 
+const app = express()
 const usersRouter = Router()
 
 /*
@@ -63,6 +63,7 @@ body: {
 */
 usersRouter.post(
     '/login',
+    limiter,
     checkEmailOrPhone,
     loginValidator,
     wrapAsync(loginController)
@@ -76,6 +77,7 @@ usersRouter.post(
 */
 usersRouter.post(
     '/forgot-password',
+    limiter,
     checkEmailOrPhone,
     forgotPasswordValidator,
     wrapAsync(forgotPasswordController)

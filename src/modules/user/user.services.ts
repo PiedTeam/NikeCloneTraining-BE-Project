@@ -14,6 +14,8 @@ import { omit } from 'lodash'
 import otpGenerator from 'otp-generator'
 import otpService from '../otp/otp.services'
 import { OTP_KIND } from '../otp/otp.enum'
+import { capitalize } from 'lodash'
+import { capitalizePro } from '~/utils/capitalize'
 import 'dotenv/config'
 
 class UsersService {
@@ -69,6 +71,12 @@ class UsersService {
         return Boolean(user)
     }
 
+    async checkPasswordExist(password: string) {
+        password = hashPassword(password)
+        const user = await databaseService.users.findOne({ password })
+        return Boolean(user)
+    }
+
     async getme(user_id: string) {
         const user = await databaseService.users.findOne(
             { _id: new ObjectId(user_id) },
@@ -112,7 +120,12 @@ class UsersService {
                     _id: user_id,
                     ...(omit(payload, ['email_phone']) as RegisterReqBody),
                     password: hashPassword(payload.password),
-                    username: payload.first_name + ' ' + payload.last_name,
+                    username:
+                        capitalize(payload.first_name) +
+                        ' ' +
+                        capitalizePro(payload.last_name),
+                    first_name: capitalize(payload.first_name),
+                    last_name: capitalizePro(payload.last_name),
                     email: payload.email?.length ? encrypt(payload.email) : '',
                     phone_number: payload.phone_number?.length
                         ? encrypt(payload.phone_number)
