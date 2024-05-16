@@ -244,7 +244,7 @@ export const loginCheckMissingField = (
     next: NextFunction
 ) => {
     const body = req.body as LoginRequestBody
-    if (!body.username && !body.email && !body.phone_number) {
+    if (!body.email && !body.phone_number) {
         next(
             new ErrorEntity({
                 message: USER_MESSAGES.UNPROCESSABLE_ENTITY,
@@ -296,31 +296,31 @@ export const checkEmailOrPhone = (
 export const loginValidator = validate(
     checkSchema(
         {
-            username: {
-                optional: true,
-                ...usernameSchema,
-                custom: {
-                    options: async (value, { req }) => {
-                        if (!/[a-zA-Z]/.test(value)) {
-                            throw new Error(
-                                USER_MESSAGES.USERNAME_MUST_CONTAIN_ALPHABET
-                            )
-                        }
+            // username: {
+            //     optional: true,
+            //     ...usernameSchema,
+            //     custom: {
+            //         options: async (value, { req }) => {
+            //             if (!/[a-zA-Z]/.test(value)) {
+            //                 throw new Error(
+            //                     USER_MESSAGES.USERNAME_MUST_CONTAIN_ALPHABET
+            //                 )
+            //             }
 
-                        const user = await databaseService.users.findOne({
-                            username: value
-                        })
-                        if (user === null) {
-                            throw new Error(USER_MESSAGES.USERNAME_NOT_FOUND)
-                        }
-                        if (user.password !== hashPassword(req.body.password)) {
-                            throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
-                        }
-                        req.user = user
-                        return true
-                    }
-                }
-            },
+            //             const user = await databaseService.users.findOne({
+            //                 username: value
+            //             })
+            //             if (user === null) {
+            //                 throw new Error(USER_MESSAGES.USERNAME_NOT_FOUND)
+            //             }
+            //             if (user.password !== hashPassword(req.body.password)) {
+            //                 throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
+            //             }
+            //             req.user = user
+            //             return true
+            //         }
+            //     }
+            // },
             email: {
                 optional: true,
                 ...emailSchema,
@@ -649,7 +649,7 @@ export const verifiedUserValidator = (
 
 export const updateMeValidator = validate(
     checkSchema({
-        username: { optional: true, ...usernameSchema },
+        // username: { optional: true, ...usernameSchema },
         first_name: { optional: true, ...firstnameSchema },
         last_name: { optional: true, ...lastnameSchema },
         email: {
