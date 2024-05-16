@@ -13,11 +13,10 @@ import { ErrorWithStatus } from '~/models/Error'
 import { verifyToken } from '~/utils/jwt'
 import { OTP_STATUS } from '../otp/otp.enum'
 import { isDeveloperAgent } from '~/utils/agent'
-import { capitalize, cond } from 'lodash'
+import { capitalize } from 'lodash'
 import { JsonWebTokenError } from 'jsonwebtoken'
-import { config } from 'dotenv'
 import { UserVerifyStatus } from './user.enum'
-config()
+import 'dotenv/config'
 
 const usernameSchema: ParamSchema = {
     trim: true,

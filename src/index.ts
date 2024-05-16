@@ -4,12 +4,11 @@ import databaseService from './database/database.services'
 import usersRouter from './modules/user/user.routes'
 import { oauthRouter } from './modules/oauth/oauth.routes'
 import { defaultErrorHandler } from './errors/errors.middlewares'
-import 'dotenv/config'
 import cookieParser from 'cookie-parser'
 import '../passport.config'
 import otpRouter from './modules/otp/otp.routes'
 import passwordRouter from './modules/password/pass.routes'
-import { blockPostman } from './modules/user/user.middlewares'
+import 'dotenv/config'
 
 const app = express()
 const PORT = process.env.PORT || 4000

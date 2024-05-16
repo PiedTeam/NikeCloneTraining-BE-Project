@@ -3,7 +3,6 @@ import usersService from './user.services'
 import {
     LoginRequestBody,
     RegisterReqBody,
-    TokenPayload,
     UpdateMeReqBody
 } from './user.requests'
 import { ParamsDictionary } from 'express-serve-static-core'
