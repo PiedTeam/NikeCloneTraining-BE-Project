@@ -3,6 +3,7 @@ import usersService from './user.services'
 import {
     LoginRequestBody,
     RegisterReqBody,
+    TokenPayload,
     UpdateMeReqBody
 } from './user.requests'
 import { ParamsDictionary } from 'express-serve-static-core'
@@ -152,7 +153,6 @@ export const updateMeController = async (
         user_id,
         payload: body as UpdateMeReqBody
     })
-    console.log(body)
     return res.json({
         message: USER_MESSAGES.UPDATE_ME_SUCCESSFULLY,
         user

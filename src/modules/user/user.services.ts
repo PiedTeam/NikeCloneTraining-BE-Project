@@ -61,10 +61,10 @@ class UsersService {
         return Boolean(user)
     }
 
-    async checkUsernameExist(username: string) {
-        const user = await databaseService.users.findOne({ username })
-        return Boolean(user)
-    }
+    // async checkUsernameExist(username: string) {
+    //     const user = await databaseService.users.findOne({ username })
+    //     return Boolean(user)
+    // }
 
     async checkPhoneNumberExist(phone_number: string) {
         const user = await databaseService.users.findOne({ phone_number })
@@ -120,10 +120,10 @@ class UsersService {
                     _id: user_id,
                     ...(omit(payload, ['email_phone']) as RegisterReqBody),
                     password: hashPassword(payload.password),
-                    username:
-                        capitalize(payload.first_name) +
-                        ' ' +
-                        capitalizePro(payload.last_name),
+                    // username:
+                    //     capitalize(payload.first_name) +
+                    //     ' ' +
+                    //     capitalizePro(payload.last_name),
                     first_name: capitalize(payload.first_name),
                     last_name: capitalizePro(payload.last_name),
                     email: payload.email?.length ? encrypt(payload.email) : '',

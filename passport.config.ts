@@ -8,6 +8,7 @@ import {
 } from '~/modules/user/user.requests'
 import { encrypt } from '~/utils/crypto'
 import databaseService from '~/database/database.services'
+import { limiter } from '~/config/limitRequest'
 
 const GoogleStrategy = Google_Strategy
 const FacebookStrategy = Facebook_Strategy
@@ -22,7 +23,7 @@ passport.use(
         async function (accessToken, refreshToken, profile, callback) {
             const { id, displayName, emails, name, photos, provider } = profile
             const data: RegisterOauthReqBody = {
-                username: displayName,
+                // username: displayName,
                 email: emails?.length ? emails[0].value : '',
                 first_name: name?.familyName as string,
                 last_name: name?.givenName as string,
@@ -91,10 +92,11 @@ passport.use(
         async function (accessToken, refreshToken, profile, callback) {
             const { id, displayName, emails, name, photos, provider } = profile
             const data: RegisterOauthReqBody = {
-                username: displayName,
+                // username: displayName,
+
                 email: emails?.length ? emails[0].value : '',
-                first_name: name?.familyName as string,
-                last_name: name?.givenName as string,
+                first_name: displayName.split(' ')[0],
+                last_name: displayName.split(' ').slice(1).join(' '),
                 password: id,
                 avatar_url: photos?.length ? photos[0].value : '',
                 subscription: 1
