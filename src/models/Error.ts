@@ -1,6 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
 import { OTP_MESSAGES } from '~/modules/otp/otp.messages'
-import { USER_MESSAGES } from '~/modules/user/user.messages'
 
 type ErrorsType = Record<
     string,

@@ -153,7 +153,6 @@ export const updateMeController = async (
         user_id,
         payload: body as UpdateMeReqBody
     })
-    console.log(body)
     return res.json({
         message: USER_MESSAGES.UPDATE_ME_SUCCESSFULLY,
         user

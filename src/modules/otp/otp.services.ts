@@ -55,7 +55,12 @@ class OtpService {
             })
         )
 
-        await sendOtpPhone({ kind, otp, phone_number, username: user.username })
+        await sendOtpPhone({
+            kind,
+            otp,
+            phone_number,
+            username: user.first_name.length ? user.first_name : user.last_name
+        })
 
         return result
     }
@@ -91,8 +96,10 @@ class OtpService {
                 status: OTP_STATUS.Available
             })
         )
-
-        await sendOtpMail({ kind, otp, email, username: user.username })
+        const username = user.first_name.length
+            ? user.first_name
+            : user.last_name
+        await sendOtpMail({ kind, otp, email, username: username })
 
         return result
     }

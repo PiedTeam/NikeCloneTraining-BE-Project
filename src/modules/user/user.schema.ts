@@ -3,7 +3,7 @@ import { Subscription, UserRole, UserVerifyStatus } from './user.enum'
 
 interface UserType {
     _id?: ObjectId
-    username: string
+    // username: string
     first_name: string
     last_name: string
     phone_number?: string
@@ -19,7 +19,7 @@ interface UserType {
 
 export default class User {
     _id?: ObjectId
-    username: string
+    // username: string
     first_name: string
     last_name: string
     phone_number: string
@@ -34,7 +34,7 @@ export default class User {
     constructor(user: UserType) {
         const date = new Date()
         this._id = user._id || new ObjectId()
-        this.username = user.username || ''
+        // this.username = user.username || ''
         this.first_name = user.first_name || ''
         this.last_name = user.last_name || ''
         this.phone_number = user.phone_number || ''
