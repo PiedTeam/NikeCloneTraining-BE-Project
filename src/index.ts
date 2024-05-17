@@ -31,6 +31,8 @@ const whitelist = [
 //     allowedHeaders: ['Content-Type', 'Authorization'], // access-control-allow-headers
 //     optionSuccessStatus: 200
 // }
+
+// Use the forllowing code when testing with Postman
 const corsOptions = {
     origin: '*',
     credentials: true, // access-control-allow-credentials:true
