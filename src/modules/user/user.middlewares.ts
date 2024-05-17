@@ -1,5 +1,5 @@
 import { USER_MESSAGES } from '~/modules/user/user.messages'
-import { checkSchema, ParamSchema } from 'express-validator'
+import { check, checkSchema, ParamSchema } from 'express-validator'
 import { validate } from '~/utils/validation'
 import usersService from './user.services'
 import { encrypt, hashPassword } from '~/utils/crypto'
@@ -17,6 +17,7 @@ import { capitalize } from 'lodash'
 import { JsonWebTokenError } from 'jsonwebtoken'
 import { UserVerifyStatus } from './user.enum'
 import { config } from 'dotenv'
+import { ObjectId } from 'mongodb'
 config()
 
 const usernameSchema: ParamSchema = {
@@ -477,6 +478,34 @@ export const resetPasswordValidator = validate(
         {
             password: passwordSchema,
             confirm_password: confirmPasswordSchema
+        },
+        ['body']
+    )
+)
+
+export const changePasswordValidator = validate(
+    checkSchema(
+        {
+            old_password: {
+                ...passwordSchema,
+                custom: {
+                    options: async (value, { req }) => {
+                        const user_info = req.body[
+                            'decoded_authorization'
+                        ] as TokenPayload
+                        const user = await databaseService.users.findOne({
+                            _id: new ObjectId(user_info.user_id),
+                            password: hashPassword(value)
+                        })
+                        if (!user) {
+                            throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
+                        }
+                        req.body.user_id = user._id
+                        delete req.body.decoded_authorization
+                    }
+                }
+            },
+            new_password: passwordSchema
         },
         ['body']
     )

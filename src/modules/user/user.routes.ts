@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import {
+    changePasswordController,
     forgotPasswordController,
     getMeController,
     loginController,
@@ -12,6 +13,7 @@ import {
 } from './user.controllers'
 import {
     accessTokenValidator,
+    changePasswordValidator,
     checkEmailOrPhone,
     forgotPasswordValidator,
     loginValidator,
@@ -144,6 +146,20 @@ usersRouter.post(
     verifyAccountValidator,
     verifyAccountOTPValidator,
     wrapAsync(verifyAccountController)
+)
+
+/*
+des: change password
+path: '/change-password'
+method: post
+Header: {Authorization: Bearer <access_token>}
+body: { old_password: string, new_password: string }
+*/
+usersRouter.post(
+    '/change-password',
+    accessTokenValidator,
+    changePasswordValidator,
+    wrapAsync(changePasswordController)
 )
 
 /*
