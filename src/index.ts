@@ -31,12 +31,15 @@ const whitelist = [
 //     allowedHeaders: ['Content-Type', 'Authorization'], // access-control-allow-headers
 //     optionSuccessStatus: 200
 // }
+
+// THIS IS FOR TESTING ONLY
 const corsOptions = {
     origin: '*',
     credentials: true, // access-control-allow-credentials:true
     allowedHeaders: ['Content-Type', 'Authorization'], // access-control-allow-headers
     optionSuccessStatus: 200
 }
+
 app.use(cors(corsOptions))
 
 databaseService.connect()
