@@ -19,7 +19,6 @@ const whitelist = [
     'http://localhost:3000',
     'https://nikeclonetraining-be-project.onrender.com/'
 ]
-
 // const corsOptions = {
 //     origin: function (origin: any, callback: any) {
 //         if (whitelist.indexOf(origin) !== -1) {
@@ -33,13 +32,7 @@ const whitelist = [
 //     optionSuccessStatus: 200
 // }
 const corsOptions = {
-    origin: function (origin: any, callback: any) {
-        if (whitelist.indexOf(origin) !== -1) {
-            callback(null, true)
-        } else {
-            callback(new Error('Not allowed by CORS'))
-        }
-    },
+    origin: '*',
     credentials: true, // access-control-allow-credentials:true
     allowedHeaders: ['Content-Type', 'Authorization'], // access-control-allow-headers
     optionSuccessStatus: 200
