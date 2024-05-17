@@ -17,6 +17,7 @@ import { OTP_KIND } from '../otp/otp.enum'
 import { capitalize } from 'lodash'
 import { capitalizePro } from '~/utils/capitalize'
 import 'dotenv/config'
+import { Console } from 'console'
 
 class UsersService {
     private decodeRefreshToken(refresh_token: string) {
@@ -75,6 +76,13 @@ class UsersService {
         password = hashPassword(password)
         const user = await databaseService.users.findOne({ password })
         return Boolean(user)
+    }
+    async finduser(user_id: string, password: string) {
+        const user = await databaseService.users.findOne({
+            _id: new ObjectId(user_id),
+            password: hashPassword(password)
+        })
+        return user
     }
 
     async getme(user_id: string) {
@@ -245,12 +253,10 @@ class UsersService {
 
     async resetPassword(user_id: ObjectId, password: string) {
         const hashedPassword = hashPassword(password)
-
         await databaseService.users.updateOne(
             { _id: user_id },
             { $set: { password: hashedPassword } }
         )
-
         await this.disableOTP(user_id)
 
         return true

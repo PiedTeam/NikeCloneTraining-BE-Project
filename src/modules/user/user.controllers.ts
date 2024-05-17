@@ -158,3 +158,13 @@ export const updateMeController = async (
         user
     })
 }
+
+export const changePasswordController = async (req: Request, res: Response) => {
+    const user_id = req.body.user_id
+    const new_password = req.body.new_password
+    const result = await usersService.resetPassword(user_id, new_password)
+    return res.status(200).json({
+        message: USER_MESSAGES.RESET_PASSWORD_SUCCESSFULLY,
+        details: result
+    })
+}
