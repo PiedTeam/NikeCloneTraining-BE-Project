@@ -77,6 +77,13 @@ class UsersService {
         const user = await databaseService.users.findOne({ password })
         return Boolean(user)
     }
+    async finduser(user_id: string, password: string) {
+        const user = await databaseService.users.findOne({
+            _id: new ObjectId(user_id),
+            password: hashPassword(password)
+        })
+        return user
+    }
 
     async getme(user_id: string) {
         const user = await databaseService.users.findOne(
