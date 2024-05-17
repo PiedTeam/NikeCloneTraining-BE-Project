@@ -15,8 +15,18 @@ const PORT = process.env.PORT || 4000
 app.use(express.json())
 app.use(cookieParser())
 
+const whitelist = [
+    'http://localhost:3000',
+    'https://nikeclonetraining-be-project.onrender.com/'
+]
 const corsOptions = {
-    origin: '*',
+    origin: function (origin: any, callback: any) {
+        if (whitelist.indexOf(origin) !== -1) {
+            callback(null, true)
+        } else {
+            callback(new Error('Not allowed by CORS'))
+        }
+    },
     credentials: true, // access-control-allow-credentials:true
     allowedHeaders: ['Content-Type', 'Authorization'], // access-control-allow-headers
     optionSuccessStatus: 200

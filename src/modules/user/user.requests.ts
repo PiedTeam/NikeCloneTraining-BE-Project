@@ -13,14 +13,14 @@ export interface RegisterReqBody {
 }
 
 export interface LoginRequestBody {
-    username?: string
+    // username?: string
     email?: string
     phone_number?: string
     password: string
 }
 
 export interface RegisterOauthReqBody {
-    username: string
+    // username: string
     first_name: string
     last_name: string
     avatar_url: string
@@ -46,7 +46,7 @@ export interface ResetPasswordReqBody {
 }
 
 export interface UpdateMeReqBody {
-    username?: string
+    // username?: string
     first_name?: string
     last_name?: string
     email?: string
