@@ -713,7 +713,7 @@ export const verifiedUserValidator = (
     res: Response,
     next: NextFunction
 ) => {
-    const { status } = req.body['decoded_authorization'] as TokenPayload
+    const { status } = req.decoded_authorization as TokenPayload
     if (status !== UserVerifyStatus.Verified) {
         return next(
             new ErrorWithStatus({
