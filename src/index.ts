@@ -11,7 +11,7 @@ import passwordRouter from './modules/password/pass.routes'
 import 'dotenv/config'
 
 const app = express()
-const PORT_SERVER = process.env.PORT_SERVER ?? 4000
+const PORT_SERVER = process.env.PORT ?? 4000
 
 export const isProduction = process.env.NODE_ENV === 'production'
 const frontendURL = isProduction ? process.env.PRODUCTION_FRONTEND_URL : process.env.DEVELOPMENT_FRONTEND_URL
@@ -41,9 +41,6 @@ const corsOptions = {
 app.use(cors(corsOptions))
 app.use(express.json())
 app.use(cookieParser())
-;(async () => {
-    await databaseService.connect()
-})()
 
 // Log all requests incoming
 app.all('*', (req, res, next) => {
@@ -62,8 +59,10 @@ app.use('/oauth', oauthRouter)
 app.use('/otp', otpRouter)
 // Create route to handle error for all routes in this app
 app.use(defaultErrorHandler)
-
-app.listen(PORT_SERVER, () => {
-    console.log(`Server is running in ${isProduction ? 'production' : 'development'} mode`)
-    console.log(`Nike Server is running on http://localhost:${PORT_SERVER}`)
-})
+;(async () => {
+    await databaseService.connect()
+    app.listen(PORT_SERVER, () => {
+        console.log(`Server is running in ${isProduction ? 'production' : 'development'} mode`)
+        console.log(`Nike Server is running on http://localhost:${PORT_SERVER}`)
+    })
+})()
