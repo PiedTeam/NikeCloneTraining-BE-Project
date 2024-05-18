@@ -66,7 +66,7 @@ body: {
 */
 usersRouter.post(
     '/login',
-    limiter,
+    // limiter,
     checkEmailOrPhone,
     loginValidator,
     wrapAsync(loginController)
@@ -80,7 +80,7 @@ usersRouter.post(
 */
 usersRouter.post(
     '/forgot-password',
-    limiter,
+    // limiter,
     checkEmailOrPhone,
     forgotPasswordValidator,
     wrapAsync(forgotPasswordController)
