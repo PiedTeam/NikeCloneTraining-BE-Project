@@ -53,11 +53,11 @@ export const sendOtpMail = async (payload: {
     const handlebarOptions = {
         viewEngine: {
             extName: '.hbs',
-            partialsDir: path.join(__dirname, '../public/template'),
-            layoutsDir: path.join(__dirname, '../public/template'),
+            partialsDir: path.join(__dirname, '../../../public/template'),
+            layoutsDir: path.join(__dirname, '../../../public/template'),
             defaultLayout: ''
         },
-        viewPath: path.join(__dirname, '../public/template'),
+        viewPath: path.join(__dirname, '../../../public/template'),
         extName: '.hbs'
     }
 
