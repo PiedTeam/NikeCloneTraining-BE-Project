@@ -50,14 +50,19 @@ export const sendOtpMail = async (payload: {
         }
     })
 
+    const dir =
+        process.env.NODE_ENV === 'production'
+            ? '../../../public/template'
+            : '../../public/template'
+
     const handlebarOptions = {
         viewEngine: {
             extName: '.hbs',
-            partialsDir: path.join(__dirname, '../../../public/template'),
-            layoutsDir: path.join(__dirname, '../../../public/template'),
+            partialsDir: path.join(__dirname, dir),
+            layoutsDir: path.join(__dirname, dir),
             defaultLayout: ''
         },
-        viewPath: path.join(__dirname, '../../../public/template'),
+        viewPath: path.join(__dirname, dir),
         extName: '.hbs'
     }
 
