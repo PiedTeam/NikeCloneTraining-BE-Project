@@ -87,5 +87,8 @@ export const USER_MESSAGES = {
     UPDATE_ME_SUCCESSFULLY: 'Update me successfully!',
 
     // too many requests
-    TOO_MANY_REQUESTS: 'Too many requests, please try again after 5 minutes!'
+    TOO_MANY_REQUESTS: 'Too many requests, please try again after 5 minutes!',
+
+    // refresh token
+    REFRESH_TOKEN_NOT_FOUND: 'Refresh token is not found'
 } as const

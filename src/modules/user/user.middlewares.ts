@@ -337,7 +337,7 @@ export const loginValidator = validate(
                         if (user.password !== hashPassword(req.body.password)) {
                             throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
                         }
-                        req.user = user
+                        ;(req as Request).user = user
                         return true
                     }
                 }
@@ -358,7 +358,7 @@ export const loginValidator = validate(
                         if (user.password !== hashPassword(req.body.password)) {
                             throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
                         }
-                        req.user = user
+                        ;(req as Request).user = user
                         return true
                     }
                 }
@@ -490,9 +490,8 @@ export const changePasswordValidator = validate(
                 ...passwordSchema,
                 custom: {
                     options: async (value, { req }) => {
-                        const user_info = req.body[
-                            'decoded_authorization'
-                        ] as TokenPayload
+                        const user_info =
+                            req.decoded_authorization as TokenPayload
                         const user = await databaseService.users.findOne({
                             _id: new ObjectId(user_info.user_id),
                             password: hashPassword(value)
@@ -501,7 +500,7 @@ export const changePasswordValidator = validate(
                             throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
                         }
                         req.body.user_id = user._id
-                        delete req.body.decoded_authorization
+                        delete req.decoded_authorization
                     }
                 }
             },
@@ -641,7 +640,7 @@ export const accessTokenValidator = validate(
                                 secretOrPublickey: process.env
                                     .JWT_SECRET_ACCESS_TOKEN as string
                             })
-                            ;(req as Request).body['decoded_authorization'] =
+                            ;(req as Request).decoded_authorization =
                                 decoded_authorization
                         } catch (error) {
                             throw new ErrorWithStatus({
@@ -660,12 +659,60 @@ export const accessTokenValidator = validate(
     )
 )
 
+export const refreshTokenValidator = validate(
+    checkSchema(
+        {
+            refresh_token: {
+                trim: true,
+                custom: {
+                    options: async (value: string, { req }) => {
+                        try {
+                            const [decoded_refresh_token, refresh_token] =
+                                await Promise.all([
+                                    verifyToken({
+                                        token: value,
+                                        secretOrPublickey: process.env
+                                            .JWT_SECRET_REFRESH_TOKEN as string
+                                    }),
+                                    databaseService.refreshTokens.findOne({
+                                        refresh_token: value
+                                    })
+                                ])
+                            if (!refresh_token) {
+                                throw new ErrorWithStatus({
+                                    message:
+                                        USER_MESSAGES.REFRESH_TOKEN_NOT_FOUND,
+                                    status: HTTP_STATUS.UNAUTHORIZED
+                                })
+                            }
+                            ;(req as Request).decoded_refresh_token =
+                                decoded_refresh_token
+                        } catch (error) {
+                            if (error instanceof JsonWebTokenError) {
+                                throw new ErrorWithStatus({
+                                    message: capitalize(
+                                        (error as JsonWebTokenError).message
+                                    ),
+                                    status: HTTP_STATUS.UNAUTHORIZED
+                                })
+                            }
+                            throw error
+                        }
+                        return true
+                    }
+                }
+            }
+        },
+        ['body']
+    )
+)
+
 export const verifiedUserValidator = (
     req: Request,
     res: Response,
     next: NextFunction
 ) => {
-    const { status } = req.body['decoded_authorization'] as TokenPayload
+    const { status } = req.decoded_authorization as TokenPayload
     if (status !== UserVerifyStatus.Verified) {
         return next(
             new ErrorWithStatus({
