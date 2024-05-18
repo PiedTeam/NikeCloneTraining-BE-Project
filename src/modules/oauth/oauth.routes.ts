@@ -2,6 +2,7 @@ import passport, { Profile } from 'passport'
 import { Router } from 'express'
 import { loginFailController, loginSuccessController } from './oauth.controllers'
 import { wrapAsync } from '~/utils/handler'
+import { isProduction } from '~/index'
 
 export const oauthRouter = Router()
 
@@ -57,10 +58,10 @@ oauthRouter.get(
             secure: true,
             maxAge: Number(process.env.COOKIE_EXPIRE)
         })
-
-        res.redirect(
-            `${process.env.FE_REDIRECT_URL}/?access_token=${access_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
-        )
+        const urlFERedirect = isProduction
+            ? (process.env.DEVELOPMENT_FE_REDIRECT_URL as string)
+            : (process.env.PRODUCTION_FE_REDIRECT_URL as string)
+        res.redirect(`${urlFERedirect}/?access_token=${access_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`)
     }
 )
 
@@ -117,7 +118,7 @@ oauthRouter.get(
             maxAge: Number(process.env.COOKIE_EXPIRE)
         })
         res.redirect(
-            `${process.env.FE_REDIRECT_URL}/?access_token=${access_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
+            `${process.env.DEVELOPMENT_FE_REDIRECT_URL}/?access_token=${access_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
         )
     }
 )
