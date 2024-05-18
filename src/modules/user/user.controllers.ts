@@ -121,7 +121,7 @@ export const verifyAccountController = async (req: Request, res: Response) => {
 }
 
 export const getMeController = async (req: Request, res: Response) => {
-    const { user_id } = req.body['decoded_authorization']
+    const { user_id } = req.decoded_authorization as TokenPayload
     const user = await usersService.getme(user_id)
 
     const { first_name, last_name, status } = user
@@ -147,7 +147,7 @@ export const updateMeController = async (
     res: Response,
     next: NextFunction
 ) => {
-    const user_id = (req as Request).body['decoded_authorization'].user_id
+    const { user_id } = (req as Request).decoded_authorization as TokenPayload
     const body = omit(req.body, ['decoded_authorization', 'code'])
     const user = await usersService.updateMe({
         user_id,
