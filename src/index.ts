@@ -13,7 +13,7 @@ import 'dotenv/config'
 const app = express()
 const PORT_SERVER = process.env.PORT_SERVER ?? 4000
 
-const isProduction = process.env.NODE_ENV === 'production'
+export const isProduction = process.env.NODE_ENV === 'production'
 const frontendURL = isProduction ? process.env.PRODUCTION_FRONTEND_URL : process.env.DEVELOPMENT_FRONTEND_URL
 
 // const corsOptions = {
@@ -64,5 +64,6 @@ app.use('/otp', otpRouter)
 app.use(defaultErrorHandler)
 
 app.listen(PORT_SERVER, () => {
+    console.log(`Server is running in ${isProduction ? 'production' : 'development'} mode`)
     console.log(`Nike Server is running on http://localhost:${PORT_SERVER}`)
 })

@@ -1,9 +1,6 @@
 import passport, { Profile } from 'passport'
 import { Router } from 'express'
-import {
-    loginFailController,
-    loginSuccessController
-} from './oauth.controllers'
+import { loginFailController, loginSuccessController } from './oauth.controllers'
 import { wrapAsync } from '~/utils/handler'
 
 export const oauthRouter = Router()
