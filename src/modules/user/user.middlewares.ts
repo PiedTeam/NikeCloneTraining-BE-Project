@@ -490,9 +490,8 @@ export const changePasswordValidator = validate(
                 ...passwordSchema,
                 custom: {
                     options: async (value, { req }) => {
-                        const user_info = req.body[
-                            'decoded_authorization'
-                        ] as TokenPayload
+                        const user_info =
+                            req.decoded_authorization as TokenPayload
                         const user = await databaseService.users.findOne({
                             _id: new ObjectId(user_info.user_id),
                             password: hashPassword(value)
@@ -501,7 +500,7 @@ export const changePasswordValidator = validate(
                             throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
                         }
                         req.body.user_id = user._id
-                        delete req.body.decoded_authorization
+                        delete req.decoded_authorization
                     }
                 }
             },
