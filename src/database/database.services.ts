@@ -17,9 +17,7 @@ class DatabaseService {
     async connect() {
         try {
             await this.client.connect()
-            console.log(
-                'Pinged your deployment. You successfully connected to MongoDB!'
-            )
+            console.log('Pinged your deployment. You successfully connected to MongoDB!')
         } catch (error) {
             console.log(error)
             throw error
@@ -35,9 +33,7 @@ class DatabaseService {
     }
 
     get refreshTokens(): Collection<RefreshToken> {
-        return this.db.collection(
-            process.env.DB_REFRESH_TOKENS_COLLECTION as string
-        )
+        return this.db.collection(process.env.DB_REFRESH_TOKENS_COLLECTION as string)
     }
 }
 
