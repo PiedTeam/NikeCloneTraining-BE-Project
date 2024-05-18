@@ -39,6 +39,7 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'], // access-control-allow-headers
     optionSuccessStatus: 200
 }
+
 app.use(cors(corsOptions))
 
 databaseService.connect()
