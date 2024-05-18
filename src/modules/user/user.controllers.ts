@@ -1,11 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import usersService from './user.services'
-import {
-    LoginRequestBody,
-    RegisterReqBody,
-    TokenPayload,
-    UpdateMeReqBody
-} from './user.requests'
+import { LoginRequestBody, RegisterReqBody, TokenPayload, UpdateMeReqBody } from './user.requests'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { USER_MESSAGES } from './user.messages'
 import User from './user.schema'
@@ -58,28 +53,18 @@ export const loginController = async (
     })
 }
 
-export const forgotPasswordController = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
+export const forgotPasswordController = async (req: Request, res: Response, next: NextFunction) => {
     const result =
         req.body.type === 'email'
             ? await usersService.sendForgotPasswordOTPByEmail(req.body.email)
-            : await usersService.sendForgotPasswordOTPByPhone(
-                  req.body.phone_number
-              )
+            : await usersService.sendForgotPasswordOTPByPhone(req.body.phone_number)
     return res.status(200).json({
         message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY,
         details: result
     })
 }
 
-export const verifyForgotPasswordTokenController = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
+export const verifyForgotPasswordTokenController = async (req: Request, res: Response, next: NextFunction) => {
     return res.status(200).json({
         message: USER_MESSAGES.VERIFY_OTP_SUCCESSFULLY
     })
@@ -95,16 +80,11 @@ export const resetPasswordController = async (req: Request, res: Response) => {
     })
 }
 
-export const sendVerifyAccountOTPController = async (
-    req: Request,
-    res: Response
-) => {
+export const sendVerifyAccountOTPController = async (req: Request, res: Response) => {
     const result =
         req.body.type === 'email'
             ? await usersService.sendVerifyAccountOTPByEmail(req.body.email)
-            : await usersService.sendVerifyAccountOTPByPhone(
-                  req.body.phone_number
-              )
+            : await usersService.sendVerifyAccountOTPByPhone(req.body.phone_number)
     return res.status(200).json({
         message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY,
         details: result
@@ -126,8 +106,7 @@ export const getMeController = async (req: Request, res: Response) => {
 
     const { first_name, last_name, status } = user
     const email = user.email !== '' ? await decrypt(user.email) : ''
-    const phone_number =
-        user.phone_number !== '' ? await decrypt(user.phone_number) : ''
+    const phone_number = user.phone_number !== '' ? await decrypt(user.phone_number) : ''
 
     return res.status(200).json({
         message: USER_MESSAGES.GET_ME_SUCCESSFULLY,

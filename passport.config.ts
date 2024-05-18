@@ -6,17 +6,17 @@ import { RegisterOauthReqBody, RegisterReqBody } from '~/modules/user/user.reque
 import { encrypt } from '~/utils/crypto'
 import databaseService from '~/database/database.services'
 import { limiter } from '~/config/limitRequest'
-import { isProduction } from './src'
 
 const GoogleStrategy = Google_Strategy
 const FacebookStrategy = Facebook_Strategy
-
+const isProduction2 = process.env.NODE_ENV == 'production'
+console.log('isProduction2', isProduction2)
 passport.use(
     new GoogleStrategy(
         {
             clientID: process.env.CLIENT_ID as string,
             clientSecret: process.env.CLIENT_SECRET as string,
-            callbackURL: isProduction ? process.env.PRODUCTION_CLIENT_URL : process.env.DEVELOPMENT_CLIENT_URL
+            callbackURL: isProduction2 ? process.env.PRODUCTION_CLIENT_URL : process.env.DEVELOPMENT_CLIENT_URL
         },
         async function (accessToken, refreshToken, profile, callback) {
             const { id, displayName, emails, name, photos, provider } = profile
@@ -79,7 +79,7 @@ passport.use(
         {
             clientID: process.env.FACEBOOK_APP_ID as string,
             clientSecret: process.env.FACEBOOK_APP_SECRET as string,
-            callbackURL: isProduction
+            callbackURL: isProduction2
                 ? (process.env.PRODUCTION_FACEBOOK_APP_CALLBACK_URL as string)
                 : (process.env.DEVELOPMENT_FACEBOOK_APP_CALLBACK_URL as string),
             profileFields: ['email', 'photos', 'id', 'displayName']

@@ -27,11 +27,7 @@ class OtpService {
 
         return true
     }
-    async sendPhone(payload: {
-        phone_number: string
-        otp: string
-        kind: OTP_KIND
-    }) {
+    async sendPhone(payload: { phone_number: string; otp: string; kind: OTP_KIND }) {
         const { phone_number, otp, kind } = payload
 
         const user = await databaseService.users.findOne({
@@ -96,9 +92,7 @@ class OtpService {
                 status: OTP_STATUS.Available
             })
         )
-        const username = user.first_name.length
-            ? user.first_name
-            : user.last_name
+        const username = user.first_name.length ? user.first_name : user.last_name
         await sendOtpMail({ kind, otp, email, username: username })
 
         return result

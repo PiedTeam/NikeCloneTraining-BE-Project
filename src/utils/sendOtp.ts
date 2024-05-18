@@ -12,8 +12,7 @@ export const sendOtpPhone = async (payload: {
 }) => {
     const { kind, otp, phone_number, username } = payload
 
-    const name =
-        kind === OTP_KIND.VerifyAccount ? 'account verify' : 'password recovery'
+    const name = kind === OTP_KIND.VerifyAccount ? 'account verify' : 'password recovery'
 
     const accountSid = process.env.TWILIO_ACCOUNT_SID as string
     const authToken = process.env.TWILIO_AUTH_TOKEN as string
@@ -34,12 +33,7 @@ export const sendOtpPhone = async (payload: {
     }
 }
 
-export const sendOtpMail = async (payload: {
-    kind: OTP_KIND
-    otp: string
-    email: string
-    username: string
-}) => {
+export const sendOtpMail = async (payload: { kind: OTP_KIND; otp: string; email: string; username: string }) => {
     const { kind, otp, email, username } = payload
 
     const transporter = nodemailer.createTransport({
@@ -50,10 +44,7 @@ export const sendOtpMail = async (payload: {
         }
     })
 
-    const dir =
-        process.env.NODE_ENV === 'production'
-            ? '../../../public/template'
-            : '../../public/template'
+    const dir = process.env.NODE_ENV === 'production' ? '../../../public/template' : '../../public/template'
 
     const handlebarOptions = {
         viewEngine: {
@@ -68,8 +59,7 @@ export const sendOtpMail = async (payload: {
 
     transporter.use('compile', hbs(handlebarOptions))
 
-    const name =
-        kind === OTP_KIND.VerifyAccount ? 'account verify' : 'password recovery'
+    const name = kind === OTP_KIND.VerifyAccount ? 'account verify' : 'password recovery'
 
     const mailOptions = {
         from: `${process.env.EMAIL_USER}`,

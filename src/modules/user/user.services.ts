@@ -1,11 +1,7 @@
 import databaseService from '~/database/database.services'
 import User from './user.schema'
 import { ObjectId } from 'mongodb'
-import {
-    RegisterOauthReqBody,
-    RegisterReqBody,
-    UpdateMeReqBody
-} from './user.requests'
+import { RegisterOauthReqBody, RegisterReqBody, UpdateMeReqBody } from './user.requests'
 import { encrypt, hashPassword } from '~/utils/crypto'
 import { signToken, verifyToken } from '~/utils/jwt'
 import { TokenType, UserVerifyStatus } from './user.enum'
@@ -47,14 +43,8 @@ class UsersService {
         })
     }
 
-    private signAccessAndRefreshToken(
-        user_id: string,
-        status: UserVerifyStatus
-    ) {
-        return Promise.all([
-            this.signAccessToken(user_id, status),
-            this.signRefreshToken(user_id, status)
-        ])
+    private signAccessAndRefreshToken(user_id: string, status: UserVerifyStatus) {
+        return Promise.all([this.signAccessToken(user_id, status), this.signRefreshToken(user_id, status)])
     }
 
     async checkEmailExist(email: string) {
@@ -97,17 +87,13 @@ class UsersService {
         return user as User
     }
 
-    async register(
-        payload: RegisterReqBody | RegisterOauthReqBody,
-        provider?: string
-    ) {
+    async register(payload: RegisterReqBody | RegisterOauthReqBody, provider?: string) {
         const user_id = new ObjectId()
 
-        const [access_token, refresh_token] =
-            await this.signAccessAndRefreshToken(
-                user_id.toString(),
-                UserVerifyStatus.Unverified
-            )
+        const [access_token, refresh_token] = await this.signAccessAndRefreshToken(
+            user_id.toString(),
+            UserVerifyStatus.Unverified
+        )
 
         const { iat, exp } = await this.decodeRefreshToken(refresh_token)
 
@@ -115,9 +101,7 @@ class UsersService {
             await databaseService.users.insertOne(
                 new User({
                     _id: user_id,
-                    ...(omit(payload, [
-                        'phone_number'
-                    ]) as RegisterOauthReqBody),
+                    ...(omit(payload, ['phone_number']) as RegisterOauthReqBody),
                     password: hashPassword(payload.password),
                     email: encrypt(payload.email)
                 })
@@ -135,9 +119,7 @@ class UsersService {
                     first_name: capitalize(payload.first_name),
                     last_name: capitalizePro(payload.last_name),
                     email: payload.email?.length ? encrypt(payload.email) : '',
-                    phone_number: payload.phone_number?.length
-                        ? encrypt(payload.phone_number)
-                        : ''
+                    phone_number: payload.phone_number?.length ? encrypt(payload.phone_number) : ''
                 })
             )
         }
@@ -154,15 +136,8 @@ class UsersService {
         return { access_token, refresh_token }
     }
 
-    async login({
-        user_id,
-        status
-    }: {
-        user_id: string
-        status: UserVerifyStatus
-    }) {
-        const [access_token, refresh_token] =
-            await this.signAccessAndRefreshToken(user_id, status)
+    async login({ user_id, status }: { user_id: string; status: UserVerifyStatus }) {
+        const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id, status)
 
         const { iat, exp } = await this.decodeRefreshToken(refresh_token)
 
@@ -253,33 +228,21 @@ class UsersService {
 
     async resetPassword(user_id: ObjectId, password: string) {
         const hashedPassword = hashPassword(password)
-        await databaseService.users.updateOne(
-            { _id: user_id },
-            { $set: { password: hashedPassword } }
-        )
+        await databaseService.users.updateOne({ _id: user_id }, { $set: { password: hashedPassword } })
         await this.disableOTP(user_id)
 
         return true
     }
 
     async verifyAccount(user_id: ObjectId) {
-        await databaseService.users.updateOne(
-            { _id: user_id },
-            { $set: { status: UserVerifyStatus.Verified } }
-        )
+        await databaseService.users.updateOne({ _id: user_id }, { $set: { status: UserVerifyStatus.Verified } })
 
         await this.disableOTP(user_id)
 
         return true
     }
 
-    async updateMe({
-        user_id,
-        payload
-    }: {
-        user_id: string
-        payload: UpdateMeReqBody
-    }) {
+    async updateMe({ user_id, payload }: { user_id: string; payload: UpdateMeReqBody }) {
         const user = await databaseService.users.findOneAndUpdate(
             { _id: new ObjectId(user_id) },
             [

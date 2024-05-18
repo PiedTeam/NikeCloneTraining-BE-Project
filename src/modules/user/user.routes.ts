@@ -46,12 +46,7 @@ const usersRouter = Router()
     last_name: string
   }
 */
-usersRouter.post(
-    '/register',
-    checkEmailOrPhone,
-    registerValidator,
-    wrapAsync(registerController)
-)
+usersRouter.post('/register', checkEmailOrPhone, registerValidator, wrapAsync(registerController))
 
 /*
 route: login
@@ -64,13 +59,7 @@ body: {
   password: string
 }
 */
-usersRouter.post(
-    '/login',
-    limiter,
-    checkEmailOrPhone,
-    loginValidator,
-    wrapAsync(loginController)
-)
+usersRouter.post('/login', limiter, checkEmailOrPhone, loginValidator, wrapAsync(loginController))
 
 /*
   description: send otp forgot password to user's email or phone number
@@ -155,12 +144,7 @@ method: post
 Header: {Authorization: Bearer <access_token>}
 body: { old_password: string, new_password: string }
 */
-usersRouter.post(
-    '/change-password',
-    accessTokenValidator,
-    changePasswordValidator,
-    wrapAsync(changePasswordController)
-)
+usersRouter.post('/change-password', accessTokenValidator, changePasswordValidator, wrapAsync(changePasswordController))
 
 /*
 des: get user's profile
@@ -178,11 +162,5 @@ usersRouter.get('/me', accessTokenValidator, wrapAsync(getMeController))
   header: {Authorization: Bearer <access_token>}
   body: { first_name: string, last_name: string, email: string, phone_number: string, ...}
 */
-usersRouter.patch(
-    '/me',
-    accessTokenValidator,
-    verifiedUserValidator,
-    updateMeValidator,
-    wrapAsync(updateMeController)
-)
+usersRouter.patch('/me', accessTokenValidator, verifiedUserValidator, updateMeValidator, wrapAsync(updateMeController))
 export default usersRouter

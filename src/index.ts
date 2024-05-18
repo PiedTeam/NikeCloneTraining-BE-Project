@@ -13,7 +13,7 @@ import 'dotenv/config'
 const app = express()
 const PORT_SERVER = process.env.PORT ?? 4000
 
-export const isProduction = process.env.NODE_ENV === 'production'
+export const isProduction = process.env.NODE_ENV == 'production'
 const frontendURL = isProduction ? process.env.PRODUCTION_FRONTEND_URL : process.env.DEVELOPMENT_FRONTEND_URL
 
 // const corsOptions = {
@@ -43,11 +43,11 @@ app.use(express.json())
 app.use(cookieParser())
 
 // Log all requests incoming
-app.all('*', (req, res, next) => {
-    console.log('Time', Date.now())
-    console.log(req)
-    next()
-})
+// app.all('*', (req, res, next) => {
+//     console.log('Time', Date.now())
+//     console.log(req)
+//     next()
+// })
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Hello Developer')
