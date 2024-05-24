@@ -1,4 +1,8 @@
-import { Router } from 'express'
+import express, { Router } from 'express'
+import { update } from 'lodash'
+import { limiter } from '~/config/limitRequest'
+import { encrypt } from '~/utils/crypto'
+import { wrapAsync } from '~/utils/handler'
 import {
     changePasswordController,
     forgotPasswordController,
@@ -25,10 +29,7 @@ import {
     verifyAccountValidator,
     verifyForgotPasswordOTPValidator
 } from './user.middlewares'
-import { wrapAsync } from '~/utils/handler'
-import { limiter } from '~/config/limitRequest'
-import express from 'express'
-import { update } from 'lodash'
+import usersService from './user.services'
 
 const app = express()
 const usersRouter = Router()
@@ -90,9 +91,9 @@ usersRouter.post(
 description: verify otp
   path: /users/reset-password
   method: 'POST'
-  body: { 
-          email_phone: string, 
-          forgot_password_otp: string 
+  body: {
+          email_phone: string,
+          forgot_password_otp: string
         }
 */
 usersRouter.post(
@@ -106,10 +107,10 @@ usersRouter.post(
 des: reset password
 path: '/reset-password'
 method: POST
-body: { 
+body: {
         email_phone: string,
         forgot_password_otp: string,
-        confirm_password: string, 
+        confirm_password: string,
         password: string
       }
 */
@@ -185,4 +186,25 @@ usersRouter.patch(
     updateMeValidator,
     wrapAsync(updateMeController)
 )
+
+/*
+ description: search API account
+ path: /users/search
+  method: GET
+  header: {Authorization: Bearer <access_token>}
+  query: {email: string}
+*/
+// usersRouter.get(
+//     '/search',
+//     accessTokenValidator,
+//     searchAccountValidator,
+//     wrapAsync(searchAccountController)
+// )
+
+usersRouter.get('/search', async (req, res) => {
+    const data = req.query.email as string
+    const result = await usersService.checkEmailExist(encrypt(data))
+    res.status(200).json({ result })
+})
+
 export default usersRouter
