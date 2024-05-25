@@ -216,20 +216,35 @@ type UserResponseSearch = UserResponseEmail | UserResponsePhone
 usersRouter.post('/search', checkEmailOrPhone, async (req, res) => {
     const data = req.body as UserResponseSearch
 
-    let result
+    let result = false
+    let user
 
     if (data.type === 'email') {
-        result = await usersService.checkEmailExist(encrypt(data.email))
+        if (await usersService.checkEmailExist(encrypt(data.email))) {
+            result = true
+            user = await usersService.findUserByEmail(encrypt(data.email))
+        }
     } else {
-        result = await usersService.checkPhoneNumberExist(
-            encrypt(data.phone_number)
-        )
+        if (
+            await usersService.checkPhoneNumberExist(encrypt(data.phone_number))
+        ) {
+            result = true
+            user = await usersService.findUserByPhone(
+                encrypt(data.phone_number)
+            )
+        }
     }
 
-    res.status(HTTP_STATUS.OK).json({
-        isExist: result,
-        data: data
-    })
+    if (result) {
+        res.status(HTTP_STATUS.OK).json({
+            isExist: result,
+            data: user
+        })
+    } else {
+        res.status(HTTP_STATUS.NOT_FOUND).json({
+            isExist: result
+        })
+    }
 })
 
 export default usersRouter
