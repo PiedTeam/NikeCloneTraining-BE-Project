@@ -1,7 +1,8 @@
 import express, { Router } from 'express'
 import { update } from 'lodash'
 import { limiter } from '~/config/limitRequest'
-import { encrypt } from '~/utils/crypto'
+import { HTTP_STATUS } from '~/constants/httpStatus'
+import decrypt, { encrypt } from '~/utils/crypto'
 import { wrapAsync } from '~/utils/handler'
 import {
     changePasswordController,
@@ -63,7 +64,7 @@ body: {
   email?: string,
   phone_number?: string,
   password: string
-}
+}/register
 */
 usersRouter.post(
     '/login',
@@ -192,19 +193,43 @@ usersRouter.patch(
  path: /users/search
   method: GET
   header: {Authorization: Bearer <access_token>}
-  query: {email: string}
+  body: {email_phone: string}
 */
-// usersRouter.get(
+// usersRouter.post(
 //     '/search',
 //     accessTokenValidator,
 //     searchAccountValidator,
 //     wrapAsync(searchAccountController)
 // )
+type UserResponseEmail = {
+    email: string
+    type: 'email'
+}
 
-usersRouter.get('/search', async (req, res) => {
-    const data = req.query.email as string
-    const result = await usersService.checkEmailExist(encrypt(data))
-    res.status(200).json({ result })
+type UserResponsePhone = {
+    phone_number: string
+    type: 'phone_number'
+}
+
+type UserResponseSearch = UserResponseEmail | UserResponsePhone
+
+usersRouter.post('/search', checkEmailOrPhone, async (req, res) => {
+    const data = req.body as UserResponseSearch
+
+    let result
+
+    if (data.type === 'email') {
+        result = await usersService.checkEmailExist(encrypt(data.email))
+    } else {
+        result = await usersService.checkPhoneNumberExist(
+            encrypt(data.phone_number)
+        )
+    }
+
+    res.status(HTTP_STATUS.OK).json({
+        isExist: result,
+        data: data
+    })
 })
 
 export default usersRouter
