@@ -1,18 +1,21 @@
+import 'dotenv/config'
 import { NextFunction, Request, Response } from 'express'
-import usersService from './user.services'
+import { ParamsDictionary } from 'express-serve-static-core'
+import { omit } from 'lodash'
+import { ObjectId } from 'mongodb'
+import { HTTP_STATUS } from '~/constants/httpStatus'
+
+import decrypt, { encrypt } from '~/utils/crypto'
+import { USER_MESSAGES } from './user.messages'
 import {
     LoginRequestBody,
     RegisterReqBody,
     TokenPayload,
-    UpdateMeReqBody
+    UpdateMeReqBody,
+    UserResponseSearch
 } from './user.requests'
-import { ParamsDictionary } from 'express-serve-static-core'
-import { USER_MESSAGES } from './user.messages'
 import User from './user.schema'
-import { ObjectId } from 'mongodb'
-import 'dotenv/config'
-import decrypt from '~/utils/crypto'
-import { omit } from 'lodash'
+import usersService from './user.services'
 
 export const registerController = async (
     req: Request<ParamsDictionary, any, RegisterReqBody>,
@@ -167,4 +170,38 @@ export const changePasswordController = async (req: Request, res: Response) => {
         message: USER_MESSAGES.RESET_PASSWORD_SUCCESSFULLY,
         details: result
     })
+}
+
+export const searchAccountController = async (req: Request, res: Response) => {
+    const data = req.body as UserResponseSearch
+
+    let result = false
+    let user
+
+    if (data.type === 'email') {
+        if (await usersService.checkEmailExist(encrypt(data.email))) {
+            result = true
+            user = await usersService.findUserByEmail(encrypt(data.email))
+        }
+    } else {
+        if (
+            await usersService.checkPhoneNumberExist(encrypt(data.phone_number))
+        ) {
+            result = true
+            user = await usersService.findUserByPhone(
+                encrypt(data.phone_number)
+            )
+        }
+    }
+
+    if (result) {
+        res.status(HTTP_STATUS.OK).json({
+            isExist: result,
+            data: user
+        })
+    } else {
+        res.status(HTTP_STATUS.NOT_FOUND).json({
+            isExist: result
+        })
+    }
 }

@@ -1,23 +1,23 @@
-import { USER_MESSAGES } from '~/modules/user/user.messages'
-import { check, checkSchema, ParamSchema } from 'express-validator'
-import { validate } from '~/utils/validation'
-import usersService from './user.services'
-import { encrypt, hashPassword } from '~/utils/crypto'
-import databaseService from '~/database/database.services'
-import { Request, Response, NextFunction } from 'express'
-import { LoginRequestBody, TokenPayload } from './user.requests'
-import { ParamsDictionary } from 'express-serve-static-core'
-import { ErrorEntity } from '~/errors/errors.entityError'
-import { HTTP_STATUS } from '~/constants/httpStatus'
-import { ErrorWithStatus } from '~/models/Error'
-import { verifyToken } from '~/utils/jwt'
-import { OTP_STATUS } from '../otp/otp.enum'
-import { isDeveloperAgent } from '~/utils/agent'
-import { capitalize } from 'lodash'
-import { JsonWebTokenError } from 'jsonwebtoken'
-import { UserVerifyStatus } from './user.enum'
 import { config } from 'dotenv'
+import { NextFunction, Request, Response } from 'express'
+import { ParamsDictionary } from 'express-serve-static-core'
+import { ParamSchema, check, checkSchema } from 'express-validator'
+import { JsonWebTokenError } from 'jsonwebtoken'
+import { capitalize } from 'lodash'
 import { ObjectId } from 'mongodb'
+import { HTTP_STATUS } from '~/constants/httpStatus'
+import databaseService from '~/database/database.services'
+import { ErrorEntity } from '~/errors/errors.entityError'
+import { ErrorWithStatus } from '~/models/Error'
+import { USER_MESSAGES } from '~/modules/user/user.messages'
+import { isDeveloperAgent } from '~/utils/agent'
+import { encrypt, hashPassword } from '~/utils/crypto'
+import { verifyToken } from '~/utils/jwt'
+import { validate } from '~/utils/validation'
+import { OTP_STATUS } from '../otp/otp.enum'
+import { UserVerifyStatus } from './user.enum'
+import { LoginRequestBody, TokenPayload } from './user.requests'
+import usersService from './user.services'
 config()
 
 const usernameSchema: ParamSchema = {
@@ -738,5 +738,57 @@ export const updateMeValidator = validate(
             ...phone_numberSchema
         },
         avatar_url: { optional: true, ...lastnameSchema }
+    })
+)
+
+export const searchAccountValidator = validate(
+    // after reach the middleware checkEmailOrPhone, the request body will be modified (assume that email or phone_number is present and valid)
+    // so we need to validate the new request body
+    /*
+        "email_phone": data
+        body{
+            email: data as string
+            type: 'email'
+        }
+
+        "email_phone": data
+        body{
+            phone_number: data as string
+            type: 'phone_number'
+        }
+    */
+    checkSchema({
+        type: {
+            in: ['body'],
+            trim: true,
+            notEmpty: {
+                errorMessage: 'Type is required'
+            },
+            isString: {
+                errorMessage: 'Type must be a string'
+            },
+            isIn: {
+                options: [['email', 'phone_number']],
+                errorMessage: 'Type must be either "email" or "phone_number"'
+            }
+        },
+        email: {
+            in: ['body'],
+            optional: {
+                options: {
+                    nullable: true,
+                    checkFalsy: true
+                }
+            }
+        },
+        phone_number: {
+            in: ['body'],
+            optional: {
+                options: {
+                    nullable: true,
+                    checkFalsy: true
+                }
+            }
+        }
     })
 )
