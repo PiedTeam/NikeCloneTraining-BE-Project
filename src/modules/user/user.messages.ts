@@ -90,5 +90,9 @@ export const USER_MESSAGES = {
     TOO_MANY_REQUESTS: 'Too many requests, please try again after 5 minutes!',
 
     // refresh token
-    REFRESH_TOKEN_NOT_FOUND: 'Refresh token is not found'
+    REFRESH_TOKEN_NOT_FOUND: 'Refresh token is not found',
+
+    // search account
+    EMAIL_PHONE_IS_REQUIRED: 'Email or phone number is required',
+    EMAIL_PHONE_MUST_BE_STRING: 'Email or phone number must be a string'
 } as const

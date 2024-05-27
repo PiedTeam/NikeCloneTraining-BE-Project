@@ -11,6 +11,7 @@ import {
     loginController,
     registerController,
     resetPasswordController,
+    searchAccountController,
     sendVerifyAccountOTPController,
     updateMeController,
     verifyAccountController,
@@ -24,6 +25,7 @@ import {
     loginValidator,
     registerValidator,
     resetPasswordValidator,
+    searchAccountValidator,
     updateMeValidator,
     verifiedUserValidator,
     verifyAccountOTPValidator,
@@ -198,53 +200,17 @@ usersRouter.patch(
 // usersRouter.post(
 //     '/search',
 //     accessTokenValidator,
+//     checkEmailOrPhone,
 //     searchAccountValidator,
 //     wrapAsync(searchAccountController)
 // )
-type UserResponseEmail = {
-    email: string
-    type: 'email'
-}
 
-type UserResponsePhone = {
-    phone_number: string
-    type: 'phone_number'
-}
-
-type UserResponseSearch = UserResponseEmail | UserResponsePhone
-
-usersRouter.post('/search', checkEmailOrPhone, async (req, res) => {
-    const data = req.body as UserResponseSearch
-
-    let result = false
-    let user
-
-    if (data.type === 'email') {
-        if (await usersService.checkEmailExist(encrypt(data.email))) {
-            result = true
-            user = await usersService.findUserByEmail(encrypt(data.email))
-        }
-    } else {
-        if (
-            await usersService.checkPhoneNumberExist(encrypt(data.phone_number))
-        ) {
-            result = true
-            user = await usersService.findUserByPhone(
-                encrypt(data.phone_number)
-            )
-        }
-    }
-
-    if (result) {
-        res.status(HTTP_STATUS.OK).json({
-            isExist: result,
-            data: user
-        })
-    } else {
-        res.status(HTTP_STATUS.NOT_FOUND).json({
-            isExist: result
-        })
-    }
-})
+usersRouter.post(
+    '/search',
+    accessTokenValidator,
+    checkEmailOrPhone,
+    searchAccountValidator,
+    wrapAsync(searchAccountController)
+)
 
 export default usersRouter
