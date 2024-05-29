@@ -2,7 +2,6 @@ import { Request, Response } from 'express'
 import databaseService from '~/database/database.services'
 import { USER_MESSAGES } from '../user/user.messages'
 import User from '../user/user.schema'
-
 import { encrypt, hashPassword } from '~/utils/crypto'
 
 export const registerPassword = async (req: Request, res: Response) => {

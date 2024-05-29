@@ -1,8 +1,5 @@
-import express, { Router } from 'express'
-import { update } from 'lodash'
+import { Router } from 'express'
 import { limiter } from '~/config/limitRequest'
-import { HTTP_STATUS } from '~/constants/httpStatus'
-import decrypt, { encrypt } from '~/utils/crypto'
 import { wrapAsync } from '~/utils/handler'
 import {
     changePasswordController,
@@ -21,6 +18,7 @@ import {
     accessTokenValidator,
     changePasswordValidator,
     checkEmailOrPhone,
+    checkNewPasswordValidator,
     forgotPasswordValidator,
     loginValidator,
     registerValidator,
@@ -32,9 +30,7 @@ import {
     verifyAccountValidator,
     verifyForgotPasswordOTPValidator
 } from './user.middlewares'
-import usersService from './user.services'
 
-const app = express()
 const usersRouter = Router()
 
 /*
@@ -91,8 +87,8 @@ usersRouter.post(
 )
 
 /*
-description: verify otp
-  path: /users/reset-password
+  description: verify otp
+  path: /users/verify-password
   method: 'POST'
   body: {
           email_phone: string,
@@ -113,8 +109,8 @@ method: POST
 body: {
         email_phone: string,
         forgot_password_otp: string,
-        confirm_password: string,
-        password: string
+        password: string,
+        confirm_password: string
       }
 */
 usersRouter.post(
@@ -122,6 +118,7 @@ usersRouter.post(
     resetPasswordValidator,
     checkEmailOrPhone,
     verifyForgotPasswordOTPValidator,
+    checkNewPasswordValidator,
     wrapAsync(resetPasswordController)
 )
 

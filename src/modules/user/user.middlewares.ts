@@ -1,7 +1,6 @@
-import { config } from 'dotenv'
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { ParamSchema, check, checkSchema } from 'express-validator'
+import { ParamSchema, checkSchema } from 'express-validator'
 import { JsonWebTokenError } from 'jsonwebtoken'
 import { capitalize } from 'lodash'
 import { ObjectId } from 'mongodb'
@@ -19,7 +18,7 @@ import { OTP_STATUS } from '../otp/otp.enum'
 import { UserVerifyStatus } from './user.enum'
 import { LoginRequestBody, TokenPayload } from './user.requests'
 import usersService from './user.services'
-config()
+import 'dotenv/config'
 
 const usernameSchema: ParamSchema = {
     trim: true,
@@ -280,9 +279,7 @@ export const checkEmailOrPhone = (
             new ErrorEntity({
                 message: USER_MESSAGES.UNPROCESSABLE_ENTITY,
                 status: HTTP_STATUS.UNPROCESSABLE_ENTITY,
-                data: {
-                    field: { msg: USER_MESSAGES.FIELD_ERROR_FORMAT }
-                }
+                data: { field: { msg: USER_MESSAGES.FIELD_ERROR_FORMAT } }
             })
         )
     }
@@ -472,7 +469,37 @@ export const resetPasswordValidator = validate(
     checkSchema(
         {
             password: passwordSchema,
-            confirm_password: confirmPasswordSchema
+            confirm_password: confirmPasswordSchema,
+            email_phone: {
+                notEmpty: {
+                    errorMessage: USER_MESSAGES.EMAIL_PHONE_IS_REQUIRED
+                },
+                isString: {
+                    errorMessage: USER_MESSAGES.EMAIL_PHONE_MUST_BE_STRING
+                }
+            }
+        },
+        ['body']
+    )
+)
+
+export const checkNewPasswordValidator = validate(
+    checkSchema(
+        {
+            password: {
+                custom: {
+                    options: async (value, { req }) => {
+                        const user = await databaseService.users.findOne({
+                            _id: req.body.user_id
+                        })
+                        if (user?.password === hashPassword(value)) {
+                            throw new Error(
+                                USER_MESSAGES.NEW_PASSWORD_MUST_BE_NEW
+                            )
+                        }
+                    }
+                }
+            }
         },
         ['body']
     )
@@ -499,7 +526,25 @@ export const changePasswordValidator = validate(
                     }
                 }
             },
-            new_password: passwordSchema
+            new_password: {
+                ...passwordSchema,
+                custom: {
+                    options: async (value, { req }) => {
+                        const user_info =
+                            req.decoded_authorization as TokenPayload
+                        const user = await databaseService.users.findOne({
+                            _id: new ObjectId(user_info.user_id),
+                            password: hashPassword(value)
+                        })
+
+                        if (user?.password === hashPassword(value)) {
+                            throw new Error(
+                                USER_MESSAGES.NEW_PASSWORD_MUST_BE_NEW
+                            )
+                        }
+                    }
+                }
+            }
         },
         ['body']
     )

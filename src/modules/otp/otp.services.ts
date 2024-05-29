@@ -27,6 +27,7 @@ class OtpService {
 
         return true
     }
+
     async sendPhone(payload: {
         phone_number: string
         otp: string
