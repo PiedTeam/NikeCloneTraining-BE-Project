@@ -55,7 +55,7 @@ export const USER_MESSAGES = {
     EMAIL_NOT_FOUND: 'Email is not found',
     PHONE_NUMBER_NOT_FOUND: 'Phone number is not found',
     LOGIN_SUCCESS: 'Login successfully',
-    FIELD_ERROR_FORMAT: 'Should be an email or phone number',
+    FIELD_ERROR_FORMAT: 'Should be an valid email or phone number',
 
     // error messages
     UNPROCESSABLE_ENTITY: 'Validation: Unprocessable Entity',

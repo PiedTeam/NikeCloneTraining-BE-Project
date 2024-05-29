@@ -1,6 +1,10 @@
-import { Response, Request, NextFunction } from 'express'
-import { validationResult, ValidationChain } from 'express-validator'
+import { NextFunction, Request, Response } from 'express'
+import { ValidationChain, validationResult } from 'express-validator'
 import { RunnableValidationChains } from 'express-validator/src/middlewares/schema'
+import parsePhoneNumberFromString, {
+    CountryCode,
+    parsePhoneNumber
+} from 'libphonenumber-js'
 import { omit } from 'lodash'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import { ErrorEntity, ErrorWithStatus } from '~/errors/errors.entityError'
@@ -35,4 +39,20 @@ export const validate = (
         // Throw for defaultErrorHandler
         next(errorEntity)
     }
+}
+
+export function isValidPhoneNumberForCountry(
+    phone_number: string,
+    country: CountryCode | undefined
+) {
+    const phoneNumber = parsePhoneNumberFromString(phone_number, {
+        defaultCountry: country
+    })
+    if (!phoneNumber) {
+        return false
+    }
+    if (phoneNumber.country !== country) {
+        return false
+    }
+    return phoneNumber.isValid()
 }
