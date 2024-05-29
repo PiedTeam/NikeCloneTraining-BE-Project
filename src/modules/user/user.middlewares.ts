@@ -5,6 +5,7 @@ import { ParamSchema, check, checkSchema } from 'express-validator'
 import { JsonWebTokenError } from 'jsonwebtoken'
 import { capitalize } from 'lodash'
 import { ObjectId } from 'mongodb'
+import validator from 'validator'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import databaseService from '~/database/database.services'
 import { ErrorEntity } from '~/errors/errors.entityError'
@@ -13,7 +14,7 @@ import { USER_MESSAGES } from '~/modules/user/user.messages'
 import { isDeveloperAgent } from '~/utils/agent'
 import { encrypt, hashPassword } from '~/utils/crypto'
 import { verifyToken } from '~/utils/jwt'
-import { validate } from '~/utils/validation'
+import { isValidPhoneNumberForCountry, validate } from '~/utils/validation'
 import { OTP_STATUS } from '../otp/otp.enum'
 import { UserVerifyStatus } from './user.enum'
 import { LoginRequestBody, TokenPayload } from './user.requests'
@@ -268,16 +269,10 @@ export const checkEmailOrPhone = (
     const body = req.body as ParamsDictionary
     const email_phone = body.email_phone
 
-    if (
-        email_phone.match(
-            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-        )
-    ) {
+    if (validator.isEmail(email_phone)) {
         req.body.email = email_phone
         req.body.type = 'email'
-    } else if (
-        email_phone.match(/^\+?[0-9]{1,4}[\s.-]?[0-9]{1,4}[\s.-]?[0-9]{4,10}$/)
-    ) {
+    } else if (isValidPhoneNumberForCountry(email_phone, 'VN')) {
         req.body.phone_number = email_phone
         req.body.type = 'phone_number'
     } else {
