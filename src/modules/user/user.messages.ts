@@ -24,6 +24,9 @@ export const USER_MESSAGES = {
     PASSWORD_MUST_BE_STRING: 'Password must be a string',
     PASSWORD_MUST_BE_STRONG: 'Password must be strong',
 
+    // new_password
+    NEW_PASSWORD_MUST_BE_NEW: 'New password is not same as the old one!',
+
     // confirm password
     CONFIRM_PASSWORD_MUST_MATCH_PASSWORD:
         'Confirm password must match password',

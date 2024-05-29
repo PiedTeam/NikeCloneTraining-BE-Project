@@ -11,4 +11,4 @@ export const OTP_MESSAGES = {
     OTP_IS_NUMBER: 'OTP must be a number',
     OTP_LENGTH_IS_6: 'OTP must be 6 characters',
     VERIFY_OTP_SUCCESS: 'Verify OTP successfully'
-}
+} as const
