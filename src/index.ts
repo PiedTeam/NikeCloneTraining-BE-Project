@@ -9,6 +9,7 @@ import '../passport.config'
 import otpRouter from './modules/otp/otp.routes'
 import passwordRouter from './modules/password/pass.routes'
 import 'dotenv/config'
+import menuRouter from './modules/menu/menu.route'
 
 const app = express()
 const PORT = process.env.PORT || 4000
@@ -52,6 +53,7 @@ app.use('/pass', passwordRouter)
 app.use('/user', usersRouter)
 app.use('/oauth', oauthRouter)
 app.use('/otp', otpRouter)
+app.use('/menu', menuRouter)
 // Create route to handle error for all routes in this app
 app.use(defaultErrorHandler)
 
