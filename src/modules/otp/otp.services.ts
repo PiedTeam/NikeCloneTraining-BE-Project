@@ -27,7 +27,6 @@ class OtpService {
 
         return true
     }
-
     async sendPhone(payload: {
         phone_number: string
         otp: string
@@ -88,7 +87,6 @@ class OtpService {
         }
 
         await this.checkExistOtp(user._id)
-
         const result = await databaseService.OTP.insertOne(
             new Otp({
                 user_id: user._id,

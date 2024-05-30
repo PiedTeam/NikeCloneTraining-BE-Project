@@ -5,6 +5,7 @@ import {
     loginSuccessController
 } from './oauth.controllers'
 import { wrapAsync } from '~/utils/handler'
+import { decodeToken } from './oauth.middlewares'
 
 export const oauthRouter = Router()
 
@@ -68,61 +69,71 @@ oauthRouter.get(
 )
 
 /*
-  route: register or login by Facebook
-  path: oauth/facebook
-  method: GET
-  body: {
-    username: string,
-    password: string,
-    email: string,
-    phone_number: string,
-    first_name: string,
-    last_name: string
-  }
-*/
-oauthRouter.get(
-    '/facebook',
-    passport.authenticate('facebook', {
-        session: false,
-        scope: ['email']
-    })
-)
-
-/*
-route: callback after login by Facebook
-path: oauth/facebook/callback
+route: register or login by Facebook
+path: oauth/facebook
 method: GET
-body: {
-  username: string,
-  password: string,
-  email: string,
-  phone_number: string,
-  first_name: string,
-  last_name: string
-}
+header: authorization : { bearer + access token}
 */
-oauthRouter.get(
-    '/facebook/callback',
-    (req, res, next) => {
-        passport.authenticate('facebook', (err: Error, profile: Profile) => {
-            req.body = profile
-            next()
-        })(req, res, next)
-    },
-    (req, res) => {
-        const { access_token, refresh_token, new_user, iat, exp } = req.body
-        // res.redirect(
-        //     `${process.env.LOGIN_SUCCESS_URL}/?access_token=${access_token}&refresh_token=${refresh_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
-        // )
-        res.cookie('refresh_token', refresh_token, {
-            httpOnly: true,
-            secure: true,
-            maxAge: Number(process.env.COOKIE_EXPIRE)
-        })
-        res.redirect(
-            `${process.env.FE_REDIRECT_URL}/?access_token=${access_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
-        )
-    }
-)
-oauthRouter.post('/login-success', wrapAsync(loginSuccessController))
-oauthRouter.post('/login-fail', wrapAsync(loginFailController))
+oauthRouter.get('/facebook', decodeToken, loginSuccessController)
+
+// Mark this as storage
+//
+// /*
+//   route: register or login by Facebook
+//   path: oauth/facebook
+//   method: GET
+//   body: {
+//     username: string,
+//     password: string,
+//     email: string,
+//     phone_number: string,
+//     first_name: string,
+//     last_name: string
+//   }
+// */
+// oauthRouter.get(
+//     '/facebook',
+//     passport.authenticate('facebook', {
+//         session: false,
+//         scope: ['email']
+//     })
+// )
+
+// /*
+// route: callback after login by Facebook
+// path: oauth/facebook/callback
+// method: GET
+// body: {
+//   username: string,
+//   password: string,
+//   email: string,
+//   phone_number: string,
+//   first_name: string,
+//   last_name: string
+// }
+// */
+// oauthRouter.get(
+//     '/facebook/callback',
+//     (req, res, next) => {
+//         passport.authenticate('facebook', (err: Error, profile: Profile) => {
+//             req.body = profile
+//             next()
+//         })(req, res, next)
+//     },
+//     (req, res) => {
+//         const { access_token, refresh_token, new_user, iat, exp } = req.body
+//         // res.redirect(
+//         //     `${process.env.LOGIN_SUCCESS_URL}/?access_token=${access_token}&refresh_token=${refresh_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
+//         // )
+//         res.cookie('refresh_token', refresh_token, {
+//             httpOnly: true,
+//             secure: true,
+//             maxAge: Number(process.env.COOKIE_EXPIRE)
+//         })
+//         res.redirect(
+//             `${process.env.FE_REDIRECT_URL}/?access_token=${access_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
+//         )
+//     }
+// )
+// oauthRouter.post('/login-success', wrapAsync(loginSuccessController))
+// oauthRouter.post('/login-fail', wrapAsync(loginFailController))
