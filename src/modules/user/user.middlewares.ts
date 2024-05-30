@@ -52,6 +52,21 @@ export const emailSchema: ParamSchema = {
     },
     isEmail: {
         errorMessage: USER_MESSAGES.EMAIL_IS_INVALID
+    },
+    normalizeEmail: {
+        options: {
+            all_lowercase: true,
+            gmail_lowercase: true,
+            gmail_remove_dots: true,
+            gmail_remove_subaddress: true,
+            gmail_convert_googlemaildotcom: true,
+            outlookdotcom_lowercase: true,
+            outlookdotcom_remove_subaddress: true,
+            yahoo_lowercase: true,
+            yahoo_remove_subaddress: true,
+            icloud_lowercase: true,
+            icloud_remove_subaddress: true
+        }
     }
 }
 
