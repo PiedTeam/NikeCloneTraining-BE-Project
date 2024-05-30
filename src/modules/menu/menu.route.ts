@@ -4,6 +4,6 @@ import { getMenuController } from './menu.controller'
 
 const menuRouter = Router()
 
-menuRouter.get('/', wrapAsync(getMenuController))
+menuRouter.get('/:language', wrapAsync(getMenuController))
 
 export default menuRouter
