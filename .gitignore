@@ -174,4 +174,6 @@ Temporary Items
 # iCloud generated files
 *.icloud
 
+serviceAccount.json
+
 # End of https://www.toptal.com/developers/gitignore/api/node
