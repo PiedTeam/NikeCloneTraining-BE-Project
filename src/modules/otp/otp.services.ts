@@ -27,7 +27,101 @@ class OtpService {
 
         return true
     }
-
+    async checkLimit(user_id: ObjectId) {
+        const exsitUser = await databaseService.OTP.findOne({
+            user_id
+        })
+        if (exsitUser) {
+            const timeNow = new Date()
+            const lim = await databaseService.OTP.aggregate([
+                { $match: { user_id } },
+                { $group: { _id: user_id, count: { $sum: 1 } } }
+            ]).toArray()
+            console.log(lim)
+            for (const i of lim) {
+                if (i.count >= 3) {
+                    // otpLimiter
+                    if (exsitUser.created_at !== undefined) {
+                        if (
+                            -exsitUser.created_at.getTime() +
+                                timeNow.getTime() <=
+                            Number(process.env.TIMETORESET)
+                        ) {
+                            throw new ErrorWithStatus({
+                                message: OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME,
+                                status: StatusCodes.BAD_REQUEST
+                            })
+                        }
+                        await databaseService.OTP.deleteMany({
+                            user_id: exsitUser
+                        })
+                    }
+                    throw new ErrorWithStatus({
+                        message: OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME,
+                        status: StatusCodes.NOT_ACCEPTABLE
+                    })
+                }
+                if (exsitUser.created_at !== undefined) {
+                    if (
+                        -exsitUser.created_at.getTime() + timeNow.getTime() >
+                        Number(process.env.TIMETORESET)
+                    ) {
+                        await databaseService.OTP.deleteMany({
+                            user_id: exsitUser
+                        })
+                    }
+                }
+                // if (lim === 3) {
+                //     otpLimiter
+                //     throw new ErrorWithStatus({
+                //         message: OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME,
+                //         status: StatusCodes.NOT_ACCEPTABLE
+                //     })
+                // }
+            }
+            return true
+        }
+    }
+    // async checkLimitOtp(user_id: ObjectId) {
+    //     const limit = await databaseService.OTP.findOne({
+    //         user_id,
+    //         otpLimit: { $gte: 0, $lte: 3 }
+    //     })
+    //     const timeNow = new Date()
+    //     if (limit?.created_at !== undefined) {
+    //         if (
+    //             limit.created_at.getTime() - timeNow.getTime() >=
+    //             Number(process.env.TIMETORESET)
+    //         ) {
+    //             throw new Error(OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME)
+    //         }
+    //     }
+    //     if (!limit) {
+    //         await databaseService.OTP.updateOne(
+    //             {
+    //                 _id: user_id
+    //             },
+    //             { $set: { otpLimit: 1 } }
+    //         )
+    //         return 1
+    //     } else {
+    //         await databaseService.OTP.updateOne(
+    //             {
+    //                 _id: limit._id
+    //             },
+    //             {
+    //                 $inc: { otpLimit: 1 }
+    //             }
+    //         )
+    //     }
+    //     return limit.otpLimit
+    // }
+    // async blockLimit(lim: number) {
+    //     if (lim > 3) {
+    //         throw new Error(OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME)
+    //     }
+    //     return true
+    // }
     async sendPhone(payload: {
         phone_number: string
         otp: string
@@ -46,6 +140,7 @@ class OtpService {
             })
         }
         await this.checkExistOtp(user._id)
+        await this.checkLimit(user._id)
         // lưu otp vào db
         const result = await databaseService.OTP.insertOne(
             new Otp({
@@ -88,6 +183,7 @@ class OtpService {
         }
 
         await this.checkExistOtp(user._id)
+        await this.checkLimit(user._id)
 
         const result = await databaseService.OTP.insertOne(
             new Otp({
