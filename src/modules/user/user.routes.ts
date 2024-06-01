@@ -80,7 +80,7 @@ usersRouter.post(
 */
 usersRouter.post(
     '/forgot-password',
-    limiter,
+    // limiter,
     checkEmailOrPhone,
     forgotPasswordValidator,
     wrapAsync(forgotPasswordController)

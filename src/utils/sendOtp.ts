@@ -29,7 +29,7 @@ export const sendOtpPhone = async (payload: {
             })
             .then((message) => console.log(message.sid))
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         throw new Error('Error sending SMS')
     }
 }
