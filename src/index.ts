@@ -16,6 +16,8 @@ const PORT_SERVER = process.env.PORT ?? 4000
 
 export const isProduction = process.env.NODE_ENV == 'production'
 const frontendURL = isProduction ? process.env.PRODUCTION_FRONTEND_URL : process.env.DEVELOPMENT_FRONTEND_URL
+console.log('Frontend URL: ' + frontendURL)
+console.log(frontendURL)
 
 // const corsOptions = {
 //     origin: function (origin: any, callback: any) {
@@ -32,7 +34,7 @@ const frontendURL = isProduction ? process.env.PRODUCTION_FRONTEND_URL : process
 
 // THIS IS FOR TESTING ONLY
 const corsOptions = {
-    origin: frontendURL,
+    origin: '*',
     credentials: true, // access-control-allow-credentials:true
     allowedHeaders: ['Content-Type', 'Authorization'], // access-control-allow-headers
     optionSuccessStatus: 200
