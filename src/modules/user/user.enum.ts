@@ -1,6 +1,7 @@
 export enum UserVerifyStatus {
     Unverified,
     Verified,
+    Warning,
     Banned
 }
 
