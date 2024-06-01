@@ -38,15 +38,11 @@ class DatabaseService {
     }
 
     get mainCategories(): Collection<MainCategory> {
-        return this.db.collection(
-            process.env.DB_MAIN_CATEGORY_COLLECTION as string
-        )
+        return this.db.collection(process.env.DB_MAIN_CATEGORY_COLLECTION as string)
     }
 
     get subCategories(): Collection<SubCategory> {
-        return this.db.collection(
-            process.env.DB_SUB_CATEGORY_COLLECTION as string
-        )
+        return this.db.collection(process.env.DB_SUB_CATEGORY_COLLECTION as string)
     }
 }
 

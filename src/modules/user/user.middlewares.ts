@@ -130,9 +130,7 @@ const confirmPasswordSchema: ParamSchema = {
     custom: {
         options: (value, { req }) => {
             if (value !== req.body.password) {
-                throw new Error(
-                    USER_MESSAGES.CONFIRM_PASSWORD_MUST_MATCH_PASSWORD
-                )
+                throw new Error(USER_MESSAGES.CONFIRM_PASSWORD_MUST_MATCH_PASSWORD)
             }
             return true
         }
@@ -221,14 +219,9 @@ export const registerValidator = validate(
                 ...phone_numberSchema,
                 custom: {
                     options: async (value) => {
-                        const isExist =
-                            await usersService.checkPhoneNumberExist(
-                                encrypt(value)
-                            )
+                        const isExist = await usersService.checkPhoneNumberExist(encrypt(value))
                         if (isExist) {
-                            throw new Error(
-                                USER_MESSAGES.PHONE_NUMBER_IS_ALREADY_EXISTED
-                            )
+                            throw new Error(USER_MESSAGES.PHONE_NUMBER_IS_ALREADY_EXISTED)
                         }
                         return true
                     }
@@ -239,9 +232,7 @@ export const registerValidator = validate(
                 ...emailSchema,
                 custom: {
                     options: async (value) => {
-                        const isExist = await usersService.checkEmailExist(
-                            encrypt(value)
-                        )
+                        const isExist = await usersService.checkEmailExist(encrypt(value))
                         if (isExist) {
                             throw new Error(USER_MESSAGES.EMAIL_ALREADY_EXISTS)
                         }
@@ -255,11 +246,7 @@ export const registerValidator = validate(
     )
 )
 
-export const loginCheckMissingField = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
+export const loginCheckMissingField = (req: Request, res: Response, next: NextFunction) => {
     const body = req.body as LoginRequestBody
     if (!body.email && !body.phone_number) {
         next(
@@ -275,11 +262,7 @@ export const loginCheckMissingField = (
     next()
 }
 
-export const checkEmailOrPhone = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
+export const checkEmailOrPhone = (req: Request, res: Response, next: NextFunction) => {
     const body = req.body as ParamsDictionary
     const email_phone = body.email_phone
 
@@ -358,9 +341,7 @@ export const loginValidator = validate(
                             phone_number: encrypt(value)
                         })
                         if (user === null) {
-                            throw new Error(
-                                USER_MESSAGES.PHONE_NUMBER_NOT_FOUND
-                            )
+                            throw new Error(USER_MESSAGES.PHONE_NUMBER_NOT_FOUND)
                         }
                         if (user.password !== hashPassword(req.body.password)) {
                             throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
@@ -412,9 +393,7 @@ export const forgotPasswordValidator = validate(
                             phone_number: encrypt(value)
                         })
                         if (user === null) {
-                            throw new Error(
-                                USER_MESSAGES.PHONE_NUMBER_NOT_FOUND
-                            )
+                            throw new Error(USER_MESSAGES.PHONE_NUMBER_NOT_FOUND)
                         }
                         req.user = user
                         return true
@@ -434,9 +413,7 @@ export const verifyForgotPasswordOTPValidator = validate(
                 custom: {
                     options: async (value, { req }) => {
                         if (!value) {
-                            throw new Error(
-                                USER_MESSAGES.FORGOT_PASSWORD_OTP_IS_REQUIRED
-                            )
+                            throw new Error(USER_MESSAGES.FORGOT_PASSWORD_OTP_IS_REQUIRED)
                         }
                         const user =
                             req.body.type === 'email'
@@ -444,9 +421,7 @@ export const verifyForgotPasswordOTPValidator = validate(
                                       email: encrypt(req.body.email)
                                   })
                                 : await databaseService.users.findOne({
-                                      phone_number: encrypt(
-                                          req.body.phone_number
-                                      )
+                                      phone_number: encrypt(req.body.phone_number)
                                   })
                         if (!user) {
                             throw new Error(USER_MESSAGES.USER_NOT_FOUND)
@@ -463,18 +438,13 @@ export const verifyForgotPasswordOTPValidator = validate(
                                 { _id: user._id },
                                 { $set: { status: UserVerifyStatus.Warning } }
                             )
-                            throw new Error(
-                                USER_MESSAGES.OVER_TIMES_REQUEST_METHOD
-                            )
+                            throw new Error(USER_MESSAGES.OVER_TIMES_REQUEST_METHOD)
                         }
                         if (
-                            (result?.type === 1 &&
-                                req.body.type === 'phone_number') ||
+                            (result?.type === 1 && req.body.type === 'phone_number') ||
                             (result?.type === 0 && req.body.type === 'email')
                         ) {
-                            throw new Error(
-                                USER_MESSAGES.REQUIRE_FIELD_IS_INVALID
-                            )
+                            throw new Error(USER_MESSAGES.REQUIRE_FIELD_IS_INVALID)
                         }
                         const otp = result?.OTP
                         if (value !== otp) {
@@ -528,9 +498,7 @@ export const checkNewPasswordValidator = validate(
                             _id: req.body.user_id
                         })
                         if (user?.password === hashPassword(value)) {
-                            throw new Error(
-                                USER_MESSAGES.NEW_PASSWORD_MUST_BE_NEW
-                            )
+                            throw new Error(USER_MESSAGES.NEW_PASSWORD_MUST_BE_NEW)
                         }
                     }
                 }
@@ -547,8 +515,7 @@ export const changePasswordValidator = validate(
                 ...passwordSchema,
                 custom: {
                     options: async (value, { req }) => {
-                        const user_info =
-                            req.decoded_authorization as TokenPayload
+                        const user_info = req.decoded_authorization as TokenPayload
                         const user = await databaseService.users.findOne({
                             _id: new ObjectId(user_info.user_id),
                             password: hashPassword(value)
@@ -565,17 +532,14 @@ export const changePasswordValidator = validate(
                 ...passwordSchema,
                 custom: {
                     options: async (value, { req }) => {
-                        const user_info =
-                            req.decoded_authorization as TokenPayload
+                        const user_info = req.decoded_authorization as TokenPayload
                         const user = await databaseService.users.findOne({
                             _id: new ObjectId(user_info.user_id),
                             password: hashPassword(value)
                         })
 
                         if (user?.password === hashPassword(value)) {
-                            throw new Error(
-                                USER_MESSAGES.NEW_PASSWORD_MUST_BE_NEW
-                            )
+                            throw new Error(USER_MESSAGES.NEW_PASSWORD_MUST_BE_NEW)
                         }
                     }
                 }
@@ -613,9 +577,7 @@ export const verifyAccountValidator = validate(
                             phone_number: encrypt(value)
                         })
                         if (user === null) {
-                            throw new Error(
-                                USER_MESSAGES.PHONE_NUMBER_NOT_FOUND
-                            )
+                            throw new Error(USER_MESSAGES.PHONE_NUMBER_NOT_FOUND)
                         }
                         req.user = user
                         return true
@@ -634,9 +596,7 @@ export const verifyAccountOTPValidator = validate(
             custom: {
                 options: async (value, { req }) => {
                     if (!value) {
-                        throw new Error(
-                            USER_MESSAGES.VERIFY_ACCOUNT_OTP_IS_REQUIRED
-                        )
+                        throw new Error(USER_MESSAGES.VERIFY_ACCOUNT_OTP_IS_REQUIRED)
                     }
                     const user =
                         req.body.type === 'email'
@@ -657,8 +617,7 @@ export const verifyAccountOTPValidator = validate(
                         throw new Error(USER_MESSAGES.OTP_NOT_FOUND)
                     }
                     if (
-                        (result?.type === 1 &&
-                            req.body.type === 'phone_number') ||
+                        (result?.type === 1 && req.body.type === 'phone_number') ||
                         (result?.type === 0 && req.body.type === 'email')
                     ) {
                         throw new Error(USER_MESSAGES.REQUIRE_FIELD_IS_INVALID)
@@ -673,15 +632,10 @@ export const verifyAccountOTPValidator = validate(
         }
     })
 )
-export const blockPostman = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
+export const blockPostman = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (
-            (req.headers['postman-token'] &&
-                (await req.body?.code) === process.env.CODE) ||
+            (req.headers['postman-token'] && (await req.body?.code) === process.env.CODE) ||
             isDeveloperAgent(req.headers['user-agent'] as string)
         ) {
             next()
@@ -712,16 +666,12 @@ export const accessTokenValidator = validate(
                         try {
                             const decoded_authorization = await verifyToken({
                                 token: access_token,
-                                secretOrPublickey: process.env
-                                    .JWT_SECRET_ACCESS_TOKEN as string
+                                secretOrPublickey: process.env.JWT_SECRET_ACCESS_TOKEN as string
                             })
-                            ;(req as Request).decoded_authorization =
-                                decoded_authorization
+                            ;(req as Request).decoded_authorization = decoded_authorization
                         } catch (error) {
                             throw new ErrorWithStatus({
-                                message: capitalize(
-                                    (error as JsonWebTokenError).message
-                                ),
+                                message: capitalize((error as JsonWebTokenError).message),
                                 status: HTTP_STATUS.UNAUTHORIZED
                             })
                         }
@@ -742,32 +692,26 @@ export const refreshTokenValidator = validate(
                 custom: {
                     options: async (value: string, { req }) => {
                         try {
-                            const [decoded_refresh_token, refresh_token] =
-                                await Promise.all([
-                                    verifyToken({
-                                        token: value,
-                                        secretOrPublickey: process.env
-                                            .JWT_SECRET_REFRESH_TOKEN as string
-                                    }),
-                                    databaseService.refreshTokens.findOne({
-                                        refresh_token: value
-                                    })
-                                ])
+                            const [decoded_refresh_token, refresh_token] = await Promise.all([
+                                verifyToken({
+                                    token: value,
+                                    secretOrPublickey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+                                }),
+                                databaseService.refreshTokens.findOne({
+                                    refresh_token: value
+                                })
+                            ])
                             if (!refresh_token) {
                                 throw new ErrorWithStatus({
-                                    message:
-                                        USER_MESSAGES.REFRESH_TOKEN_NOT_FOUND,
+                                    message: USER_MESSAGES.REFRESH_TOKEN_NOT_FOUND,
                                     status: HTTP_STATUS.UNAUTHORIZED
                                 })
                             }
-                            ;(req as Request).decoded_refresh_token =
-                                decoded_refresh_token
+                            ;(req as Request).decoded_refresh_token = decoded_refresh_token
                         } catch (error) {
                             if (error instanceof JsonWebTokenError) {
                                 throw new ErrorWithStatus({
-                                    message: capitalize(
-                                        (error as JsonWebTokenError).message
-                                    ),
+                                    message: capitalize((error as JsonWebTokenError).message),
                                     status: HTTP_STATUS.UNAUTHORIZED
                                 })
                             }
@@ -782,11 +726,7 @@ export const refreshTokenValidator = validate(
     )
 )
 
-export const verifiedUserValidator = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
+export const verifiedUserValidator = (req: Request, res: Response, next: NextFunction) => {
     const { status } = req.decoded_authorization as TokenPayload
     if (status !== UserVerifyStatus.Verified) {
         return next(

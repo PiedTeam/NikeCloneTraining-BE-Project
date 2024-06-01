@@ -1,17 +1,12 @@
 import { NextFunction, Request, Response } from 'express'
 import { ValidationChain, validationResult } from 'express-validator'
-import { RunnableValidationChains } from 'express-validator/src/middlewares/schema'
-import parsePhoneNumberFromString, {
-    CountryCode,
-    parsePhoneNumber
-} from 'libphonenumber-js'
+import { RunnableValidationChains } from 'express-validator/lib/middlewares/schema'
+import parsePhoneNumberFromString, { CountryCode, parsePhoneNumber } from 'libphonenumber-js'
 import { omit } from 'lodash'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import { ErrorEntity, ErrorWithStatus } from '~/errors/errors.entityError'
 
-export const validate = (
-    validations: RunnableValidationChains<ValidationChain>
-) => {
+export const validate = (validations: RunnableValidationChains<ValidationChain>) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         await validations.run(req)
 
@@ -26,10 +21,7 @@ export const validate = (
 
         Object.keys(errorsObject).forEach((key) => {
             const { msg } = errorsObject[key]
-            if (
-                msg instanceof ErrorWithStatus &&
-                msg.status !== HTTP_STATUS.UNPROCESSABLE_ENTITY
-            ) {
+            if (msg instanceof ErrorWithStatus && msg.status !== HTTP_STATUS.UNPROCESSABLE_ENTITY) {
                 return next(msg)
             }
 
@@ -41,10 +33,7 @@ export const validate = (
     }
 }
 
-export function isValidPhoneNumberForCountry(
-    phone_number: string,
-    country: CountryCode | undefined
-) {
+export function isValidPhoneNumberForCountry(phone_number: string, country: CountryCode | undefined) {
     const phoneNumber = parsePhoneNumberFromString(phone_number, {
         defaultCountry: country
     })

@@ -1,10 +1,7 @@
 import { Router } from 'express'
 import { wrapAsync } from '~/utils/handler'
 import { accessTokenValidator } from '../user/user.middlewares'
-import {
-    sendOtpMailController,
-    sendOtpPhoneNumberController
-} from './otp.controllers'
+import { sendOtpMailController, sendOtpPhoneNumberController } from './otp.controllers'
 import { emailValidator, phoneNumberValidator } from './otp.middlewares'
 
 const otpRouter = Router()
@@ -18,12 +15,7 @@ const otpRouter = Router()
     phone_number: string
   }
 */
-otpRouter.post(
-    '/send-otp-phone',
-    accessTokenValidator,
-    phoneNumberValidator,
-    wrapAsync(sendOtpPhoneNumberController)
-)
+otpRouter.post('/send-otp-phone', accessTokenValidator, phoneNumberValidator, wrapAsync(sendOtpPhoneNumberController))
 
 /*
   Description: send OTP via mail
@@ -34,11 +26,6 @@ otpRouter.post(
     email: string
   }
 */
-otpRouter.post(
-    '/send-otp-email',
-    accessTokenValidator,
-    emailValidator,
-    wrapAsync(sendOtpMailController)
-)
+otpRouter.post('/send-otp-email', accessTokenValidator, emailValidator, wrapAsync(sendOtpMailController))
 
 export default otpRouter

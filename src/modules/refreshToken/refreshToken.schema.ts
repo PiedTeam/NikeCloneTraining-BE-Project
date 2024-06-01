@@ -16,14 +16,7 @@ class RefreshToken {
     user_id: ObjectId
     iat: Date
     exp: Date
-    constructor({
-        _id,
-        token,
-        created_at,
-        user_id,
-        iat,
-        exp
-    }: RefreshTokenType) {
+    constructor({ _id, token, created_at, user_id, iat, exp }: RefreshTokenType) {
         this._id = _id
         this.token = token
         this.created_at = created_at || new Date()

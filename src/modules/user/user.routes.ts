@@ -170,13 +170,7 @@ usersRouter.get('/me', accessTokenValidator, wrapAsync(getMeController))
   header: {Authorization: Bearer <access_token>}
   body: { first_name: string, last_name: string, email: string, phone_number: string, ...}
 */
-usersRouter.patch(
-    '/me',
-    accessTokenValidator,
-    verifiedUserValidator,
-    updateMeValidator,
-    wrapAsync(updateMeController)
-)
+usersRouter.patch('/me', accessTokenValidator, verifiedUserValidator, updateMeValidator, wrapAsync(updateMeController))
 
 /*
  description: search API account

@@ -44,11 +44,7 @@ class OtpService {
                 if (i.count >= 3) {
                     // otpLimiter
                     if (exsitUser.created_at !== undefined) {
-                        if (
-                            -exsitUser.created_at.getTime() +
-                                timeNow.getTime() <=
-                            Number(process.env.TIMETORESET)
-                        ) {
+                        if (-exsitUser.created_at.getTime() + timeNow.getTime() <= Number(process.env.TIMETORESET)) {
                             await databaseService.users.updateOne(
                                 { _id: user_id },
                                 { $set: { status: UserVerifyStatus.Warning } }
@@ -68,10 +64,7 @@ class OtpService {
                     })
                 }
                 if (exsitUser.created_at !== undefined) {
-                    if (
-                        -exsitUser.created_at.getTime() + timeNow.getTime() >
-                        Number(process.env.TIMETORESET)
-                    ) {
+                    if (-exsitUser.created_at.getTime() + timeNow.getTime() > Number(process.env.TIMETORESET)) {
                         await databaseService.OTP.deleteMany({
                             user_id: exsitUser
                         })
@@ -128,11 +121,7 @@ class OtpService {
     //     }
     //     return true
     // }
-    async sendPhone(payload: {
-        phone_number: string
-        otp: string
-        kind: OTP_KIND
-    }) {
+    async sendPhone(payload: { phone_number: string; otp: string; kind: OTP_KIND }) {
         const { phone_number, otp, kind } = payload
 
         const user = await databaseService.users.findOne({

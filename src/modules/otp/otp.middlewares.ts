@@ -12,14 +12,9 @@ export const phoneNumberValidator = validate(
                 ...phone_numberSchema,
                 custom: {
                     options: async (value) => {
-                        const isExist =
-                            await usersService.checkPhoneNumberExist(
-                                encrypt(value)
-                            )
+                        const isExist = await usersService.checkPhoneNumberExist(encrypt(value))
                         if (!isExist) {
-                            throw new Error(
-                                USER_MESSAGES.PHONE_NUMBER_IS_NOT_REGISTERED
-                            )
+                            throw new Error(USER_MESSAGES.PHONE_NUMBER_IS_NOT_REGISTERED)
                         }
                         return true
                     }
@@ -37,13 +32,9 @@ export const emailValidator = validate(
                 ...emailSchema,
                 custom: {
                     options: async (value) => {
-                        const isExist = await usersService.checkEmailExist(
-                            encrypt(value)
-                        )
+                        const isExist = await usersService.checkEmailExist(encrypt(value))
                         if (!isExist) {
-                            throw new Error(
-                                USER_MESSAGES.EMAIL_IS_NOT_REGISTERED
-                            )
+                            throw new Error(USER_MESSAGES.EMAIL_IS_NOT_REGISTERED)
                         }
                         return true
                     }

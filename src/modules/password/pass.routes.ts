@@ -5,10 +5,6 @@ import { registerPasswordValidator } from './pass.middleware'
 import { blockPostman } from '../user/user.middlewares'
 
 const passwordRouter = Router()
-passwordRouter.post(
-    '/updatePass',
-    registerPasswordValidator,
-    wrapAsync(registerPassword)
-)
+passwordRouter.post('/updatePass', registerPasswordValidator, wrapAsync(registerPassword))
 
 export default passwordRouter

@@ -21,16 +21,7 @@ class Otp {
     status: OTP_STATUS
     created_at?: Date
     expired_at?: Date
-    constructor({
-        _id,
-        user_id,
-        OTP,
-        type,
-        created_at,
-        incorrTimes = 0,
-        status,
-        expired_at
-    }: OtpType) {
+    constructor({ _id, user_id, OTP, type, created_at, incorrTimes = 0, status, expired_at }: OtpType) {
         this._id = _id
         this.user_id = user_id
         this.OTP = OTP

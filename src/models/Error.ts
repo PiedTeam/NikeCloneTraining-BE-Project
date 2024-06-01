@@ -20,13 +20,7 @@ export class ErrorWithStatus {
 
 export class EntityError extends ErrorWithStatus {
     errors: ErrorsType
-    constructor({
-        message = OTP_MESSAGES.VALIDATION_ERROR,
-        errors
-    }: {
-        message?: string
-        errors: ErrorsType
-    }) {
+    constructor({ message = OTP_MESSAGES.VALIDATION_ERROR, errors }: { message?: string; errors: ErrorsType }) {
         super({ message, status: StatusCodes.UNPROCESSABLE_ENTITY })
         this.errors = errors // gán errors
     }

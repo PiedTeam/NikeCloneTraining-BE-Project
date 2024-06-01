@@ -6,6 +6,7 @@
     "scripts": {
         "dev": "cross-env NODE_ENV=development npx nodemon",
         "build": "rimraf ./dist && tsc && tsc-alias",
+        "lint": "npm run prettier:check && npm run eslint:check && npm run check-types",
         "start:dev": "cross-env NODE_ENV=development node dist/src/index.js",
         "start:prod": "cross-env NODE_ENV=production node dist/src/index.js",
         "prettier:check": "prettier ./src/**/*.{tsx,ts,js,jsx} --check",

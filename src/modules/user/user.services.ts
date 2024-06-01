@@ -10,11 +10,7 @@ import { OTP_KIND } from '../otp/otp.enum'
 import otpService from '../otp/otp.services'
 import RefreshToken from '../refreshToken/refreshToken.schema'
 import { TokenType, UserVerifyStatus } from './user.enum'
-import {
-    RegisterOauthReqBody,
-    RegisterReqBody,
-    UpdateMeReqBody
-} from './user.requests'
+import { RegisterOauthReqBody, RegisterReqBody, UpdateMeReqBody } from './user.requests'
 import User from './user.schema'
 
 class UsersService {

@@ -6,13 +6,7 @@ import { ObjectId } from 'mongodb'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import decrypt, { encrypt } from '~/utils/crypto'
 import { USER_MESSAGES } from './user.messages'
-import {
-    LoginRequestBody,
-    RegisterReqBody,
-    TokenPayload,
-    UpdateMeReqBody,
-    UserResponseSearch
-} from './user.requests'
+import { LoginRequestBody, RegisterReqBody, TokenPayload, UpdateMeReqBody, UserResponseSearch } from './user.requests'
 import User from './user.schema'
 import usersService from './user.services'
 
@@ -21,9 +15,7 @@ export const registerController = async (
     res: Response,
     next: NextFunction
 ) => {
-    const { access_token, refresh_token } = await usersService.register(
-        req.body
-    )
+    const { access_token, refresh_token } = await usersService.register(req.body)
     res.cookie('refresh_token', refresh_token, {
         httpOnly: true,
         secure: true,
@@ -168,13 +160,9 @@ export const searchAccountController = async (req: Request, res: Response) => {
             user = await usersService.findUserByEmail(encrypt(data.email))
         }
     } else {
-        if (
-            await usersService.checkPhoneNumberExist(encrypt(data.phone_number))
-        ) {
+        if (await usersService.checkPhoneNumberExist(encrypt(data.phone_number))) {
             result = true
-            user = await usersService.findUserByPhone(
-                encrypt(data.phone_number)
-            )
+            user = await usersService.findUserByPhone(encrypt(data.phone_number))
         }
     }
 
