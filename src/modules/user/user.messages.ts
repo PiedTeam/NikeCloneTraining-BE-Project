@@ -97,5 +97,7 @@ export const USER_MESSAGES = {
 
     // search account
     EMAIL_PHONE_IS_REQUIRED: 'Email or phone number is required',
-    EMAIL_PHONE_MUST_BE_STRING: 'Email or phone number must be a string'
+    EMAIL_PHONE_MUST_BE_STRING: 'Email or phone number must be a string',
+
+    OVER_TIMES_REQUEST_METHOD: 'This method is over times request'
 } as const
