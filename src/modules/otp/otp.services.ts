@@ -27,17 +27,17 @@ class OtpService {
 
         return true
     }
-    async checkLimit(user_id: ObjectId) {
+    async checkLimit(user_id: ObjectId, type: OTP_TYPE) {
         const exsitUser = await databaseService.OTP.findOne({
             user_id
         })
         if (exsitUser) {
             const timeNow = new Date()
             const lim = await databaseService.OTP.aggregate([
-                { $match: { user_id } },
+                { $match: { user_id, type } },
                 { $group: { _id: user_id, count: { $sum: 1 } } }
             ]).toArray()
-            console.log(lim)
+
             for (const i of lim) {
                 if (i.count >= 3) {
                     // otpLimiter
@@ -140,7 +140,7 @@ class OtpService {
             })
         }
         await this.checkExistOtp(user._id)
-        await this.checkLimit(user._id)
+        await this.checkLimit(user._id, OTP_TYPE.PhoneNumber)
         // lưu otp vào db
         const result = await databaseService.OTP.insertOne(
             new Otp({
@@ -183,7 +183,7 @@ class OtpService {
         }
 
         await this.checkExistOtp(user._id)
-        await this.checkLimit(user._id)
+        await this.checkLimit(user._id, OTP_TYPE.Email)
 
         const result = await databaseService.OTP.insertOne(
             new Otp({
