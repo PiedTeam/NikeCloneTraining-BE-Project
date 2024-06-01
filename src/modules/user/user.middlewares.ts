@@ -1,24 +1,24 @@
-import { USER_MESSAGES } from '~/modules/user/user.messages'
-import { check, checkSchema, ParamSchema } from 'express-validator'
-import { validate } from '~/utils/validation'
-import usersService from './user.services'
-import { encrypt, hashPassword } from '~/utils/crypto'
-import databaseService from '~/database/database.services'
-import { Request, Response, NextFunction } from 'express'
-import { LoginRequestBody, TokenPayload } from './user.requests'
+import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { ErrorEntity } from '~/errors/errors.entityError'
-import { HTTP_STATUS } from '~/constants/httpStatus'
-import { ErrorWithStatus } from '~/models/Error'
-import { verifyToken } from '~/utils/jwt'
-import { OTP_STATUS } from '../otp/otp.enum'
-import { isDeveloperAgent } from '~/utils/agent'
-import { capitalize } from 'lodash'
+import { ParamSchema, checkSchema } from 'express-validator'
 import { JsonWebTokenError } from 'jsonwebtoken'
-import { UserVerifyStatus } from './user.enum'
-import { config } from 'dotenv'
+import { capitalize } from 'lodash'
 import { ObjectId } from 'mongodb'
-config()
+import validator from 'validator'
+import { HTTP_STATUS } from '~/constants/httpStatus'
+import databaseService from '~/database/database.services'
+import { ErrorEntity } from '~/errors/errors.entityError'
+import { ErrorWithStatus } from '~/models/Error'
+import { USER_MESSAGES } from '~/modules/user/user.messages'
+import { isDeveloperAgent } from '~/utils/agent'
+import { encrypt, hashPassword } from '~/utils/crypto'
+import { verifyToken } from '~/utils/jwt'
+import { isValidPhoneNumberForCountry, validate } from '~/utils/validation'
+import { OTP_STATUS } from '../otp/otp.enum'
+import { UserVerifyStatus } from './user.enum'
+import { LoginRequestBody, TokenPayload } from './user.requests'
+import usersService from './user.services'
+import 'dotenv/config'
 
 const usernameSchema: ParamSchema = {
     trim: true,
@@ -52,6 +52,21 @@ export const emailSchema: ParamSchema = {
     },
     isEmail: {
         errorMessage: USER_MESSAGES.EMAIL_IS_INVALID
+    },
+    normalizeEmail: {
+        options: {
+            all_lowercase: true,
+            gmail_lowercase: true,
+            gmail_remove_dots: true,
+            gmail_remove_subaddress: true,
+            gmail_convert_googlemaildotcom: true,
+            outlookdotcom_lowercase: true,
+            outlookdotcom_remove_subaddress: true,
+            yahoo_lowercase: true,
+            yahoo_remove_subaddress: true,
+            icloud_lowercase: true,
+            icloud_remove_subaddress: true
+        }
     }
 }
 
@@ -268,16 +283,10 @@ export const checkEmailOrPhone = (
     const body = req.body as ParamsDictionary
     const email_phone = body.email_phone
 
-    if (
-        email_phone.match(
-            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-        )
-    ) {
+    if (validator.isEmail(email_phone)) {
         req.body.email = email_phone
         req.body.type = 'email'
-    } else if (
-        email_phone.match(/^\+?[0-9]{1,4}[\s.-]?[0-9]{1,4}[\s.-]?[0-9]{4,10}$/)
-    ) {
+    } else if (isValidPhoneNumberForCountry(email_phone, 'VN')) {
         req.body.phone_number = email_phone
         req.body.type = 'phone_number'
     } else {
@@ -285,9 +294,7 @@ export const checkEmailOrPhone = (
             new ErrorEntity({
                 message: USER_MESSAGES.UNPROCESSABLE_ENTITY,
                 status: HTTP_STATUS.UNPROCESSABLE_ENTITY,
-                data: {
-                    field: { msg: USER_MESSAGES.FIELD_ERROR_FORMAT }
-                }
+                data: { field: { msg: USER_MESSAGES.FIELD_ERROR_FORMAT } }
             })
         )
     }
@@ -477,7 +484,37 @@ export const resetPasswordValidator = validate(
     checkSchema(
         {
             password: passwordSchema,
-            confirm_password: confirmPasswordSchema
+            confirm_password: confirmPasswordSchema,
+            email_phone: {
+                notEmpty: {
+                    errorMessage: USER_MESSAGES.EMAIL_PHONE_IS_REQUIRED
+                },
+                isString: {
+                    errorMessage: USER_MESSAGES.EMAIL_PHONE_MUST_BE_STRING
+                }
+            }
+        },
+        ['body']
+    )
+)
+
+export const checkNewPasswordValidator = validate(
+    checkSchema(
+        {
+            password: {
+                custom: {
+                    options: async (value, { req }) => {
+                        const user = await databaseService.users.findOne({
+                            _id: req.body.user_id
+                        })
+                        if (user?.password === hashPassword(value)) {
+                            throw new Error(
+                                USER_MESSAGES.NEW_PASSWORD_MUST_BE_NEW
+                            )
+                        }
+                    }
+                }
+            }
         },
         ['body']
     )
@@ -504,7 +541,25 @@ export const changePasswordValidator = validate(
                     }
                 }
             },
-            new_password: passwordSchema
+            new_password: {
+                ...passwordSchema,
+                custom: {
+                    options: async (value, { req }) => {
+                        const user_info =
+                            req.decoded_authorization as TokenPayload
+                        const user = await databaseService.users.findOne({
+                            _id: new ObjectId(user_info.user_id),
+                            password: hashPassword(value)
+                        })
+
+                        if (user?.password === hashPassword(value)) {
+                            throw new Error(
+                                USER_MESSAGES.NEW_PASSWORD_MUST_BE_NEW
+                            )
+                        }
+                    }
+                }
+            }
         },
         ['body']
     )
@@ -738,5 +793,57 @@ export const updateMeValidator = validate(
             ...phone_numberSchema
         },
         avatar_url: { optional: true, ...lastnameSchema }
+    })
+)
+
+export const searchAccountValidator = validate(
+    // after reach the middleware checkEmailOrPhone, the request body will be modified (assume that email or phone_number is present and valid)
+    // so we need to validate the new request body
+    /*
+        "email_phone": data
+        body{
+            email: data as string
+            type: 'email'
+        }
+
+        "email_phone": data
+        body{
+            phone_number: data as string
+            type: 'phone_number'
+        }
+    */
+    checkSchema({
+        type: {
+            in: ['body'],
+            trim: true,
+            notEmpty: {
+                errorMessage: 'Type is required'
+            },
+            isString: {
+                errorMessage: 'Type must be a string'
+            },
+            isIn: {
+                options: [['email', 'phone_number']],
+                errorMessage: 'Type must be either "email" or "phone_number"'
+            }
+        },
+        email: {
+            in: ['body'],
+            optional: {
+                options: {
+                    nullable: true,
+                    checkFalsy: true
+                }
+            }
+        },
+        phone_number: {
+            in: ['body'],
+            optional: {
+                options: {
+                    nullable: true,
+                    checkFalsy: true
+                }
+            }
+        }
     })
 )

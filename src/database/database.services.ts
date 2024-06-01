@@ -1,3 +1,4 @@
+import { MainCategory, SubCategory } from './../modules/menu/menu.schema'
 import { Collection, Db, MongoClient } from 'mongodb'
 import 'dotenv/config'
 import User from '~/modules/user/user.schema'
@@ -34,6 +35,18 @@ class DatabaseService {
 
     get refreshTokens(): Collection<RefreshToken> {
         return this.db.collection(process.env.DB_REFRESH_TOKENS_COLLECTION as string)
+    }
+
+    get mainCategories(): Collection<MainCategory> {
+        return this.db.collection(
+            process.env.DB_MAIN_CATEGORY_COLLECTION as string
+        )
+    }
+
+    get subCategories(): Collection<SubCategory> {
+        return this.db.collection(
+            process.env.DB_SUB_CATEGORY_COLLECTION as string
+        )
     }
 }
 

@@ -1,19 +1,21 @@
-import databaseService from '~/database/database.services'
-import User from './user.schema'
+import 'dotenv/config'
+import { capitalize, omit } from 'lodash'
 import { ObjectId } from 'mongodb'
-import { RegisterOauthReqBody, RegisterReqBody, UpdateMeReqBody } from './user.requests'
+import otpGenerator from 'otp-generator'
+import databaseService from '~/database/database.services'
+import { capitalizePro } from '~/utils/capitalize'
 import { encrypt, hashPassword } from '~/utils/crypto'
 import { signToken, verifyToken } from '~/utils/jwt'
-import { TokenType, UserVerifyStatus } from './user.enum'
-import RefreshToken from '../refreshToken/refreshToken.schema'
-import { omit } from 'lodash'
-import otpGenerator from 'otp-generator'
-import otpService from '../otp/otp.services'
 import { OTP_KIND } from '../otp/otp.enum'
-import { capitalize } from 'lodash'
-import { capitalizePro } from '~/utils/capitalize'
-import 'dotenv/config'
-import { Console } from 'console'
+import otpService from '../otp/otp.services'
+import RefreshToken from '../refreshToken/refreshToken.schema'
+import { TokenType, UserVerifyStatus } from './user.enum'
+import {
+    RegisterOauthReqBody,
+    RegisterReqBody,
+    UpdateMeReqBody
+} from './user.requests'
+import User from './user.schema'
 
 class UsersService {
     private decodeRefreshToken(refresh_token: string) {
@@ -57,6 +59,16 @@ class UsersService {
     //     return Boolean(user)
     // }
 
+    async findUserByEmail(email: string) {
+        const user = await databaseService.users.findOne({ email })
+        return user
+    }
+
+    async findUserByPhone(phone_number: string) {
+        const user = await databaseService.users.findOne({ phone_number })
+        return user
+    }
+
     async checkPhoneNumberExist(phone_number: string) {
         const user = await databaseService.users.findOne({ phone_number })
         return Boolean(user)
@@ -67,7 +79,8 @@ class UsersService {
         const user = await databaseService.users.findOne({ password })
         return Boolean(user)
     }
-    async finduser(user_id: string, password: string) {
+
+    async findUser(user_id: string, password: string) {
         const user = await databaseService.users.findOne({
             _id: new ObjectId(user_id),
             password: hashPassword(password)
@@ -75,7 +88,7 @@ class UsersService {
         return user
     }
 
-    async getme(user_id: string) {
+    async getMe(user_id: string) {
         const user = await databaseService.users.findOne(
             { _id: new ObjectId(user_id) },
             {

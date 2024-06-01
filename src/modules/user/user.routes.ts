@@ -1,4 +1,6 @@
 import { Router } from 'express'
+import { limiter } from '~/config/limitRequest'
+import { wrapAsync } from '~/utils/handler'
 import {
     changePasswordController,
     forgotPasswordController,
@@ -6,6 +8,7 @@ import {
     loginController,
     registerController,
     resetPasswordController,
+    searchAccountController,
     sendVerifyAccountOTPController,
     updateMeController,
     verifyAccountController,
@@ -15,22 +18,20 @@ import {
     accessTokenValidator,
     changePasswordValidator,
     checkEmailOrPhone,
+    checkNewPasswordValidator,
     forgotPasswordValidator,
     loginValidator,
     registerValidator,
     resetPasswordValidator,
+    searchAccountValidator,
     updateMeValidator,
     verifiedUserValidator,
     verifyAccountOTPValidator,
     verifyAccountValidator,
     verifyForgotPasswordOTPValidator
 } from './user.middlewares'
-import { wrapAsync } from '~/utils/handler'
-import { limiter } from '~/config/limitRequest'
-import express from 'express'
-import { update } from 'lodash'
+import { cronJobFake } from '~/utils/cronJobFake'
 
-const app = express()
 const usersRouter = Router()
 
 /*
@@ -46,7 +47,13 @@ const usersRouter = Router()
     last_name: string
   }
 */
-usersRouter.post('/register', checkEmailOrPhone, registerValidator, wrapAsync(registerController))
+usersRouter.post(
+    '/register',
+    wrapAsync(cronJobFake),
+    checkEmailOrPhone,
+    registerValidator,
+    wrapAsync(registerController)
+)
 
 /*
 route: login
@@ -57,7 +64,7 @@ body: {
   email?: string,
   phone_number?: string,
   password: string
-}
+}/register
 */
 usersRouter.post('/login', limiter, checkEmailOrPhone, loginValidator, wrapAsync(loginController))
 
@@ -69,19 +76,19 @@ usersRouter.post('/login', limiter, checkEmailOrPhone, loginValidator, wrapAsync
 */
 usersRouter.post(
     '/forgot-password',
-    limiter,
+    // limiter,
     checkEmailOrPhone,
     forgotPasswordValidator,
     wrapAsync(forgotPasswordController)
 )
 
 /*
-description: verify otp
-  path: /users/reset-password
+  description: verify otp
+  path: /users/verify-password
   method: 'POST'
-  body: { 
-          email_phone: string, 
-          forgot_password_otp: string 
+  body: {
+          email_phone: string,
+          forgot_password_otp: string
         }
 */
 usersRouter.post(
@@ -95,11 +102,11 @@ usersRouter.post(
 des: reset password
 path: '/reset-password'
 method: POST
-body: { 
+body: {
         email_phone: string,
         forgot_password_otp: string,
-        confirm_password: string, 
-        password: string
+        password: string,
+        confirm_password: string
       }
 */
 usersRouter.post(
@@ -107,6 +114,7 @@ usersRouter.post(
     resetPasswordValidator,
     checkEmailOrPhone,
     verifyForgotPasswordOTPValidator,
+    checkNewPasswordValidator,
     wrapAsync(resetPasswordController)
 )
 
@@ -162,5 +170,35 @@ usersRouter.get('/me', accessTokenValidator, wrapAsync(getMeController))
   header: {Authorization: Bearer <access_token>}
   body: { first_name: string, last_name: string, email: string, phone_number: string, ...}
 */
-usersRouter.patch('/me', accessTokenValidator, verifiedUserValidator, updateMeValidator, wrapAsync(updateMeController))
+usersRouter.patch(
+    '/me',
+    accessTokenValidator,
+    verifiedUserValidator,
+    updateMeValidator,
+    wrapAsync(updateMeController)
+)
+
+/*
+ description: search API account
+ path: /users/search
+  method: GET
+  header: {Authorization: Bearer <access_token>}
+  body: {email_phone: string}
+*/
+// usersRouter.post(
+//     '/search',
+//     accessTokenValidator,
+//     checkEmailOrPhone,
+//     searchAccountValidator,
+//     wrapAsync(searchAccountController)
+// )
+
+usersRouter.post(
+    '/search',
+    accessTokenValidator,
+    checkEmailOrPhone,
+    searchAccountValidator,
+    wrapAsync(searchAccountController)
+)
+
 export default usersRouter

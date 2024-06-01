@@ -1,21 +1,29 @@
-import { NextFunction, Request, Response } from 'express'
-import usersService from './user.services'
-import { LoginRequestBody, RegisterReqBody, TokenPayload, UpdateMeReqBody } from './user.requests'
-import { ParamsDictionary } from 'express-serve-static-core'
-import { USER_MESSAGES } from './user.messages'
-import User from './user.schema'
-import { ObjectId } from 'mongodb'
 import 'dotenv/config'
-import decrypt from '~/utils/crypto'
+import { NextFunction, Request, Response } from 'express'
+import { ParamsDictionary } from 'express-serve-static-core'
 import { omit } from 'lodash'
+import { ObjectId } from 'mongodb'
+import { HTTP_STATUS } from '~/constants/httpStatus'
+import decrypt, { encrypt } from '~/utils/crypto'
+import { USER_MESSAGES } from './user.messages'
+import {
+    LoginRequestBody,
+    RegisterReqBody,
+    TokenPayload,
+    UpdateMeReqBody,
+    UserResponseSearch
+} from './user.requests'
+import User from './user.schema'
+import usersService from './user.services'
 
 export const registerController = async (
     req: Request<ParamsDictionary, any, RegisterReqBody>,
     res: Response,
     next: NextFunction
 ) => {
-    const result = await usersService.register(req.body)
-    const { refresh_token } = result
+    const { access_token, refresh_token } = await usersService.register(
+        req.body
+    )
     res.cookie('refresh_token', refresh_token, {
         httpOnly: true,
         secure: true,
@@ -24,7 +32,7 @@ export const registerController = async (
 
     return res.json({
         message: USER_MESSAGES.REGISTER_SUCCESS,
-        data: result
+        data: { access_token, refresh_token }
     })
 }
 
@@ -47,7 +55,7 @@ export const loginController = async (
         maxAge: Number(process.env.COOKIE_EXPIRE)
     })
 
-    res.json({
+    return res.json({
         message: USER_MESSAGES.LOGIN_SUCCESS,
         data: result
     })
@@ -102,7 +110,7 @@ export const verifyAccountController = async (req: Request, res: Response) => {
 
 export const getMeController = async (req: Request, res: Response) => {
     const { user_id } = req.decoded_authorization as TokenPayload
-    const user = await usersService.getme(user_id)
+    const user = await usersService.getMe(user_id)
 
     const { first_name, last_name, status } = user
     const email = user.email !== '' ? await decrypt(user.email) : ''
@@ -146,4 +154,38 @@ export const changePasswordController = async (req: Request, res: Response) => {
         message: USER_MESSAGES.RESET_PASSWORD_SUCCESSFULLY,
         details: result
     })
+}
+
+export const searchAccountController = async (req: Request, res: Response) => {
+    const data = req.body as UserResponseSearch
+
+    let result = false
+    let user
+
+    if (data.type === 'email') {
+        if (await usersService.checkEmailExist(encrypt(data.email))) {
+            result = true
+            user = await usersService.findUserByEmail(encrypt(data.email))
+        }
+    } else {
+        if (
+            await usersService.checkPhoneNumberExist(encrypt(data.phone_number))
+        ) {
+            result = true
+            user = await usersService.findUserByPhone(
+                encrypt(data.phone_number)
+            )
+        }
+    }
+
+    if (result) {
+        res.status(HTTP_STATUS.OK).json({
+            isExist: result,
+            data: user
+        })
+    } else {
+        res.status(HTTP_STATUS.NOT_FOUND).json({
+            isExist: result
+        })
+    }
 }

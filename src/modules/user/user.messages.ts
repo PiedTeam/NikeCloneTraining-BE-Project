@@ -24,6 +24,9 @@ export const USER_MESSAGES = {
     PASSWORD_MUST_BE_STRING: 'Password must be a string',
     PASSWORD_MUST_BE_STRONG: 'Password must be strong',
 
+    // new_password
+    NEW_PASSWORD_MUST_BE_NEW: 'New password is not same as the old one!',
+
     // confirm password
     CONFIRM_PASSWORD_MUST_MATCH_PASSWORD:
         'Confirm password must match password',
@@ -55,7 +58,7 @@ export const USER_MESSAGES = {
     EMAIL_NOT_FOUND: 'Email is not found',
     PHONE_NUMBER_NOT_FOUND: 'Phone number is not found',
     LOGIN_SUCCESS: 'Login successfully',
-    FIELD_ERROR_FORMAT: 'Should be an email or phone number',
+    FIELD_ERROR_FORMAT: 'Should be an valid email or phone number',
 
     // error messages
     UNPROCESSABLE_ENTITY: 'Validation: Unprocessable Entity',
@@ -90,5 +93,9 @@ export const USER_MESSAGES = {
     TOO_MANY_REQUESTS: 'Too many requests, please try again after 5 minutes!',
 
     // refresh token
-    REFRESH_TOKEN_NOT_FOUND: 'Refresh token is not found'
+    REFRESH_TOKEN_NOT_FOUND: 'Refresh token is not found',
+
+    // search account
+    EMAIL_PHONE_IS_REQUIRED: 'Email or phone number is required',
+    EMAIL_PHONE_MUST_BE_STRING: 'Email or phone number must be a string'
 } as const

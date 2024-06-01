@@ -54,3 +54,15 @@ export interface UpdateMeReqBody {
     avatar_url?: string
     subscription?: Subscription
 }
+
+type UserResponseEmail = {
+    email: string
+    type: 'email'
+}
+
+type UserResponsePhone = {
+    phone_number: string
+    type: 'phone_number'
+}
+
+export type UserResponseSearch = UserResponseEmail | UserResponsePhone
