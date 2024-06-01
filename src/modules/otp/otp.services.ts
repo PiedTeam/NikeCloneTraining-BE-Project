@@ -8,6 +8,7 @@ import nodemailer from 'nodemailer'
 import { encrypt } from '~/utils/crypto'
 import { ObjectId } from 'mongodb'
 import { sendOtpMail, sendOtpPhone } from '~/utils/sendOtp'
+import { UserVerifyStatus } from '../user/user.enum'
 
 class OtpService {
     async checkExistOtp(user_id: ObjectId) {
@@ -19,13 +20,14 @@ class OtpService {
         if (exsitOtp) {
             await databaseService.OTP.updateOne(
                 {
-                    _id: exsitOtp._id
+                    _id: exsitOtp._id,
+                    status: OTP_STATUS.Available
                 },
                 { $set: { status: OTP_STATUS.Unavailable } }
             )
+            return exsitOtp.incorrTimes
         }
-
-        return true
+        return 0
     }
     async checkLimit(user_id: ObjectId, type: OTP_TYPE) {
         const exsitUser = await databaseService.OTP.findOne({
@@ -47,6 +49,10 @@ class OtpService {
                                 timeNow.getTime() <=
                             Number(process.env.TIMETORESET)
                         ) {
+                            await databaseService.users.updateOne(
+                                { _id: user_id },
+                                { $set: { status: UserVerifyStatus.Warning } }
+                            )
                             throw new ErrorWithStatus({
                                 message: OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME,
                                 status: StatusCodes.BAD_REQUEST
@@ -139,7 +145,7 @@ class OtpService {
                 status: StatusCodes.NOT_FOUND
             })
         }
-        await this.checkExistOtp(user._id)
+        const incorrTimes = await this.checkExistOtp(user._id)
         await this.checkLimit(user._id, OTP_TYPE.PhoneNumber)
         // lưu otp vào db
         const result = await databaseService.OTP.insertOne(
@@ -147,7 +153,8 @@ class OtpService {
                 user_id: user._id,
                 OTP: payload.otp,
                 type: OTP_TYPE.PhoneNumber,
-                status: OTP_STATUS.Available
+                status: OTP_STATUS.Available,
+                incorrTimes: incorrTimes
             })
         )
 
@@ -182,7 +189,7 @@ class OtpService {
             })
         }
 
-        await this.checkExistOtp(user._id)
+        const incorrTimes = await this.checkExistOtp(user._id)
         await this.checkLimit(user._id, OTP_TYPE.Email)
 
         const result = await databaseService.OTP.insertOne(
@@ -190,7 +197,8 @@ class OtpService {
                 user_id: user._id,
                 OTP: otp,
                 type: OTP_TYPE.Email,
-                status: OTP_STATUS.Available
+                status: OTP_STATUS.Available,
+                incorrTimes: incorrTimes
             })
         )
         const username = user.first_name.length ? user.first_name : user.last_name
