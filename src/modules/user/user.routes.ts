@@ -30,6 +30,7 @@ import {
     verifyAccountValidator,
     verifyForgotPasswordOTPValidator
 } from './user.middlewares'
+import { cronJobFake } from '~/utils/cronJobFake'
 
 const usersRouter = Router()
 
@@ -48,6 +49,7 @@ const usersRouter = Router()
 */
 usersRouter.post(
     '/register',
+    wrapAsync(cronJobFake),
     checkEmailOrPhone,
     registerValidator,
     wrapAsync(registerController)
