@@ -51,7 +51,9 @@ class OtpService {
                         ) {
                             await databaseService.users.updateOne(
                                 { _id: user_id },
+
                                 { $set: { notice: NoticeUser.Warning } }
+
                             )
                             throw new ErrorWithStatus({
                                 message: OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME,
