@@ -463,6 +463,10 @@ export const verifyForgotPasswordOTPValidator = validate(
                                 { _id: user._id },
                                 { $set: { notice: NoticeUser.Warning } }
                             )
+                            await databaseService.OTP.updateOne(
+                                { _id: result._id },
+                                { $set: { status: OTP_STATUS.Unavailable } }
+                            )
                             throw new Error(
                                 USER_MESSAGES.OVER_TIMES_REQUEST_METHOD
                             )
