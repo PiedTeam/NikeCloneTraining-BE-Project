@@ -26,9 +26,8 @@ import {
     searchAccountValidator,
     updateMeValidator,
     verifiedUserValidator,
-    verifyAccountOTPValidator,
     verifyAccountValidator,
-    verifyForgotPasswordOTPValidator
+    verifyOTPValidator
 } from './user.middlewares'
 import { cronJobFake } from '~/utils/cronJobFake'
 
@@ -100,7 +99,7 @@ usersRouter.post(
 usersRouter.post(
     '/verify-otp',
     checkEmailOrPhone,
-    verifyForgotPasswordOTPValidator,
+    verifyOTPValidator,
     wrapAsync(verifyForgotPasswordTokenController)
 )
 
@@ -119,7 +118,7 @@ usersRouter.post(
     '/reset-password',
     resetPasswordValidator,
     checkEmailOrPhone,
-    verifyForgotPasswordOTPValidator,
+    verifyOTPValidator,
     checkNewPasswordValidator,
     wrapAsync(resetPasswordController)
 )
@@ -147,7 +146,7 @@ usersRouter.post(
     '/verify-account',
     checkEmailOrPhone,
     verifyAccountValidator,
-    verifyAccountOTPValidator,
+    verifyOTPValidator,
     wrapAsync(verifyAccountController)
 )
 

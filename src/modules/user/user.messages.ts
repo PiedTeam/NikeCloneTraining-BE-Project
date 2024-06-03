@@ -66,7 +66,7 @@ export const USER_MESSAGES = {
     // forgot password
     CHECK_EMAIL_TO_RESET_PASSWORD:
         'Check your email to get OTP code to reset password',
-    FORGOT_PASSWORD_OTP_IS_REQUIRED: 'Forgot password otp is required',
+    OTP_IS_REQUIRED: 'Otp is required',
     SEND_OTP_SUCCESSFULLY: 'Send OTP successfully!',
     OTP_IS_INCORRECT: 'OTP is incorrect',
     VERIFY_OTP_SUCCESSFULLY: 'Verify OTP successfully',
