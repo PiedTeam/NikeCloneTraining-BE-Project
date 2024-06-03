@@ -456,7 +456,15 @@ export const verifyOTPValidator = validate(
                         if (!result) {
                             throw new Error(USER_MESSAGES.OTP_NOT_FOUND)
                         }
-                        if (result.incorrTimes >= 3) {
+                        const now = new Date()
+                        console.log(
+                            result.expired_at?.getMinutes(),
+                            now.getMinutes()
+                        )
+                        const expired =
+                            (result.expired_at?.getMinutes() as number) <
+                            now.getMinutes()
+                        if (result.incorrTimes >= 3 || expired) {
                             await databaseService.users.updateOne(
                                 { _id: user._id },
                                 { $set: { notice: NoticeUser.Warning } }
@@ -465,6 +473,9 @@ export const verifyOTPValidator = validate(
                                 { _id: result._id },
                                 { $set: { status: OTP_STATUS.Unavailable } }
                             )
+                            if (expired) {
+                                throw new Error(USER_MESSAGES.OTP_IS_EXPIRED)
+                            }
                             throw new Error(
                                 USER_MESSAGES.OVER_TIMES_REQUEST_METHOD
                             )
