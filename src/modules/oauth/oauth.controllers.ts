@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { StatusCodes } from 'http-status-codes'
 import 'dotenv/config'
 import { isProduction } from '~/index'
 
@@ -18,8 +19,5 @@ export const loginSuccessController = async (req: Request, res: Response) => {
 }
 
 export const loginFailController = () => {
-    return {
-        message: 'Login fail',
-        status: 401
-    }
+    return { message: 'Login fail', status: StatusCodes.UNAUTHORIZED }
 }

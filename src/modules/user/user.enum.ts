@@ -1,6 +1,10 @@
 export enum UserVerifyStatus {
     Unverified,
-    Verified,
+    Verified
+}
+
+export enum NoticeUser {
+    Active,
     Warning,
     Banned
 }

@@ -15,7 +15,7 @@ import { encrypt, hashPassword } from '~/utils/crypto'
 import { verifyToken } from '~/utils/jwt'
 import { isValidPhoneNumberForCountry, validate } from '~/utils/validation'
 import { OTP_STATUS } from '../otp/otp.enum'
-import { UserVerifyStatus } from './user.enum'
+import { NoticeUser, UserVerifyStatus } from './user.enum'
 import { LoginRequestBody, TokenPayload } from './user.requests'
 import usersService from './user.services'
 import 'dotenv/config'
@@ -436,9 +436,15 @@ export const verifyForgotPasswordOTPValidator = validate(
                         if (result.incorrTimes >= 3) {
                             await databaseService.users.updateOne(
                                 { _id: user._id },
-                                { $set: { status: UserVerifyStatus.Warning } }
+                                { $set: { notice: NoticeUser.Warning } }
                             )
-                            throw new Error(USER_MESSAGES.OVER_TIMES_REQUEST_METHOD)
+                            await databaseService.OTP.updateOne(
+                                { _id: result._id },
+                                { $set: { status: OTP_STATUS.Unavailable } }
+                            )
+                            throw new Error(
+                                USER_MESSAGES.OVER_TIMES_REQUEST_METHOD
+                            )
                         }
                         if (
                             (result?.type === 1 && req.body.type === 'phone_number') ||
@@ -740,20 +746,23 @@ export const verifiedUserValidator = (req: Request, res: Response, next: NextFun
 }
 
 export const updateMeValidator = validate(
-    checkSchema({
-        // username: { optional: true, ...usernameSchema },
-        first_name: { optional: true, ...firstnameSchema },
-        last_name: { optional: true, ...lastnameSchema },
-        email: {
-            optional: true,
-            ...emailSchema
+    checkSchema(
+        {
+            // username: { optional: true, ...usernameSchema },
+            first_name: { optional: true, ...firstnameSchema },
+            last_name: { optional: true, ...lastnameSchema },
+            email: {
+                optional: true,
+                ...emailSchema
+            },
+            phone_number: {
+                optional: true,
+                ...phone_numberSchema
+            },
+            avatar_url: { optional: true, ...lastnameSchema }
         },
-        phone_number: {
-            optional: true,
-            ...phone_numberSchema
-        },
-        avatar_url: { optional: true, ...lastnameSchema }
-    })
+        ['body']
+    )
 )
 
 export const searchAccountValidator = validate(
