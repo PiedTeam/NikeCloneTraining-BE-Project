@@ -10,7 +10,8 @@
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "prettier": "prettier --check .",
-        "prettier:fix": "prettier --write ."
+        "prettier:fix": "prettier --write .",
+        "getData": "npx ts-node src/utils/getAllDataUser.ts"
     },
     "keywords": [],
     "author": "",
