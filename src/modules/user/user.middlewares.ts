@@ -452,7 +452,6 @@ export const verifyForgotPasswordOTPValidator = validate(
                                     }
                                 }
                             )
-                            console.log(result)
                             throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
                         }
                         req.body.user_id = user._id
@@ -620,6 +619,17 @@ export const verifyAccountOTPValidator = validate(
                     if (!result) {
                         throw new Error(USER_MESSAGES.OTP_NOT_FOUND)
                     }
+                    if (result.incorrTimes >= 3) {
+                        await databaseService.users.updateOne(
+                            { _id: user._id },
+                            { $set: { notice: NoticeUser.Warning } }
+                        )
+                        await databaseService.OTP.updateOne(
+                            { _id: result._id },
+                            { $set: { status: OTP_STATUS.Unavailable } }
+                        )
+                        throw new Error(USER_MESSAGES.OVER_TIMES_REQUEST_METHOD)
+                    }
                     if (
                         (result?.type === 1 &&
                             req.body.type === 'phone_number') ||
@@ -629,6 +639,16 @@ export const verifyAccountOTPValidator = validate(
                     }
                     const otp = result?.OTP
                     if (value !== otp) {
+                        await databaseService.OTP.updateOne(
+                            {
+                                _id: result._id
+                            },
+                            {
+                                $set: {
+                                    incorrTimes: result.incorrTimes + 1
+                                }
+                            }
+                        )
                         throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
                     }
                     req.body.user_id = user._id
