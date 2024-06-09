@@ -11,6 +11,7 @@ import otpService from '../otp/otp.services'
 import RefreshToken from '../refreshToken/refreshToken.schema'
 import { TokenType, UserVerifyStatus } from './user.enum'
 import {
+    LogoutReqBody,
     RegisterOauthReqBody,
     RegisterReqBody,
     UpdateMeReqBody
@@ -295,6 +296,8 @@ class UsersService {
         user_id: string
         payload: UpdateMeReqBody
     }) {
+        if (payload.password) payload.password = hashPassword(payload.password)
+
         const user = await databaseService.users.findOneAndUpdate(
             { _id: new ObjectId(user_id) },
             [
@@ -314,7 +317,14 @@ class UsersService {
                 }
             }
         )
+
         return user
+    }
+
+    async logout({ refresh_token }: LogoutReqBody) {
+        await databaseService.refreshTokens.deleteOne({
+            token: refresh_token
+        })
     }
 }
 

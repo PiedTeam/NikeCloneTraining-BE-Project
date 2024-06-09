@@ -8,6 +8,7 @@ import decrypt, { encrypt } from '~/utils/crypto'
 import { USER_MESSAGES } from './user.messages'
 import {
     LoginRequestBody,
+    LogoutReqBody,
     RegisterReqBody,
     TokenPayload,
     UpdateMeReqBody,
@@ -157,7 +158,8 @@ export const updateMeController = async (
         'email',
         'phone_number',
         'avatar_url',
-        'subscription'
+        'subscription',
+        'password'
     ]
     const body = pick(req.body, allowedFields)
     const user = await usersService.updateMe({
@@ -212,4 +214,15 @@ export const searchAccountController = async (req: Request, res: Response) => {
             isExist: result
         })
     }
+}
+
+export const logoutController = async (
+    req: Request<ParamsDictionary, any, LogoutReqBody>,
+    res: Response
+) => {
+    await usersService.logout(req.body)
+    res.clearCookie('refresh_token')
+    return res.json({
+        message: USER_MESSAGES.LOGOUT_SUCCESSFULLY
+    })
 }
