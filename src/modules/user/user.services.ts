@@ -11,6 +11,7 @@ import otpService from '../otp/otp.services'
 import RefreshToken from '../refreshToken/refreshToken.schema'
 import { TokenType, UserVerifyStatus } from './user.enum'
 import {
+    LogoutReqBody,
     RegisterOauthReqBody,
     RegisterReqBody,
     UpdateMeReqBody
@@ -309,6 +310,12 @@ class UsersService {
             }
         )
         return user
+    }
+
+    async logout({ refresh_token }: LogoutReqBody) {
+        await databaseService.refreshTokens.deleteOne({
+            token: refresh_token
+        })
     }
 }
 

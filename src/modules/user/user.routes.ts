@@ -6,6 +6,7 @@ import {
     forgotPasswordController,
     getMeController,
     loginController,
+    logoutController,
     registerController,
     resetPasswordController,
     searchAccountController,
@@ -21,6 +22,7 @@ import {
     checkNewPasswordValidator,
     forgotPasswordValidator,
     loginValidator,
+    refreshTokenValidator,
     registerValidator,
     resetPasswordValidator,
     searchAccountValidator,
@@ -210,6 +212,13 @@ usersRouter.post(
     checkEmailOrPhone,
     searchAccountValidator,
     wrapAsync(searchAccountController)
+)
+
+usersRouter.post(
+    '/logout',
+    accessTokenValidator,
+    refreshTokenValidator,
+    wrapAsync(logoutController)
 )
 
 export default usersRouter
