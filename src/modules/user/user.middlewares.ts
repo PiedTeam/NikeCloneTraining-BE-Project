@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { ParamSchema, checkSchema } from 'express-validator'
+import { ParamSchema, check, checkSchema } from 'express-validator'
 import { JsonWebTokenError } from 'jsonwebtoken'
 import { capitalize } from 'lodash'
 import { ObjectId } from 'mongodb'
@@ -754,9 +754,10 @@ export const refreshTokenValidator = validate(
                                             .JWT_SECRET_REFRESH_TOKEN as string
                                     }),
                                     databaseService.refreshTokens.findOne({
-                                        refresh_token: value
+                                        token: value
                                     })
                                 ])
+
                             if (!refresh_token) {
                                 throw new ErrorWithStatus({
                                     message:

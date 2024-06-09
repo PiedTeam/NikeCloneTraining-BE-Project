@@ -94,6 +94,7 @@ export const USER_MESSAGES = {
 
     // refresh token
     REFRESH_TOKEN_NOT_FOUND: 'Refresh token is not found',
+    LOGOUT_SUCCESSFULLY: 'Logout successfully!',
 
     // search account
     EMAIL_PHONE_IS_REQUIRED: 'Email or phone number is required',
