@@ -158,7 +158,8 @@ export const updateMeController = async (
         'email',
         'phone_number',
         'avatar_url',
-        'subscription'
+        'subscription',
+        'password'
     ]
     const body = pick(req.body, allowedFields)
     const user = await usersService.updateMe({

@@ -46,13 +46,13 @@ export interface ResetPasswordReqBody {
 }
 
 export interface UpdateMeReqBody {
-    // username?: string
     first_name?: string
     last_name?: string
     email?: string
     phone_number?: string
     avatar_url?: string
     subscription?: Subscription
+    password?: string
 }
 
 type UserResponseEmail = {
