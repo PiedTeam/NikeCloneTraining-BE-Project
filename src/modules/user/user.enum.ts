@@ -9,6 +9,11 @@ export enum NoticeUser {
     Banned
 }
 
+export enum NoticeUser {
+    Active,
+    Warning,
+    Banned
+}
 export enum UserRole {
     Admin,
     Customer

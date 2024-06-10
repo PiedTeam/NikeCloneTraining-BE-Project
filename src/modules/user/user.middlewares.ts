@@ -19,6 +19,7 @@ import { NoticeUser, UserVerifyStatus } from './user.enum'
 import { LoginRequestBody, TokenPayload } from './user.requests'
 import usersService from './user.services'
 import 'dotenv/config'
+import otpService from '../otp/otp.services'
 
 const usernameSchema: ParamSchema = {
     trim: true,
@@ -452,6 +453,7 @@ export const verifyForgotPasswordOTPValidator = validate(
                                     }
                                 }
                             )
+//                             console.log(result)
                             throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
                         }
                         req.body.user_id = user._id
@@ -656,6 +658,96 @@ export const verifyAccountOTPValidator = validate(
             }
         }
     })
+)
+export const verifyOTPValidator = validate(
+    checkSchema(
+        {
+            otp: {
+                trim: true,
+                custom: {
+                    options: async (value, { req }) => {
+                        if (!value) {
+                            throw new Error(
+                                USER_MESSAGES.FORGOT_PASSWORD_OTP_IS_REQUIRED
+                            )
+                        }
+                        const user =
+                            req.body.type === 'email'
+                                ? await databaseService.users.findOne({
+                                      email: encrypt(req.body.email)
+                                  })
+                                : await databaseService.users.findOne({
+                                      phone_number: encrypt(
+                                          req.body.phone_number
+                                      )
+                                  })
+                        if (!user) {
+                            throw new Error(USER_MESSAGES.USER_NOT_FOUND)
+                        }
+                        const result = await databaseService.OTP.findOne({
+                            user_id: user._id,
+                            status: OTP_STATUS.Available
+                        })
+                        if (!result) {
+                            throw new Error(USER_MESSAGES.OTP_NOT_FOUND)
+                        }
+                        const isExpired = await otpService.isOTPExpired(result)
+                        console.log(isExpired)
+                        if (isExpired) {
+                            await databaseService.OTP.updateOne(
+                                { user_id: user._id },
+                                { $set: { status: OTP_STATUS.Unavailable } }
+                            )
+                            throw new Error(USER_MESSAGES.OTP_IS_EXPIRED)
+                        }
+                        if (result.incorrTimes >= 3) {
+                            await databaseService.users.updateOne(
+                                { _id: user._id },
+                                {
+                                    $set: {
+                                        notice: NoticeUser.Warning
+                                    }
+                                }
+                            )
+                            await databaseService.OTP.updateOne(
+                                { user_id: user._id },
+                                { $set: { status: OTP_STATUS.Unavailable } }
+                            )
+                            throw new Error(
+                                USER_MESSAGES.OVER_TIMES_REQUEST_METHOD
+                            )
+                        }
+                        if (
+                            (result?.type === 1 &&
+                                req.body.type === 'phone_number') ||
+                            (result?.type === 0 && req.body.type === 'email')
+                        ) {
+                            throw new Error(
+                                USER_MESSAGES.REQUIRE_FIELD_IS_INVALID
+                            )
+                        }
+                        const otp = result?.OTP
+                        if (value !== otp) {
+                            await databaseService.OTP.updateOne(
+                                {
+                                    _id: result._id
+                                },
+                                {
+                                    $set: {
+                                        incorrTimes: result.incorrTimes + 1
+                                    }
+                                }
+                            )
+                            console.log(result)
+                            throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
+                        }
+                        req.body.user_id = user._id
+                    }
+                }
+            }
+        },
+        ['body']
+    )
 )
 export const blockPostman = async (
     req: Request,
