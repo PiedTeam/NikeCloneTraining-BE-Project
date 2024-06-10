@@ -6,6 +6,7 @@ import {
     forgotPasswordController,
     getMeController,
     loginController,
+    logoutController,
     registerController,
     resetPasswordController,
     searchAccountController,
@@ -21,6 +22,7 @@ import {
     checkNewPasswordValidator,
     forgotPasswordValidator,
     loginValidator,
+    refreshTokenValidator,
     registerValidator,
     resetPasswordValidator,
     searchAccountValidator,
@@ -31,6 +33,7 @@ import {
     verifyForgotPasswordOTPValidator,
     verifyOTPValidator
 } from './user.middlewares'
+import { cronJobFake } from '~/utils/cronJobFake'
 
 const usersRouter = Router()
 
@@ -49,6 +52,7 @@ const usersRouter = Router()
 */
 usersRouter.post(
     '/register',
+    wrapAsync(cronJobFake),
     checkEmailOrPhone,
     registerValidator,
     wrapAsync(registerController)
@@ -209,6 +213,13 @@ usersRouter.post(
     checkEmailOrPhone,
     searchAccountValidator,
     wrapAsync(searchAccountController)
+)
+
+usersRouter.post(
+    '/logout',
+    accessTokenValidator,
+    refreshTokenValidator,
+    wrapAsync(logoutController)
 )
 
 export default usersRouter

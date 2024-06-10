@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { ParamSchema, checkSchema } from 'express-validator'
+import { ParamSchema, check, checkSchema } from 'express-validator'
 import { JsonWebTokenError } from 'jsonwebtoken'
 import { capitalize } from 'lodash'
 import { ObjectId } from 'mongodb'
@@ -72,18 +72,10 @@ export const emailSchema: ParamSchema = {
 }
 
 export const phone_numberSchema: ParamSchema = {
-    optional: {
-        options: {
-            nullable: true
-        }
-    },
+    optional: { options: { nullable: true } },
     trim: true,
-    notEmpty: {
-        errorMessage: USER_MESSAGES.PHONE_NUMBER_IS_REQUIRED
-    },
-    isString: {
-        errorMessage: USER_MESSAGES.PHONE_NUMBER_MUST_BE_STRING
-    },
+    notEmpty: { errorMessage: USER_MESSAGES.PHONE_NUMBER_IS_REQUIRED },
+    isString: { errorMessage: USER_MESSAGES.PHONE_NUMBER_MUST_BE_STRING },
     isMobilePhone: {
         options: ['vi-VN'],
         errorMessage: USER_MESSAGES.PHONE_NUMBER_IS_INVALID
@@ -92,12 +84,8 @@ export const phone_numberSchema: ParamSchema = {
 
 const passwordSchema: ParamSchema = {
     trim: true,
-    notEmpty: {
-        errorMessage: USER_MESSAGES.PASSWORD_IS_REQUIRED
-    },
-    isString: {
-        errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING
-    },
+    notEmpty: { errorMessage: USER_MESSAGES.PASSWORD_IS_REQUIRED },
+    isString: { errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING },
     isStrongPassword: {
         options: {
             minLength: 8,
@@ -112,12 +100,8 @@ const passwordSchema: ParamSchema = {
 
 const confirmPasswordSchema: ParamSchema = {
     trim: true,
-    notEmpty: {
-        errorMessage: USER_MESSAGES.PASSWORD_IS_REQUIRED
-    },
-    isString: {
-        errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING
-    },
+    notEmpty: { errorMessage: USER_MESSAGES.PASSWORD_IS_REQUIRED },
+    isString: { errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING },
     isStrongPassword: {
         options: {
             minLength: 8,
@@ -135,6 +119,7 @@ const confirmPasswordSchema: ParamSchema = {
                     USER_MESSAGES.CONFIRM_PASSWORD_MUST_MATCH_PASSWORD
                 )
             }
+
             return true
         }
     }
@@ -142,49 +127,30 @@ const confirmPasswordSchema: ParamSchema = {
 
 const firstnameSchema: ParamSchema = {
     trim: true,
-    notEmpty: {
-        errorMessage: USER_MESSAGES.FIRST_NAME_IS_REQUIRED
-    },
-    isString: {
-        errorMessage: USER_MESSAGES.FIRST_NAME_MUST_BE_STRING
-    },
+    notEmpty: { errorMessage: USER_MESSAGES.FIRST_NAME_IS_REQUIRED },
+    isString: { errorMessage: USER_MESSAGES.FIRST_NAME_MUST_BE_STRING },
     isLength: {
-        options: {
-            min: 1,
-            max: 50
-        },
+        options: { min: 1, max: 50 },
         errorMessage: USER_MESSAGES.FIRST_NAME_LENGTH_MUST_BE_FROM_1_TO_50
     }
 }
 
 const lastnameSchema: ParamSchema = {
     trim: true,
-    notEmpty: {
-        errorMessage: USER_MESSAGES.LAST_NAME_IS_REQUIRED
-    },
-    isString: {
-        errorMessage: USER_MESSAGES.LAST_NAME_MUST_BE_STRING
-    },
+    notEmpty: { errorMessage: USER_MESSAGES.LAST_NAME_IS_REQUIRED },
+    isString: { errorMessage: USER_MESSAGES.LAST_NAME_MUST_BE_STRING },
     isLength: {
-        options: {
-            min: 1,
-            max: 50
-        },
+        options: { min: 1, max: 50 },
         errorMessage: USER_MESSAGES.LAST_NAME_LENGTH_MUST_BE_FROM_1_TO_50
     }
 }
 
 const imageSchema: ParamSchema = {
     optional: true,
-    isString: {
-        errorMessage: USER_MESSAGES.IMAGE_URL_MUST_BE_A_STRING
-    },
+    isString: { errorMessage: USER_MESSAGES.IMAGE_URL_MUST_BE_A_STRING },
     trim: true,
     isLength: {
-        options: {
-            min: 1,
-            max: 400
-        },
+        options: { min: 1, max: 400 },
         errorMessage: USER_MESSAGES.IMAGE_URL_LENGTH_MUST_BE_LESS_THAN_400
     }
 }
@@ -267,9 +233,7 @@ export const loginCheckMissingField = (
             new ErrorEntity({
                 message: USER_MESSAGES.UNPROCESSABLE_ENTITY,
                 status: HTTP_STATUS.UNPROCESSABLE_ENTITY,
-                data: {
-                    field: { msg: USER_MESSAGES.FIELD_IS_REQUIRED }
-                }
+                data: { field: { msg: USER_MESSAGES.FIELD_IS_REQUIRED } }
             })
         )
     }
@@ -373,12 +337,8 @@ export const loginValidator = validate(
             },
             password: {
                 trim: true,
-                notEmpty: {
-                    errorMessage: 'Password is required'
-                },
-                isString: {
-                    errorMessage: 'Password must be a string'
-                }
+                notEmpty: { errorMessage: 'Password is required' },
+                isString: { errorMessage: 'Password must be a string' }
             }
         },
         ['body']
@@ -464,6 +424,10 @@ export const verifyForgotPasswordOTPValidator = validate(
                                 { _id: user._id },
                                 { $set: { notice: NoticeUser.Warning } }
                             )
+                            await databaseService.OTP.updateOne(
+                                { _id: result._id },
+                                { $set: { status: OTP_STATUS.Unavailable } }
+                            )
                             throw new Error(
                                 USER_MESSAGES.OVER_TIMES_REQUEST_METHOD
                             )
@@ -489,7 +453,7 @@ export const verifyForgotPasswordOTPValidator = validate(
                                     }
                                 }
                             )
-                            console.log(result)
+//                             console.log(result)
                             throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
                         }
                         req.body.user_id = user._id
@@ -657,6 +621,17 @@ export const verifyAccountOTPValidator = validate(
                     if (!result) {
                         throw new Error(USER_MESSAGES.OTP_NOT_FOUND)
                     }
+                    if (result.incorrTimes >= 3) {
+                        await databaseService.users.updateOne(
+                            { _id: user._id },
+                            { $set: { notice: NoticeUser.Warning } }
+                        )
+                        await databaseService.OTP.updateOne(
+                            { _id: result._id },
+                            { $set: { status: OTP_STATUS.Unavailable } }
+                        )
+                        throw new Error(USER_MESSAGES.OVER_TIMES_REQUEST_METHOD)
+                    }
                     if (
                         (result?.type === 1 &&
                             req.body.type === 'phone_number') ||
@@ -666,6 +641,16 @@ export const verifyAccountOTPValidator = validate(
                     }
                     const otp = result?.OTP
                     if (value !== otp) {
+                        await databaseService.OTP.updateOne(
+                            {
+                                _id: result._id
+                            },
+                            {
+                                $set: {
+                                    incorrTimes: result.incorrTimes + 1
+                                }
+                            }
+                        )
                         throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
                     }
                     req.body.user_id = user._id
@@ -841,9 +826,10 @@ export const refreshTokenValidator = validate(
                                             .JWT_SECRET_REFRESH_TOKEN as string
                                     }),
                                     databaseService.refreshTokens.findOne({
-                                        refresh_token: value
+                                        token: value
                                     })
                                 ])
+
                             if (!refresh_token) {
                                 throw new ErrorWithStatus({
                                     message:
@@ -891,20 +877,17 @@ export const verifiedUserValidator = (
 }
 
 export const updateMeValidator = validate(
-    checkSchema({
-        // username: { optional: true, ...usernameSchema },
-        first_name: { optional: true, ...firstnameSchema },
-        last_name: { optional: true, ...lastnameSchema },
-        email: {
-            optional: true,
-            ...emailSchema
+    checkSchema(
+        {
+            first_name: { optional: true, ...firstnameSchema },
+            last_name: { optional: true, ...lastnameSchema },
+            email: { optional: true, ...emailSchema },
+            phone_number: { optional: true, ...phone_numberSchema },
+            avatar_url: { optional: true, ...lastnameSchema },
+            password: { optional: true, ...passwordSchema }
         },
-        phone_number: {
-            optional: true,
-            ...phone_numberSchema
-        },
-        avatar_url: { optional: true, ...lastnameSchema }
-    })
+        ['body']
+    )
 )
 
 export const searchAccountValidator = validate(

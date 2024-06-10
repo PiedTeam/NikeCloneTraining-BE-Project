@@ -1,13 +1,14 @@
 import 'dotenv/config'
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { omit } from 'lodash'
+import { first, omit, pick } from 'lodash'
 import { ObjectId } from 'mongodb'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import decrypt, { encrypt } from '~/utils/crypto'
 import { USER_MESSAGES } from './user.messages'
 import {
     LoginRequestBody,
+    LogoutReqBody,
     RegisterReqBody,
     TokenPayload,
     UpdateMeReqBody,
@@ -151,7 +152,16 @@ export const updateMeController = async (
     next: NextFunction
 ) => {
     const { user_id } = (req as Request).decoded_authorization as TokenPayload
-    const body = omit(req.body, ['decoded_authorization', 'code'])
+    const allowedFields: (keyof UpdateMeReqBody)[] = [
+        'first_name',
+        'last_name',
+        'email',
+        'phone_number',
+        'avatar_url',
+        'subscription',
+        'password'
+    ]
+    const body = pick(req.body, allowedFields)
     const user = await usersService.updateMe({
         user_id,
         payload: body as UpdateMeReqBody
@@ -204,4 +214,15 @@ export const searchAccountController = async (req: Request, res: Response) => {
             isExist: result
         })
     }
+}
+
+export const logoutController = async (
+    req: Request<ParamsDictionary, any, LogoutReqBody>,
+    res: Response
+) => {
+    await usersService.logout(req.body)
+    res.clearCookie('refresh_token')
+    return res.json({
+        message: USER_MESSAGES.LOGOUT_SUCCESSFULLY
+    })
 }
