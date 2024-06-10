@@ -73,6 +73,7 @@ export const USER_MESSAGES = {
     RESET_PASSWORD_SUCCESSFULLY: 'Reset password successfully',
     OTP_NOT_FOUND: 'OTP is not found',
     REQUIRE_FIELD_IS_INVALID: 'Require field is invalid',
+    OTP_IS_EXPIRED: 'OTP is expired',
 
     // verify account
     VERIFY_ACCOUNT_OTP_IS_REQUIRED: 'Verify account otp is required',

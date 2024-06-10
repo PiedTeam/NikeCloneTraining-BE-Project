@@ -9,8 +9,16 @@ import { encrypt } from '~/utils/crypto'
 import { ObjectId } from 'mongodb'
 import { sendOtpMail, sendOtpPhone } from '~/utils/sendOtp'
 import { UserVerifyStatus } from '../user/user.enum'
+import moment from 'moment'
 
 class OtpService {
+    isOTPExpired(otp: Otp) {
+        const timeNow = moment()
+        const duration = moment.duration(timeNow.diff(otp.created_at))
+        const minutes = duration.asMinutes()
+        console.log(minutes)
+        return minutes > Number(process.env.OTP_EXPIRED_TIME)
+    }
     async checkExistOtp(user_id: ObjectId) {
         const exsitOtp = await databaseService.OTP.findOne({
             user_id,
