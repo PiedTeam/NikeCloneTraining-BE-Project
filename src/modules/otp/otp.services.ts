@@ -8,7 +8,7 @@ import nodemailer from 'nodemailer'
 import { encrypt } from '~/utils/crypto'
 import { ObjectId } from 'mongodb'
 import { sendOtpMail, sendOtpPhone } from '~/utils/sendOtp'
-import { UserVerifyStatus } from '../user/user.enum'
+import { NoticeUser, UserVerifyStatus } from '../user/user.enum'
 import moment from 'moment'
 
 class OtpService {
@@ -59,7 +59,7 @@ class OtpService {
                         ) {
                             await databaseService.users.updateOne(
                                 { _id: user_id },
-                                { $set: { status: UserVerifyStatus.Warning } }
+                                { $set: { notice: NoticeUser.Warning } }
                             )
                             throw new ErrorWithStatus({
                                 message: OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME,

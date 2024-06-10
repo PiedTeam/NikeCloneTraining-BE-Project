@@ -15,7 +15,7 @@ import { encrypt, hashPassword } from '~/utils/crypto'
 import { verifyToken } from '~/utils/jwt'
 import { isValidPhoneNumberForCountry, validate } from '~/utils/validation'
 import { OTP_STATUS } from '../otp/otp.enum'
-import { UserVerifyStatus } from './user.enum'
+import { NoticeUser, UserVerifyStatus } from './user.enum'
 import { LoginRequestBody, TokenPayload } from './user.requests'
 import usersService from './user.services'
 import 'dotenv/config'
@@ -462,7 +462,7 @@ export const verifyForgotPasswordOTPValidator = validate(
                         if (result.incorrTimes >= 3) {
                             await databaseService.users.updateOne(
                                 { _id: user._id },
-                                { $set: { status: UserVerifyStatus.Warning } }
+                                { $set: { notice: NoticeUser.Warning } }
                             )
                             throw new Error(
                                 USER_MESSAGES.OVER_TIMES_REQUEST_METHOD
@@ -720,7 +720,7 @@ export const verifyOTPValidator = validate(
                                 { _id: user._id },
                                 {
                                     $set: {
-                                        status: UserVerifyStatus.Warning
+                                        notice: NoticeUser.Warning
                                     }
                                 }
                             )
