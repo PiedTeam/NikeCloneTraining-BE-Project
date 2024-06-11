@@ -16,7 +16,8 @@ passport.use(
         {
             clientID: process.env.CLIENT_ID as string,
             clientSecret: process.env.CLIENT_SECRET as string,
-            callbackURL: isProduction2 ? process.env.PRODUCTION_CLIENT_URL : process.env.DEVELOPMENT_CLIENT_URL
+            callbackURL: isProduction2 ? process.env.PRODUCTION_CLIENT_URL : process.env.DEVELOPMENT_CLIENT_URL,
+            scope: ['profile', 'email']
         },
         async function (accessToken, refreshToken, profile, callback) {
             const { id, displayName, emails, name, photos, provider } = profile
@@ -97,9 +98,7 @@ export const configLoginWithFacebook = () => {
                     subscription: 1
                 }
 
-                const isExist = await usersService.checkEmailExist(
-                    encrypt(data.email) as string
-                )
+                const isExist = await usersService.checkEmailExist(encrypt(data.email) as string)
 
                 const result: {
                     new_user: boolean
@@ -110,8 +109,7 @@ export const configLoginWithFacebook = () => {
                 } = { new_user: !isExist }
 
                 if (!isExist) {
-                    const { access_token, refresh_token } =
-                        await usersService.register(data, provider)
+                    const { access_token, refresh_token } = await usersService.register(data, provider)
 
                     result.access_token = access_token
                     result.refresh_token = refresh_token
@@ -120,11 +118,10 @@ export const configLoginWithFacebook = () => {
                         email: encrypt(data.email)
                     })
 
-                    const { access_token, refresh_token } =
-                        await usersService.login({
-                            user_id: user?._id.toString() as string,
-                            status: user?.status as number
-                        })
+                    const { access_token, refresh_token } = await usersService.login({
+                        user_id: user?._id.toString() as string,
+                        status: user?.status as number
+                    })
 
                     result.access_token = access_token
                     result.refresh_token = refresh_token
@@ -134,10 +131,9 @@ export const configLoginWithFacebook = () => {
                     email: encrypt(data.email)
                 })
 
-                const user_refresh_token =
-                    await databaseService.refreshTokens.findOne({
-                        user_id: user?._id
-                    })
+                const user_refresh_token = await databaseService.refreshTokens.findOne({
+                    user_id: user?._id
+                })
 
                 result.iat = user_refresh_token?.iat
                 result.exp = user_refresh_token?.exp
