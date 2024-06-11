@@ -22,7 +22,7 @@ export const oauthRouter = Router()
 oauthRouter.get(
     '/google',
     passport.authenticate('google', {
-        scope: ['profile', 'email'],
+        scope: 'profile',
         session: false
     })
 )
