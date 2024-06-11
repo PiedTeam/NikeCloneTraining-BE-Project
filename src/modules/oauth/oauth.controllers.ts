@@ -12,8 +12,8 @@ export const loginSuccessController = async (req: Request, res: Response) => {
         maxAge: Number(process.env.COOKIE_EXPIRE)
     })
     const urlFERedirect = isProduction
-        ? (process.env.DEVELOPMENT_FE_REDIRECT_URL as string)
-        : (process.env.PRODUCTION_FE_REDIRECT_URL as string)
+    ? (process.env.PRODUCTION_FE_REDIRECT_URL as string)
+    : (process.env.DEVELOPMENT_FE_REDIRECT_URL as string)
 
     res.redirect(`${urlFERedirect}/?access_token=${access_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`)
 }
