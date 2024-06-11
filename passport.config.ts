@@ -16,8 +16,7 @@ passport.use(
         {
             clientID: process.env.CLIENT_ID as string,
             clientSecret: process.env.CLIENT_SECRET as string,
-            callbackURL: isProduction2 ? process.env.PRODUCTION_CLIENT_URL : process.env.DEVELOPMENT_CLIENT_URL,
-            scope: ['email', 'profile']
+            callbackURL: isProduction2 ? process.env.PRODUCTION_CLIENT_URL : process.env.DEVELOPMENT_CLIENT_URL
         },
         async function (accessToken, refreshToken, profile, callback) {
             const { id, displayName, emails, name, photos, provider } = profile

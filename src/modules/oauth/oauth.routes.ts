@@ -19,7 +19,7 @@ export const oauthRouter = Router()
     last_name: string
   }
 */
-oauthRouter.get('/google', passport.authenticate('google', { session: false }))
+oauthRouter.get('/google', passport.authenticate('google', { scope: ['email', 'profile'], session: false }))
 
 /*
 route: callback after login by google
