@@ -66,7 +66,7 @@ body: {
   password: string
 }/register
 */
-usersRouter.post('/login', limiter, checkEmailOrPhone, loginValidator, wrapAsync(loginController))
+usersRouter.post('/login', checkEmailOrPhone, loginValidator, wrapAsync(loginController))
 
 /*
   description: send otp forgot password to user's email or phone number
