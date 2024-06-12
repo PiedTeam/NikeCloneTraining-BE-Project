@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { ValidationChain, validationResult } from 'express-validator'
-import { RunnableValidationChains } from 'express-validator/lib/middlewares/schema'
+import { RunnableValidationChains } from 'express-validator/src/middlewares/schema'
 import parsePhoneNumberFromString, {
     CountryCode,
     parsePhoneNumber
