@@ -65,7 +65,9 @@ type UserResponsePhone = {
     type: 'phone_number'
 }
 
-export type UserResponseSearch = UserResponseEmail | UserResponsePhone
+export type UserResponseAfterCheckEmailOrPhone =
+    | UserResponseEmail
+    | UserResponsePhone
 
 export type LogoutReqBody = {
     refresh_token: string
