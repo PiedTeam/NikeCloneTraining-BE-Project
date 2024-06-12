@@ -70,3 +70,7 @@ export type UserResponseSearch = UserResponseEmail | UserResponsePhone
 export type LogoutReqBody = {
     refresh_token: string
 }
+
+export type RefreshTokenReqBody = {
+    refresh_token: string
+}

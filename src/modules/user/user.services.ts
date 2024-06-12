@@ -14,6 +14,7 @@ import {
     LogoutReqBody,
     RegisterOauthReqBody,
     RegisterReqBody,
+    TokenPayload,
     UpdateMeReqBody
 } from './user.requests'
 import User from './user.schema'
@@ -26,7 +27,13 @@ class UsersService {
         })
     }
 
-    private signAccessToken(user_id: string, status: UserVerifyStatus) {
+    private signAccessToken({
+        user_id,
+        status
+    }: {
+        user_id: string
+        status: UserVerifyStatus
+    }) {
         return signToken({
             payload: { user_id: user_id, token_type: TokenType.Access, status },
             options: { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_MINUTES },
@@ -34,16 +41,45 @@ class UsersService {
         })
     }
 
-    private signRefreshToken(user_id: string, status: UserVerifyStatus) {
-        return signToken({
-            payload: {
-                user_id: user_id,
-                token_type: TokenType.Refresh,
-                status
-            },
-            options: { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_DAYS },
-            privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
-        })
+    private signRefreshToken({
+        user_id,
+        status,
+        exp
+    }: {
+        user_id: string
+        status: UserVerifyStatus
+        exp: number
+    }) {
+        // return signToken({
+        //     payload: {
+        //         user_id: user_id,
+        //         token_type: TokenType.Refresh,
+        //         status
+        //     },
+        //     options: { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_DAYS },
+        //     privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+        // })
+        if (exp) {
+            return signToken({
+                payload: {
+                    user_id,
+                    token_type: TokenType.Refresh,
+                    status,
+                    exp
+                },
+                privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+            })
+        } else {
+            return signToken({
+                payload: {
+                    user_id,
+                    token_type: TokenType.Refresh,
+                    status
+                },
+                options: { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_DAYS },
+                privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+            })
+        }
     }
 
     private signAccessAndRefreshToken(
@@ -51,8 +87,8 @@ class UsersService {
         status: UserVerifyStatus
     ) {
         return Promise.all([
-            this.signAccessToken(user_id, status),
-            this.signRefreshToken(user_id, status)
+            this.signAccessToken({ user_id, status }),
+            this.signRefreshToken({ user_id, status })
         ])
     }
 
@@ -316,6 +352,18 @@ class UsersService {
         await databaseService.refreshTokens.deleteOne({
             token: refresh_token
         })
+    }
+
+    async refreshToken(refresh_token: string, payload: TokenPayload) {
+        const { user_id, status, exp } = payload
+        const [access_token, new_refresh_token] = await Promise.all([
+            this.signAccessToken({ user_id, status }),
+            this.signRefreshToken({
+                user_id,
+                status,
+                exp
+            })
+        ])
     }
 }
 

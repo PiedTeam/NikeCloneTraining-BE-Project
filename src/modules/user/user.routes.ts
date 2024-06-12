@@ -7,6 +7,7 @@ import {
     getMeController,
     loginController,
     logoutController,
+    refreshTokenController,
     registerController,
     resetPasswordController,
     searchAccountController,
@@ -219,6 +220,12 @@ usersRouter.post(
     accessTokenValidator,
     refreshTokenValidator,
     wrapAsync(logoutController)
+)
+
+usersRouter.post(
+    '/refresh-token',
+    refreshTokenValidator,
+    wrapAsync(refreshTokenController)
 )
 
 export default usersRouter
