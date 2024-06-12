@@ -71,6 +71,22 @@ class UsersService {
         return Boolean(user)
     }
 
+    async checkEmailIsVerified(email: string) {
+        const user = await databaseService.users.findOne({
+            email,
+            status: UserVerifyStatus.Verified
+        })
+        return Boolean(user)
+    }
+
+    async checkPhoneNumberIsVerified(phone_number: string) {
+        const user = await databaseService.users.findOne({
+            phone_number,
+            status: UserVerifyStatus.Verified
+        })
+        return Boolean(user)
+    }
+
     // async checkUsernameExist(username: string) {
     //     const user = await databaseService.users.findOne({ username })
     //     return Boolean(user)

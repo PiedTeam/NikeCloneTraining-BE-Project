@@ -12,7 +12,7 @@ import {
     RegisterReqBody,
     TokenPayload,
     UpdateMeReqBody,
-    UserResponseSearch
+    UserResponseAfterCheckEmailOrPhone
 } from './user.requests'
 import User from './user.schema'
 import usersService from './user.services'
@@ -69,12 +69,35 @@ export const forgotPasswordController = async (
     res: Response,
     next: NextFunction
 ) => {
-    const result =
-        req.body.type === 'email'
-            ? await usersService.sendForgotPasswordOTPByEmail(req.body.email)
-            : await usersService.sendForgotPasswordOTPByPhone(
-                  req.body.phone_number
-              )
+    const data = req.body as UserResponseAfterCheckEmailOrPhone
+    let result
+
+    if (data.type === 'email') {
+        if (!(await usersService.checkEmailIsVerified(encrypt(data.email)))) {
+            return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+                message: USER_MESSAGES.ACCOUNT_IS_NOT_VERIFIED
+            })
+        } else {
+            result = await usersService.sendForgotPasswordOTPByEmail(
+                req.body.email
+            )
+        }
+    } else {
+        if (
+            !(await usersService.checkPhoneNumberIsVerified(
+                encrypt(data.phone_number)
+            ))
+        ) {
+            return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+                message: USER_MESSAGES.ACCOUNT_IS_NOT_VERIFIED
+            })
+        } else {
+            result = usersService.sendForgotPasswordOTPByPhone(
+                req.body.phone_number
+            )
+        }
+    }
+
     return res.status(200).json({
         message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY,
         details: result
@@ -184,7 +207,7 @@ export const changePasswordController = async (req: Request, res: Response) => {
 }
 
 export const searchAccountController = async (req: Request, res: Response) => {
-    const data = req.body as UserResponseSearch
+    const data = req.body as UserResponseAfterCheckEmailOrPhone
 
     let result = false
     let user

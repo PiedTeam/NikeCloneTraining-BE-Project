@@ -62,6 +62,7 @@ export const USER_MESSAGES = {
 
     // error messages
     UNPROCESSABLE_ENTITY: 'Validation: Unprocessable Entity',
+    ACCOUNT_IS_NOT_VERIFIED: 'Account is not verified',
 
     // forgot password
     CHECK_EMAIL_TO_RESET_PASSWORD:
