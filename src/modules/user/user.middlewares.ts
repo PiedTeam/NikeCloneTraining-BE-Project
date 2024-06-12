@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { ParamSchema, check, checkSchema } from 'express-validator'
 import { JsonWebTokenError } from 'jsonwebtoken'
-import { capitalize } from 'lodash'
+import { capitalize, escape, values } from 'lodash'
 import { ObjectId } from 'mongodb'
 import validator from 'validator'
 import { HTTP_STATUS } from '~/constants/httpStatus'
@@ -21,7 +21,15 @@ import usersService from './user.services'
 import 'dotenv/config'
 import otpService from '../otp/otp.services'
 
-const usernameSchema: ParamSchema = {
+export const paramSchema: ParamSchema = {
+    customSanitizer: {
+        options: async (value) => {
+            return escape(value)
+        }
+    }
+}
+
+export const usernameSchema: ParamSchema = {
     trim: true,
     notEmpty: {
         errorMessage: USER_MESSAGES.USERNAME_IS_REQUIRED
@@ -180,10 +188,11 @@ export const registerValidator = validate(
             //         }
             //     }
             // },
-            first_name: firstnameSchema,
-            last_name: lastnameSchema,
-            password: passwordSchema,
+            first_name: { ...paramSchema, ...firstnameSchema },
+            last_name: { ...paramSchema, ...lastnameSchema },
+            password: { ...paramSchema, ...passwordSchema },
             phone_number: {
+                ...paramSchema,
                 optional: true,
                 ...phone_numberSchema,
                 custom: {
@@ -202,6 +211,7 @@ export const registerValidator = validate(
                 }
             },
             email: {
+                ...paramSchema,
                 optional: true,
                 ...emailSchema,
                 custom: {
@@ -296,6 +306,7 @@ export const loginValidator = validate(
             //     }
             // },
             email: {
+                ...paramSchema,
                 optional: true,
                 ...emailSchema,
                 custom: {
@@ -315,6 +326,7 @@ export const loginValidator = validate(
                 }
             },
             phone_number: {
+                ...paramSchema,
                 optional: true,
                 ...phone_numberSchema,
                 custom: {
@@ -336,6 +348,7 @@ export const loginValidator = validate(
                 }
             },
             password: {
+                ...paramSchema,
                 trim: true,
                 notEmpty: { errorMessage: 'Password is required' },
                 isString: { errorMessage: 'Password must be a string' }
@@ -349,6 +362,7 @@ export const forgotPasswordValidator = validate(
     checkSchema(
         {
             email: {
+                ...paramSchema,
                 optional: true,
                 ...emailSchema,
                 custom: {
@@ -365,6 +379,7 @@ export const forgotPasswordValidator = validate(
                 }
             },
             phone_number: {
+                ...paramSchema,
                 optional: true,
                 ...phone_numberSchema,
                 custom: {
@@ -391,6 +406,7 @@ export const verifyForgotPasswordOTPValidator = validate(
     checkSchema(
         {
             forgot_password_otp: {
+                ...paramSchema,
                 trim: true,
                 custom: {
                     options: async (value, { req }) => {
@@ -468,9 +484,10 @@ export const verifyForgotPasswordOTPValidator = validate(
 export const resetPasswordValidator = validate(
     checkSchema(
         {
-            password: passwordSchema,
-            confirm_password: confirmPasswordSchema,
+            password: { ...paramSchema, ...passwordSchema },
+            confirm_password: { ...paramSchema, ...confirmPasswordSchema },
             email_phone: {
+                ...paramSchema,
                 notEmpty: {
                     errorMessage: USER_MESSAGES.EMAIL_PHONE_IS_REQUIRED
                 },
@@ -487,6 +504,7 @@ export const checkNewPasswordValidator = validate(
     checkSchema(
         {
             password: {
+                ...paramSchema,
                 custom: {
                     options: async (value, { req }) => {
                         const user = await databaseService.users.findOne({
@@ -509,6 +527,7 @@ export const changePasswordValidator = validate(
     checkSchema(
         {
             old_password: {
+                ...paramSchema,
                 ...passwordSchema,
                 custom: {
                     options: async (value, { req }) => {
@@ -527,6 +546,7 @@ export const changePasswordValidator = validate(
                 }
             },
             new_password: {
+                ...paramSchema,
                 ...passwordSchema,
                 custom: {
                     options: async (value, { req }) => {
@@ -554,6 +574,7 @@ export const verifyAccountValidator = validate(
     checkSchema(
         {
             email: {
+                ...paramSchema,
                 optional: true,
                 ...emailSchema,
                 custom: {
@@ -570,6 +591,7 @@ export const verifyAccountValidator = validate(
                 }
             },
             phone_number: {
+                ...paramSchema,
                 optional: true,
                 ...phone_numberSchema,
                 custom: {
@@ -595,6 +617,7 @@ export const verifyAccountValidator = validate(
 export const verifyAccountOTPValidator = validate(
     checkSchema({
         verify_account_otp: {
+            ...paramSchema,
             trim: true,
             custom: {
                 options: async (value, { req }) => {
@@ -663,6 +686,7 @@ export const verifyOTPValidator = validate(
     checkSchema(
         {
             otp: {
+                ...paramSchema,
                 trim: true,
                 custom: {
                     options: async (value, { req }) => {
@@ -775,6 +799,7 @@ export const accessTokenValidator = validate(
     checkSchema(
         {
             authorization: {
+                ...paramSchema,
                 trim: true,
                 custom: {
                     options: async (value: string, { req }) => {
@@ -814,6 +839,7 @@ export const refreshTokenValidator = validate(
     checkSchema(
         {
             refresh_token: {
+                ...paramSchema,
                 trim: true,
                 custom: {
                     options: async (value: string, { req }) => {
@@ -879,12 +905,16 @@ export const verifiedUserValidator = (
 export const updateMeValidator = validate(
     checkSchema(
         {
-            first_name: { optional: true, ...firstnameSchema },
-            last_name: { optional: true, ...lastnameSchema },
-            email: { optional: true, ...emailSchema },
-            phone_number: { optional: true, ...phone_numberSchema },
-            avatar_url: { optional: true, ...lastnameSchema },
-            password: { optional: true, ...passwordSchema }
+            first_name: { ...paramSchema, optional: true, ...firstnameSchema },
+            last_name: { ...paramSchema, optional: true, ...lastnameSchema },
+            email: { ...paramSchema, optional: true, ...emailSchema },
+            phone_number: {
+                ...paramSchema,
+                optional: true,
+                ...phone_numberSchema
+            },
+            avatar_url: { ...paramSchema, optional: true, ...lastnameSchema },
+            password: { ...paramSchema, optional: true, ...passwordSchema }
         },
         ['body']
     )
@@ -908,6 +938,7 @@ export const searchAccountValidator = validate(
     */
     checkSchema({
         type: {
+            ...paramSchema,
             in: ['body'],
             trim: true,
             notEmpty: {
@@ -922,6 +953,7 @@ export const searchAccountValidator = validate(
             }
         },
         email: {
+            ...paramSchema,
             in: ['body'],
             optional: {
                 options: {
@@ -931,6 +963,7 @@ export const searchAccountValidator = validate(
             }
         },
         phone_number: {
+            ...paramSchema,
             in: ['body'],
             optional: {
                 options: {
