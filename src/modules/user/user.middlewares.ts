@@ -453,7 +453,7 @@ export const verifyForgotPasswordOTPValidator = validate(
                                     }
                                 }
                             )
-//                             console.log(result)
+                            //                             console.log(result)
                             throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
                         }
                         req.body.user_id = user._id
