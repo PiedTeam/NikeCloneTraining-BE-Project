@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { limiter } from '~/config/limitRequest'
+import { cronJobFake } from '~/utils/cronJobFake'
 import { wrapAsync } from '~/utils/handler'
 import {
     changePasswordController,
@@ -33,7 +34,6 @@ import {
     verifyForgotPasswordOTPValidator,
     verifyOTPValidator
 } from './user.middlewares'
-import { cronJobFake } from '~/utils/cronJobFake'
 
 const usersRouter = Router()
 
@@ -135,6 +135,7 @@ usersRouter.post(
 */
 usersRouter.post(
     '/send-verify-account-otp',
+    accessTokenValidator,
     checkEmailOrPhone,
     verifyAccountValidator,
     wrapAsync(sendVerifyAccountOTPController)

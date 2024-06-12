@@ -112,8 +112,7 @@ export const sendVerifyAccountOTPController = async (
                   req.body.phone_number
               )
     return res.status(200).json({
-        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY,
-        details: result
+        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY
     })
 }
 
