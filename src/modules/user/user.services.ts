@@ -9,7 +9,7 @@ import { signToken, verifyToken } from '~/utils/jwt'
 import { OTP_KIND } from '../otp/otp.enum'
 import otpService from '../otp/otp.services'
 import RefreshToken from '../refreshToken/refreshToken.schema'
-import { TokenType, UserVerifyStatus } from './user.enum'
+import { TokenType, UserRole, UserVerifyStatus } from './user.enum'
 import {
     LogoutReqBody,
     RegisterOauthReqBody,
@@ -26,9 +26,18 @@ class UsersService {
         })
     }
 
-    private signAccessToken(user_id: string, status: UserVerifyStatus) {
+    private signAccessToken(
+        user_id: string,
+        status: UserVerifyStatus,
+        role: UserRole
+    ) {
         return signToken({
-            payload: { user_id: user_id, token_type: TokenType.Access, status },
+            payload: {
+                user_id: user_id,
+                token_type: TokenType.Access,
+                status,
+                role
+            },
             options: { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_MINUTES },
             privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
         })
@@ -48,10 +57,11 @@ class UsersService {
 
     private signAccessAndRefreshToken(
         user_id: string,
-        status: UserVerifyStatus
+        status: UserVerifyStatus,
+        role: UserRole
     ) {
         return Promise.all([
-            this.signAccessToken(user_id, status),
+            this.signAccessToken(user_id, status, role),
             this.signRefreshToken(user_id, status)
         ])
     }
@@ -116,7 +126,8 @@ class UsersService {
         const [access_token, refresh_token] =
             await this.signAccessAndRefreshToken(
                 user_id.toString(),
-                UserVerifyStatus.Unverified
+                UserVerifyStatus.Unverified,
+                UserRole.Customer
             )
 
         const { iat, exp } = await this.decodeRefreshToken(refresh_token)
@@ -166,13 +177,15 @@ class UsersService {
 
     async login({
         user_id,
-        status
+        status,
+        role
     }: {
         user_id: string
         status: UserVerifyStatus
+        role: UserRole
     }) {
         const [access_token, refresh_token] =
-            await this.signAccessAndRefreshToken(user_id, status)
+            await this.signAccessAndRefreshToken(user_id, status, role)
 
         const { iat, exp } = await this.decodeRefreshToken(refresh_token)
 
