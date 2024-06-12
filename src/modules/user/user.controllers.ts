@@ -44,9 +44,11 @@ export const loginController = async (
 ) => {
     const user = req.user as User
     const user_id = user._id as ObjectId
+    const role = user.role
     const result = await usersService.login({
         user_id: user_id.toString(),
-        status: user.status
+        status: user.status,
+        role: role
     })
 
     const { refresh_token } = result
@@ -110,8 +112,7 @@ export const sendVerifyAccountOTPController = async (
                   req.body.phone_number
               )
     return res.status(200).json({
-        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY,
-        details: result
+        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY
     })
 }
 

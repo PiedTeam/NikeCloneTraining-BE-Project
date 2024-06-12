@@ -9,6 +9,9 @@ import {
 import { encrypt } from '~/utils/crypto'
 import databaseService from '~/database/database.services'
 import { limiter } from '~/config/limitRequest'
+import User from '~/modules/user/user.schema'
+import { UserRole, UserVerifyStatus } from '~/modules/user/user.enum'
+import { ObjectId } from 'mongodb'
 
 const GoogleStrategy = Google_Strategy
 const FacebookStrategy = Facebook_Strategy
@@ -59,7 +62,8 @@ passport.use(
                 const { access_token, refresh_token } =
                     await usersService.login({
                         user_id: user?._id.toString() as string,
-                        status: user?.status as number
+                        status: user?.status as UserVerifyStatus,
+                        role: user?.role as UserRole
                     })
 
                 result.access_token = access_token
@@ -132,7 +136,8 @@ passport.use(
                 const { access_token, refresh_token } =
                     await usersService.login({
                         user_id: user?._id.toString() as string,
-                        status: user?.status as number
+                        status: user?.status as UserVerifyStatus,
+                        role: user?.role as UserRole
                     })
 
                 result.access_token = access_token
