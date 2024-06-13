@@ -6,7 +6,14 @@ import { ObjectId } from 'mongodb'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import decrypt, { encrypt } from '~/utils/crypto'
 import { USER_MESSAGES } from './user.messages'
-import { LoginRequestBody, RegisterReqBody, TokenPayload, UpdateMeReqBody, UserResponseSearch } from './user.requests'
+import {
+    LoginRequestBody,
+    LogoutReqBody,
+    RegisterReqBody,
+    TokenPayload,
+    UpdateMeReqBody,
+    UserResponseAfterCheckEmailOrPhone
+} from './user.requests'
 import User from './user.schema'
 import usersService from './user.services'
 
@@ -35,9 +42,11 @@ export const loginController = async (
 ) => {
     const user = req.user as User
     const user_id = user._id as ObjectId
+    const role = user.role
     const result = await usersService.login({
         user_id: user_id.toString(),
-        status: user.status
+        status: user.status,
+        role: role
     })
 
     const { refresh_token } = result
@@ -53,14 +62,42 @@ export const loginController = async (
     })
 }
 
-export const forgotPasswordController = async (req: Request, res: Response, next: NextFunction) => {
-    const result =
-        req.body.type === 'email'
-            ? await usersService.sendForgotPasswordOTPByEmail(req.body.email)
-            : await usersService.sendForgotPasswordOTPByPhone(req.body.phone_number)
+export const forgotPasswordController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    const data = req.body as UserResponseAfterCheckEmailOrPhone
+    let result
+
+    if (data.type === 'email') {
+        if (!(await usersService.checkEmailIsVerified(encrypt(data.email)))) {
+            return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+                message: USER_MESSAGES.ACCOUNT_IS_NOT_VERIFIED
+            })
+        } else {
+            result = await usersService.sendForgotPasswordOTPByEmail(
+                req.body.email
+            )
+        }
+    } else {
+        if (
+            !(await usersService.checkPhoneNumberIsVerified(
+                encrypt(data.phone_number)
+            ))
+        ) {
+            return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+                message: USER_MESSAGES.ACCOUNT_IS_NOT_VERIFIED
+            })
+        } else {
+            result = usersService.sendForgotPasswordOTPByPhone(
+                req.body.phone_number
+            )
+        }
+    }
+
     return res.status(200).json({
-        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY,
-        details: result
+        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY
     })
 }
 
@@ -86,8 +123,7 @@ export const sendVerifyAccountOTPController = async (req: Request, res: Response
             ? await usersService.sendVerifyAccountOTPByEmail(req.body.email)
             : await usersService.sendVerifyAccountOTPByPhone(req.body.phone_number)
     return res.status(200).json({
-        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY,
-        details: result
+        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY
     })
 }
 
@@ -133,7 +169,8 @@ export const updateMeController = async (
         'email',
         'phone_number',
         'avatar_url',
-        'subscription'
+        'subscription',
+        'password'
     ]
     const body = pick(req.body, allowedFields)
     const user = await usersService.updateMe({
@@ -157,7 +194,7 @@ export const changePasswordController = async (req: Request, res: Response) => {
 }
 
 export const searchAccountController = async (req: Request, res: Response) => {
-    const data = req.body as UserResponseSearch
+    const data = req.body as UserResponseAfterCheckEmailOrPhone
 
     let result = false
     let user
@@ -184,4 +221,15 @@ export const searchAccountController = async (req: Request, res: Response) => {
             isExist: result
         })
     }
+}
+
+export const logoutController = async (
+    req: Request<ParamsDictionary, any, LogoutReqBody>,
+    res: Response
+) => {
+    await usersService.logout(req.body)
+    res.clearCookie('refresh_token')
+    return res.json({
+        message: USER_MESSAGES.LOGOUT_SUCCESSFULLY
+    })
 }

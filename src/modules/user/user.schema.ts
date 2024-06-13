@@ -18,7 +18,7 @@ interface UserType {
     created_at?: Date
     updated_at?: Date
     status?: UserVerifyStatus
-    noticce?: NoticeUser
+    notice?: NoticeUser
     avatar_url?: string
     subscription: Subscription
 }

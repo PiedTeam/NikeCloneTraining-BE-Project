@@ -5,7 +5,10 @@ import usersService from './src/modules/user/user.services'
 import { RegisterOauthReqBody } from '~/modules/user/user.requests'
 import { encrypt } from '~/utils/crypto'
 import databaseService from '~/database/database.services'
-import 'dotenv/config'
+import { limiter } from '~/config/limitRequest'
+import User from '~/modules/user/user.schema'
+import { UserRole, UserVerifyStatus } from '~/modules/user/user.enum'
+import { ObjectId } from 'mongodb'
 
 const GoogleStrategy = Google_Strategy
 const FacebookStrategy = Facebook_Strategy
@@ -51,10 +54,12 @@ passport.use(
                 const user = await databaseService.users.findOne({
                     email: encrypt(data.email)
                 })
-                const { access_token, refresh_token } = await usersService.login({
-                    user_id: user?._id.toString() as string,
-                    status: user?.status as number
-                })
+                const { access_token, refresh_token } =
+                    await usersService.login({
+                        user_id: user?._id.toString() as string,
+                        status: user?.status as UserVerifyStatus,
+                        role: user?.role as UserRole
+                    })
 
                 result.access_token = access_token
                 result.refresh_token = refresh_token
@@ -119,7 +124,8 @@ export const configLoginWithFacebook = () => {
 
                     const { access_token, refresh_token } = await usersService.login({
                         user_id: user?._id.toString() as string,
-                        status: user?.status as number
+                        status: user?.status as UserVerifyStatus,
+                        role: user?.role as UserRole
                     })
 
                     result.access_token = access_token
