@@ -62,6 +62,7 @@ export const USER_MESSAGES = {
 
     // error messages
     UNPROCESSABLE_ENTITY: 'Validation: Unprocessable Entity',
+    ACCOUNT_IS_NOT_VERIFIED: 'Account is not verified',
 
     // forgot password
     CHECK_EMAIL_TO_RESET_PASSWORD:
@@ -73,6 +74,7 @@ export const USER_MESSAGES = {
     RESET_PASSWORD_SUCCESSFULLY: 'Reset password successfully',
     OTP_NOT_FOUND: 'OTP is not found',
     REQUIRE_FIELD_IS_INVALID: 'Require field is invalid',
+    OTP_IS_EXPIRED: 'OTP is expired',
 
     // verify account
     VERIFY_ACCOUNT_OTP_IS_REQUIRED: 'Verify account otp is required',
@@ -94,6 +96,7 @@ export const USER_MESSAGES = {
 
     // refresh token
     REFRESH_TOKEN_NOT_FOUND: 'Refresh token is not found',
+    LOGOUT_SUCCESSFULLY: 'Logout successfully!',
 
     // search account
     EMAIL_PHONE_IS_REQUIRED: 'Email or phone number is required',

@@ -1,11 +1,13 @@
 import { Router } from 'express'
 import { limiter } from '~/config/limitRequest'
+import { cronJobFake } from '~/utils/cronJobFake'
 import { wrapAsync } from '~/utils/handler'
 import {
     changePasswordController,
     forgotPasswordController,
     getMeController,
     loginController,
+    logoutController,
     registerController,
     resetPasswordController,
     searchAccountController,
@@ -21,16 +23,15 @@ import {
     checkNewPasswordValidator,
     forgotPasswordValidator,
     loginValidator,
+    refreshTokenValidator,
     registerValidator,
     resetPasswordValidator,
     searchAccountValidator,
     updateMeValidator,
     verifiedUserValidator,
-    verifyAccountOTPValidator,
     verifyAccountValidator,
-    verifyForgotPasswordOTPValidator
+    verifyOTPValidator
 } from './user.middlewares'
-import { cronJobFake } from '~/utils/cronJobFake'
 
 const usersRouter = Router()
 
@@ -100,7 +101,7 @@ usersRouter.post(
 usersRouter.post(
     '/verify-otp',
     checkEmailOrPhone,
-    verifyForgotPasswordOTPValidator,
+    verifyOTPValidator,
     wrapAsync(verifyForgotPasswordTokenController)
 )
 
@@ -119,7 +120,7 @@ usersRouter.post(
     '/reset-password',
     resetPasswordValidator,
     checkEmailOrPhone,
-    verifyForgotPasswordOTPValidator,
+    verifyOTPValidator,
     checkNewPasswordValidator,
     wrapAsync(resetPasswordController)
 )
@@ -132,6 +133,7 @@ usersRouter.post(
 */
 usersRouter.post(
     '/send-verify-account-otp',
+    accessTokenValidator,
     checkEmailOrPhone,
     verifyAccountValidator,
     wrapAsync(sendVerifyAccountOTPController)
@@ -145,9 +147,10 @@ usersRouter.post(
 */
 usersRouter.post(
     '/verify-account',
+    accessTokenValidator,
     checkEmailOrPhone,
     verifyAccountValidator,
-    verifyAccountOTPValidator,
+    verifyOTPValidator,
     wrapAsync(verifyAccountController)
 )
 
@@ -210,6 +213,13 @@ usersRouter.post(
     checkEmailOrPhone,
     searchAccountValidator,
     wrapAsync(searchAccountController)
+)
+
+usersRouter.post(
+    '/logout',
+    accessTokenValidator,
+    refreshTokenValidator,
+    wrapAsync(logoutController)
 )
 
 export default usersRouter
