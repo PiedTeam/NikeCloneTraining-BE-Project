@@ -16,6 +16,13 @@ import {
 } from './user.requests'
 import User from './user.schema'
 import usersService from './user.services'
+import * as firebaseAdmin from 'firebase-admin'
+import { v4 as uuidv4 } from 'uuid'
+import path from 'path'
+import { random } from 'lodash'
+import { randomInt } from 'crypto'
+import { storageRef } from '~/config/firebase.config'
+import fs from 'fs'
 
 export const registerController = async (
     req: Request<ParamsDictionary, any, RegisterReqBody>,
@@ -249,3 +256,63 @@ export const logoutController = async (
         message: USER_MESSAGES.LOGOUT_SUCCESSFULLY
     })
 }
+async function downloadAndUploadImage(
+    imageUrl: string,
+    filename: string
+): Promise<string> {
+    const response = await fetch(imageUrl)
+    if (!response.ok) {
+        throw new Error(`Failed to download image from ${imageUrl}`)
+    }
+    const buffer = await response.arrayBuffer()
+    const tempFilePath = path.resolve('imageUpload') + `\\${filename}.jpeg`
+    await fs.promises.writeFile(tempFilePath, Buffer.from(buffer))
+    try {
+        const url = await uploadFile(tempFilePath, filename)
+        return url
+    } catch (err) {
+        throw new Error(USER_MESSAGES.CANT_UPLOAD_IMG)
+    } finally {
+        await fs.promises.unlink(tempFilePath)
+    }
+}
+
+export const getLinkPicture = async (
+    req: Request<ParamsDictionary, any, UpdateMeReqBody>,
+    res: Response
+) => {
+    const user = req.user as User
+    const user_Id = user._id as ObjectId
+    const imageUrl = req.body.avatar_url
+    if (!imageUrl) {
+        return res.json({
+            message: USER_MESSAGES.CANT_FIND_THIS_IMAGE
+        })
+    }
+    const url = await downloadAndUploadImage(imageUrl, `${user_Id}`)
+    console.log(url)
+    return res.status(200).json({
+        message: USER_MESSAGES.RESET_PASSWORD_SUCCESSFULLY,
+        details: url
+    })
+}
+async function uploadFile(path: string, filename: string): Promise<string> {
+    // Upload the File
+    const storage = await storageRef.upload(path, {
+        public: true,
+        destination: `/uploads/${filename}`,
+        metadata: {
+            contentType: 'image/jpeg',
+            firebaseStorageDownloadTokens: uuidv4()
+        }
+    })
+    return storage[0].metadata.mediaLink ?? ''
+}
+
+// ;(async () => {
+//     const url = await uploadFile(
+//         'D:\\Data\\doanh\\Doanh\\NikeProject\\th.jpg',
+//         'th.jpg'
+//     )
+//     console.log(url)
+// })()
