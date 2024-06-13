@@ -99,8 +99,7 @@ export const forgotPasswordController = async (
     }
 
     return res.status(200).json({
-        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY,
-        details: result
+        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY
     })
 }
 
