@@ -29,9 +29,7 @@ import {
     searchAccountValidator,
     updateMeValidator,
     verifiedUserValidator,
-    verifyAccountOTPValidator,
     verifyAccountValidator,
-    verifyForgotPasswordOTPValidator,
     verifyOTPValidator
 } from './user.middlewares'
 
@@ -149,6 +147,7 @@ usersRouter.post(
 */
 usersRouter.post(
     '/verify-account',
+    accessTokenValidator,
     checkEmailOrPhone,
     verifyAccountValidator,
     verifyOTPValidator,
