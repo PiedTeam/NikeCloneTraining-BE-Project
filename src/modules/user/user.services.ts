@@ -121,6 +121,12 @@ class UsersService {
         return user
     }
 
+    // get all data from users collection for upsert to firebase
+    async findAllUser() {
+        const users = await databaseService.users.find().toArray()
+        return users
+    }
+
     async getMe(user_id: string) {
         const user = await databaseService.users.findOne(
             { _id: new ObjectId(user_id) },
