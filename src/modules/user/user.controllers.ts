@@ -93,7 +93,7 @@ export const forgotPasswordController = async (
             })
         } else {
             result = usersService.sendForgotPasswordOTPByPhone(
-                req.body.phone_numberZ
+                req.body.phone_number
             )
         }
     }
