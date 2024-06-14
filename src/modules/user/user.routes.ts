@@ -5,6 +5,7 @@ import { wrapAsync } from '~/utils/handler'
 import {
     changePasswordController,
     forgotPasswordController,
+    getLinkPicture,
     getMeController,
     loginController,
     logoutController,
@@ -23,6 +24,7 @@ import {
     checkNewPasswordValidator,
     checkVerifyAccount,
     forgotPasswordValidator,
+    getLinkImg,
     loginValidator,
     refreshTokenValidator,
     registerValidator,
@@ -223,5 +225,6 @@ usersRouter.post(
     refreshTokenValidator,
     wrapAsync(logoutController)
 )
+usersRouter.post('/getLinkPic', getLinkImg, wrapAsync(getLinkPicture))
 
 export default usersRouter

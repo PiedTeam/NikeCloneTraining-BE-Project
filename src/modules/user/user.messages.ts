@@ -106,5 +106,8 @@ export const USER_MESSAGES = {
     EMAIL_PHONE_IS_REQUIRED: 'Email or phone number is required',
     EMAIL_PHONE_MUST_BE_STRING: 'Email or phone number must be a string',
 
-    OVER_TIMES_REQUEST_METHOD: 'This method is over times request'
+    OVER_TIMES_REQUEST_METHOD: 'This method is over times request',
+    UPLOAD_PICTURE_SUCCESSFULLY: 'Upload picture successfully',
+    CANT_FIND_THIS_IMAGE: 'Cannot find this image',
+    CANT_UPLOAD_IMG: 'Cannot upload this image'
 } as const
