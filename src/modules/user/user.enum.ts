@@ -8,6 +8,7 @@ export enum NoticeUser {
     Warning,
     Banned
 }
+
 export enum UserRole {
     Admin,
     Customer

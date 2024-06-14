@@ -8,8 +8,8 @@ interface OtpType {
     type: OTP_TYPE
     incorrTimes?: number
     status: OTP_STATUS
-    created_at?: Date
-    expired_at?: Date
+    created_at: Date
+    expired_at: Date
 }
 
 class Otp {
@@ -19,8 +19,8 @@ class Otp {
     type: OTP_TYPE
     incorrTimes: number
     status: OTP_STATUS
-    created_at?: Date
-    expired_at?: Date
+    created_at: Date
+    expired_at: Date
     constructor({
         _id,
         user_id,

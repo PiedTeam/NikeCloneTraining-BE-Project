@@ -1,11 +1,13 @@
 import { Router } from 'express'
 import { limiter } from '~/config/limitRequest'
+import { cronJobFake } from '~/utils/cronJobFake'
 import { wrapAsync } from '~/utils/handler'
 import {
     changePasswordController,
     forgotPasswordController,
     getMeController,
     loginController,
+    logoutController,
     registerController,
     resetPasswordController,
     searchAccountController,
@@ -21,14 +23,13 @@ import {
     checkNewPasswordValidator,
     forgotPasswordValidator,
     loginValidator,
+    refreshTokenValidator,
     registerValidator,
     resetPasswordValidator,
     searchAccountValidator,
     updateMeValidator,
     verifiedUserValidator,
-    verifyAccountOTPValidator,
     verifyAccountValidator,
-    verifyForgotPasswordOTPValidator,
     verifyOTPValidator
 } from './user.middlewares'
 
@@ -49,6 +50,7 @@ const usersRouter = Router()
 */
 usersRouter.post(
     '/register',
+    wrapAsync(cronJobFake),
     checkEmailOrPhone,
     registerValidator,
     wrapAsync(registerController)
@@ -131,6 +133,7 @@ usersRouter.post(
 */
 usersRouter.post(
     '/send-verify-account-otp',
+    accessTokenValidator,
     checkEmailOrPhone,
     verifyAccountValidator,
     wrapAsync(sendVerifyAccountOTPController)
@@ -144,6 +147,7 @@ usersRouter.post(
 */
 usersRouter.post(
     '/verify-account',
+    accessTokenValidator,
     checkEmailOrPhone,
     verifyAccountValidator,
     verifyOTPValidator,
@@ -209,6 +213,13 @@ usersRouter.post(
     checkEmailOrPhone,
     searchAccountValidator,
     wrapAsync(searchAccountController)
+)
+
+usersRouter.post(
+    '/logout',
+    accessTokenValidator,
+    refreshTokenValidator,
+    wrapAsync(logoutController)
 )
 
 export default usersRouter
