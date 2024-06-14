@@ -2,16 +2,10 @@ import { Strategy as Google_Strategy } from 'passport-google-oauth20'
 import { Strategy as Facebook_Strategy } from 'passport-facebook'
 import passport from 'passport'
 import usersService from './src/modules/user/user.services'
-import {
-    RegisterOauthReqBody,
-    RegisterReqBody
-} from '~/modules/user/user.requests'
+import { RegisterOauthReqBody } from '~/modules/user/user.requests'
 import { encrypt } from '~/utils/crypto'
 import databaseService from '~/database/database.services'
-import { limiter } from '~/config/limitRequest'
-import User from '~/modules/user/user.schema'
 import { UserRole, UserVerifyStatus } from '~/modules/user/user.enum'
-import { ObjectId } from 'mongodb'
 
 const GoogleStrategy = Google_Strategy
 const FacebookStrategy = Facebook_Strategy
@@ -24,7 +18,7 @@ passport.use(
             callbackURL: process.env.CLIENT_URL
         },
         async function (accessToken, refreshToken, profile, callback) {
-            const { id, displayName, emails, name, photos, provider } = profile
+            const { id, emails, name, photos, provider } = profile
             const data: RegisterOauthReqBody = {
                 // username: displayName,
                 email: emails?.length ? emails[0].value : '',
@@ -36,7 +30,7 @@ passport.use(
             }
 
             const isExist = await usersService.checkEmailExist(
-                encrypt(data.email) as string
+                encrypt(data.email)
             )
 
             const result: {
@@ -51,7 +45,7 @@ passport.use(
 
             if (!isExist) {
                 const { access_token, refresh_token } =
-                    await usersService.register(data, provider as string)
+                    await usersService.register(data, provider)
 
                 result.access_token = access_token
                 result.refresh_token = refresh_token
@@ -94,7 +88,7 @@ passport.use(
             profileFields: ['email', 'photos', 'id', 'displayName']
         },
         async function (accessToken, refreshToken, profile, callback) {
-            const { id, displayName, emails, name, photos, provider } = profile
+            const { id, displayName, emails, photos, provider } = profile
             const data: RegisterOauthReqBody = {
                 // username: displayName,
 
@@ -107,7 +101,7 @@ passport.use(
             }
 
             const isExist = await usersService.checkEmailExist(
-                encrypt(data.email) as string
+                encrypt(data.email)
             )
 
             // console.log(isExist)
@@ -124,7 +118,7 @@ passport.use(
 
             if (!isExist) {
                 const { access_token, refresh_token } =
-                    await usersService.register(data, provider as string)
+                    await usersService.register(data, provider)
 
                 result.access_token = access_token
                 result.refresh_token = refresh_token

@@ -8,7 +8,7 @@ import nodemailer from 'nodemailer'
 import { encrypt } from '~/utils/crypto'
 import { ObjectId } from 'mongodb'
 import { sendOtpMail, sendOtpPhone } from '~/utils/sendOtp'
-import { NoticeUser, UserVerifyStatus } from '../user/user.enum'
+import { NoticeUser } from '../user/user.enum'
 import moment from 'moment'
 
 class OtpService {

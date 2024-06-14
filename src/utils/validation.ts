@@ -1,12 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
 import { ValidationChain, validationResult } from 'express-validator'
 import { RunnableValidationChains } from 'express-validator/lib/middlewares/schema'
-import parsePhoneNumberFromString, {
-    CountryCode,
-    parsePhoneNumber
-} from 'libphonenumber-js'
-import { omit } from 'lodash'
-import { HTTP_STATUS } from '~/constants/httpStatus'
+import { StatusCodes } from 'http-status-codes'
+import parsePhoneNumberFromString, { CountryCode } from 'libphonenumber-js'
 import { ErrorEntity, ErrorWithStatus } from '~/errors/errors.entityError'
 
 export const validate = (
@@ -28,7 +24,7 @@ export const validate = (
             const { msg } = errorsObject[key]
             if (
                 msg instanceof ErrorWithStatus &&
-                msg.status !== HTTP_STATUS.UNPROCESSABLE_ENTITY
+                msg.status !== StatusCodes.UNPROCESSABLE_ENTITY
             ) {
                 return next(msg)
             }
