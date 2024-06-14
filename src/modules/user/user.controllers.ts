@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { first, omit, pick } from 'lodash'
+import { pick } from 'lodash'
 import { ObjectId } from 'mongodb'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import decrypt, { encrypt } from '~/utils/crypto'
@@ -16,6 +16,7 @@ import {
 } from './user.requests'
 import User from './user.schema'
 import usersService from './user.services'
+import { StatusCodes } from 'http-status-codes'
 
 export const registerController = async (
     req: Request<ParamsDictionary, any, RegisterReqBody>,
@@ -199,8 +200,8 @@ export const changePasswordController = async (req: Request, res: Response) => {
     const user_id = req.body.user_id
     const new_password = req.body.new_password
     const result = await usersService.resetPassword(user_id, new_password)
-    return res.status(200).json({
-        message: USER_MESSAGES.RESET_PASSWORD_SUCCESSFULLY,
+    return res.status(StatusCodes.OK).json({
+        message: USER_MESSAGES.CHANGE_PASSWORD_SUCCESSFULLY,
         details: result
     })
 }
