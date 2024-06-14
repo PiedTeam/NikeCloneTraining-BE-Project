@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { ParamSchema, check, checkSchema } from 'express-validator'
+import { ParamSchema, checkSchema } from 'express-validator'
 import { JsonWebTokenError } from 'jsonwebtoken'
-import { capitalize, escape, values } from 'lodash'
+import { capitalize, escape } from 'lodash'
 import { ObjectId } from 'mongodb'
 import validator from 'validator'
 import { HTTP_STATUS } from '~/constants/httpStatus'
@@ -753,7 +753,10 @@ export const verifyOTPValidator = validate(
                             throw new Error(USER_MESSAGES.OTP_IS_EXPIRED)
                         }
                         if (result.incorrTimes >= 3) {
-                            if (await usersService.isWarning(user._id)) {
+                            const isWarning = await usersService.isWarning(
+                                user._id
+                            )
+                            if (isWarning) {
                                 await databaseService.users.updateOne(
                                     { _id: user._id },
                                     {
@@ -762,6 +765,7 @@ export const verifyOTPValidator = validate(
                                         }
                                     }
                                 )
+                                throw new Error(USER_MESSAGES.ACCOUNT_IS_BANNED)
                             }
                             await databaseService.users.updateOne(
                                 { _id: user._id },
