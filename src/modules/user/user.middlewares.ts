@@ -987,11 +987,3 @@ export const searchAccountValidator = validate(
         }
     })
 )
-export const getLinkImg = validate(
-    checkSchema(
-        {
-            avatar_url: imageSchema
-        },
-        ['body']
-    )
-)
