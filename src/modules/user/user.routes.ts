@@ -21,6 +21,7 @@ import {
     changePasswordValidator,
     checkEmailOrPhone,
     checkNewPasswordValidator,
+    checkVerifyAccount,
     forgotPasswordValidator,
     loginValidator,
     refreshTokenValidator,
@@ -126,10 +127,10 @@ usersRouter.post(
 )
 
 /*
-  description: send otp verify account to user's email or phone number
-  path: /users/verify-account
-  method: POST
-  body: { email_phone: string }
+  * Description: Send OTP verify account to user's email or phone number
+  Path: /users/verify-account
+  Method: POST
+  Body: { email_phone: string }
 */
 usersRouter.post(
     '/send-verify-account-otp',
@@ -140,14 +141,15 @@ usersRouter.post(
 )
 
 /*
-  description: verify account
-  path: /users/verify-account
-  method: POST
-  body: { email_phone: string, verify_account_otp: string }
+   * Description: Verify account
+  Path: /users/verify-account
+  Method: POST
+  Body: { email_phone: string, verify_account_otp: string }
 */
 usersRouter.post(
     '/verify-account',
     accessTokenValidator,
+    checkVerifyAccount,
     checkEmailOrPhone,
     verifyAccountValidator,
     verifyOTPValidator,
