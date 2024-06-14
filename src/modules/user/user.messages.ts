@@ -23,6 +23,7 @@ export const USER_MESSAGES = {
     PASSWORD_IS_REQUIRED: 'Password is required',
     PASSWORD_MUST_BE_STRING: 'Password must be a string',
     PASSWORD_MUST_BE_STRONG: 'Password must be strong',
+    CHANGE_PASSWORD_SUCCESSFULLY: 'Change password successfully',
 
     // new_password
     NEW_PASSWORD_MUST_BE_NEW: 'New password is not same as the old one!',
@@ -73,12 +74,15 @@ export const USER_MESSAGES = {
     VERIFY_OTP_SUCCESSFULLY: 'Verify OTP successfully',
     RESET_PASSWORD_SUCCESSFULLY: 'Reset password successfully',
     OTP_NOT_FOUND: 'OTP is not found',
+    OTP_iS_USED: 'OTP has been already used or has been expired',
     REQUIRE_FIELD_IS_INVALID: 'Require field is invalid',
     OTP_IS_EXPIRED: 'OTP is expired',
+    OTP_IS_REQUIRED: 'Please enter OTP code! This field is required',
 
     // verify account
     VERIFY_ACCOUNT_OTP_IS_REQUIRED: 'Verify account otp is required',
     VERIFY_ACCOUNT_SUCCESSFULLY: 'Verify account successfully',
+    ACCOUNT_ALREADY_VERIFIED: 'Your account is already verified!',
 
     //get me
     ACCESS_TOKEN_IS_REQUIRED: 'Access token is required!',

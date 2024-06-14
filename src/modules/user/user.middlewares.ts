@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { ParamSchema, check, checkSchema } from 'express-validator'
+import { ParamSchema, checkSchema } from 'express-validator'
 import { JsonWebTokenError } from 'jsonwebtoken'
-import { capitalize, escape, values } from 'lodash'
+import { capitalize, escape } from 'lodash'
 import { ObjectId } from 'mongodb'
 import validator from 'validator'
 import { HTTP_STATUS } from '~/constants/httpStatus'
@@ -250,6 +250,14 @@ export const loginCheckMissingField = (
     next()
 }
 
+export const checkVerifyAccount = validate(
+    checkSchema({
+        email_phone: {
+            notEmpty: { errorMessage: USER_MESSAGES.EMAIL_PHONE_IS_REQUIRED }
+        }
+    })
+)
+
 export const checkEmailOrPhone = (
     req: Request,
     res: Response,
@@ -257,7 +265,6 @@ export const checkEmailOrPhone = (
 ) => {
     const body = req.body as ParamsDictionary
     const email_phone = body.email_phone
-
     if (validator.isEmail(email_phone)) {
         req.body.email = email_phone
         req.body.type = 'email'
@@ -691,10 +698,9 @@ export const verifyOTPValidator = validate(
                 custom: {
                     options: async (value, { req }) => {
                         if (!value) {
-                            throw new Error(
-                                USER_MESSAGES.FORGOT_PASSWORD_OTP_IS_REQUIRED
-                            )
+                            throw new Error(USER_MESSAGES.OTP_IS_REQUIRED)
                         }
+
                         const user =
                             req.body.type === 'email'
                                 ? await databaseService.users.findOne({
@@ -705,16 +711,23 @@ export const verifyOTPValidator = validate(
                                           req.body.phone_number
                                       )
                                   })
+
                         if (!user) {
                             throw new Error(USER_MESSAGES.USER_NOT_FOUND)
                         }
+
+                        if (user.status === UserVerifyStatus.Verified)
+                            throw new Error(
+                                USER_MESSAGES.ACCOUNT_ALREADY_VERIFIED
+                            )
+
                         const result = await databaseService.OTP.findOne({
                             user_id: user._id,
                             status: OTP_STATUS.Available
                         })
-                        if (!result) {
-                            throw new Error(USER_MESSAGES.OTP_NOT_FOUND)
-                        }
+
+                        if (!result) throw new Error(USER_MESSAGES.OTP_iS_USED)
+
                         const isExpired = await otpService.isOTPExpired(result)
                         console.log(isExpired)
                         if (isExpired) {

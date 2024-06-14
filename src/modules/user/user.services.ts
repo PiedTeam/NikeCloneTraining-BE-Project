@@ -162,7 +162,8 @@ class UsersService {
                         'phone_number'
                     ]) as RegisterOauthReqBody),
                     password: hashPassword(payload.password),
-                    email: encrypt(payload.email)
+                    email: encrypt(payload.email),
+                    status: UserVerifyStatus.Verified
                 })
             )
         } else {
