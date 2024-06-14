@@ -17,6 +17,4 @@ const admin = firebaseAdmin.initializeApp({
     credential: firebaseAdmin.credential.cert(a as firebaseAdmin.ServiceAccount)
 })
 
-export const storageRef = admin
-    .storage()
-    .bucket('gs://nodejs-uploadpictureavatar.appspot.com')
+export const storageRef = admin.storage().bucket(process.env.BUCKET)

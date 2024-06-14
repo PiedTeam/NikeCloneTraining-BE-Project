@@ -266,6 +266,12 @@ async function downloadAndUploadImage(
     }
     const buffer = await response.arrayBuffer()
     const tempFilePath = path.resolve('imageUpload') + `\\${filename}.jpeg`
+    // //checkTypeLink
+    // const fileType = await fileTypeFromBuffer(buffer)
+    // if (!fileType || !fileType.mime.startsWith('image/')) {
+    //     await fs.promises.unlink(tempFilePath)
+    //     throw new Error(`File ${tempFilePath} is not an image!!!`)
+    // }
     await fs.promises.writeFile(tempFilePath, Buffer.from(buffer))
     try {
         const url = await uploadFile(tempFilePath, filename)
@@ -281,9 +287,8 @@ export const getLinkPicture = async (
     req: Request<ParamsDictionary, any, UpdateMeReqBody>,
     res: Response
 ) => {
-    const user = req.user as User
-    const user_Id = user._id as ObjectId
     const imageUrl = req.body.avatar_url
+    const user_Id = (req.body as User)._id
     if (!imageUrl) {
         return res.json({
             message: USER_MESSAGES.CANT_FIND_THIS_IMAGE
@@ -292,7 +297,7 @@ export const getLinkPicture = async (
     const url = await downloadAndUploadImage(imageUrl, `${user_Id}`)
     console.log(url)
     return res.status(200).json({
-        message: USER_MESSAGES.RESET_PASSWORD_SUCCESSFULLY,
+        message: USER_MESSAGES.UPLOAD_PICTURE_SUCCESSFULLY,
         details: url
     })
 }
@@ -308,11 +313,3 @@ async function uploadFile(path: string, filename: string): Promise<string> {
     })
     return storage[0].metadata.mediaLink ?? ''
 }
-
-// ;(async () => {
-//     const url = await uploadFile(
-//         'D:\\Data\\doanh\\Doanh\\NikeProject\\th.jpg',
-//         'th.jpg'
-//     )
-//     console.log(url)
-// })()

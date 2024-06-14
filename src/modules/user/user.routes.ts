@@ -23,6 +23,7 @@ import {
     checkEmailOrPhone,
     checkNewPasswordValidator,
     forgotPasswordValidator,
+    getLinkImg,
     loginValidator,
     refreshTokenValidator,
     registerValidator,
@@ -223,6 +224,6 @@ usersRouter.post(
     refreshTokenValidator,
     wrapAsync(logoutController)
 )
-usersRouter.get('/getLinkPic', wrapAsync(getLinkPicture))
+usersRouter.post('/getLinkPic', getLinkImg, wrapAsync(getLinkPicture))
 
 export default usersRouter
