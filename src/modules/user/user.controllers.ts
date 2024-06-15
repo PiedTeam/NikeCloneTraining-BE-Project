@@ -74,29 +74,31 @@ export const forgotPasswordController = async (
     let result
 
     if (data.type === 'email') {
-        if (!(await usersService.checkEmailIsVerified(encrypt(data.email)))) {
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-                message: USER_MESSAGES.ACCOUNT_IS_NOT_VERIFIED
-            })
-        } else {
-            result = await usersService.sendForgotPasswordOTPByEmail(
-                req.body.email
-            )
-        }
+        // if (!(await usersService.checkEmailIsVerified(encrypt(data.email)))) {
+        //     return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+        //         message: USER_MESSAGES.ACCOUNT_IS_NOT_VERIFIED
+        //     })
+        // } else {
+        //     result = await usersService.sendForgotPasswordOTPByEmail(
+        //         req.body.email
+        //     )
+        // }
+        result = await usersService.sendForgotPasswordOTPByEmail(req.body.email)
     } else {
-        if (
-            !(await usersService.checkPhoneNumberIsVerified(
-                encrypt(data.phone_number)
-            ))
-        ) {
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-                message: USER_MESSAGES.ACCOUNT_IS_NOT_VERIFIED
-            })
-        } else {
-            result = usersService.sendForgotPasswordOTPByPhone(
-                req.body.phone_number
-            )
-        }
+        // if (
+        //     !(await usersService.checkPhoneNumberIsVerified(
+        //         encrypt(data.phone_number)
+        //     ))
+        // ) {
+        //     return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+        //         message: USER_MESSAGES.ACCOUNT_IS_NOT_VERIFIED
+        //     })
+        // } else {
+
+        // }
+        result = usersService.sendForgotPasswordOTPByPhone(
+            req.body.phone_number
+        )
     }
 
     return res.status(200).json({
