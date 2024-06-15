@@ -53,8 +53,8 @@ class OtpService {
                     // otpLimiter
                     if (exsitUser.created_at !== undefined) {
                         if (
-                            -exsitUser.created_at.getTime() +
-                                timeNow.getTime() <=
+                            timeNow.getTime() -
+                                exsitUser.created_at.getTime() <=
                             Number(process.env.TIMETORESET)
                         ) {
                             await databaseService.users.updateOne(
@@ -67,7 +67,7 @@ class OtpService {
                             })
                         }
                         await databaseService.OTP.deleteMany({
-                            user_id: exsitUser
+                            user_id: exsitUser.user_id
                         })
                     }
                     throw new ErrorWithStatus({
@@ -77,11 +77,21 @@ class OtpService {
                 }
                 if (exsitUser.created_at !== undefined) {
                     if (
-                        -exsitUser.created_at.getTime() + timeNow.getTime() >
+                        timeNow.getTime() - exsitUser.created_at.getTime() >
                         Number(process.env.TIMETORESET)
                     ) {
+                        console.log('timeNow', timeNow.getTime())
+                        console.log(
+                            'exsitUserTIME ',
+                            exsitUser.created_at.getTime()
+                        )
+                        console.log(
+                            'timeNow - exsitUserTIME ',
+                            timeNow.getTime() - exsitUser.created_at.getTime()
+                        )
+                        console.log('ahihi xóa opt rồi')
                         await databaseService.OTP.deleteMany({
-                            user_id: exsitUser
+                            user_id: exsitUser.user_id
                         })
                     }
                 }
