@@ -20,6 +20,7 @@ import { LoginRequestBody, TokenPayload } from './user.requests'
 import usersService from './user.services'
 import 'dotenv/config'
 import otpService from '../otp/otp.services'
+import User from './user.schema'
 
 export const paramSchema: ParamSchema = {
     customSanitizer: {
@@ -592,6 +593,12 @@ export const verifyAccountValidator = validate(
                         if (user === null) {
                             throw new Error(USER_MESSAGES.EMAIL_NOT_FOUND)
                         }
+                        if (user.status === UserVerifyStatus.Verified) {
+                            throw new Error(
+                                USER_MESSAGES.ACCOUNT_ALREADY_VERIFIED
+                            )
+                        }
+
                         req.user = user
                         return true
                     }
@@ -609,6 +616,11 @@ export const verifyAccountValidator = validate(
                         if (user === null) {
                             throw new Error(
                                 USER_MESSAGES.PHONE_NUMBER_NOT_FOUND
+                            )
+                        }
+                        if (user.status === UserVerifyStatus.Verified) {
+                            throw new Error(
+                                USER_MESSAGES.ACCOUNT_ALREADY_VERIFIED
                             )
                         }
                         req.user = user
@@ -715,11 +727,6 @@ export const verifyOTPValidator = validate(
                         if (!user) {
                             throw new Error(USER_MESSAGES.USER_NOT_FOUND)
                         }
-
-                        if (user.status === UserVerifyStatus.Verified)
-                            throw new Error(
-                                USER_MESSAGES.ACCOUNT_ALREADY_VERIFIED
-                            )
 
                         const result = await databaseService.OTP.findOne({
                             user_id: user._id,
