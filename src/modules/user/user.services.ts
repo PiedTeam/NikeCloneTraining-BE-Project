@@ -48,7 +48,7 @@ class UsersService {
     }: {
         user_id: string
         status: UserVerifyStatus
-        exp: number
+        exp?: number
     }) {
         // return signToken({
         //     payload: {
@@ -364,6 +364,18 @@ class UsersService {
                 exp
             })
         ])
+        const { iat } = await this.decodeRefreshToken(refresh_token)
+        //xóa và cập nhật lại refresh token mới vào database
+        await databaseService.refreshTokens.deleteOne({ token: refresh_token })
+        await databaseService.refreshTokens.insertOne(
+            new RefreshToken({
+                user_id: new ObjectId(user_id),
+                token: new_refresh_token,
+                exp,
+                iat
+            })
+        )
+        return { access_token, refresh_token: new_refresh_token }
     }
 }
 

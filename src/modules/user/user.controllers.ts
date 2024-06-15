@@ -232,11 +232,18 @@ export const refreshTokenController = async (
     res: Response
 ) => {
     const payload = req.decoded_refresh_token as TokenPayload
-    const refresh_token = req.body.refresh_token
-    const { access_token } = await usersService.refreshToken(
-        refresh_token,
+    const old_refresh_token = req.body.refresh_token
+    const { access_token, refresh_token } = await usersService.refreshToken(
+        old_refresh_token,
         payload
     )
+
+    res.cookie('refresh_token', refresh_token, {
+        httpOnly: true,
+        secure: true,
+        maxAge: Number(process.env.COOKIE_EXPIRE)
+    })
+
     return res.json({
         message: USER_MESSAGES.REFRESH_TOKEN_SUCCESSFULLY,
         data: { access_token }
