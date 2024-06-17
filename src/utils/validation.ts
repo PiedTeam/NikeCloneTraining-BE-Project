@@ -1,17 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
 import { ValidationChain, validationResult } from 'express-validator'
 import { RunnableValidationChains } from 'express-validator/lib/middlewares/schema'
-<<<<<<< HEAD
-import parsePhoneNumberFromString, {
-    CountryCode,
-    parsePhoneNumber
-} from 'libphonenumber-js'
-import { omit } from 'lodash'
-import { HTTP_STATUS } from '~/constants/httpStatus'
-=======
 import { StatusCodes } from 'http-status-codes'
 import parsePhoneNumberFromString, { CountryCode } from 'libphonenumber-js'
->>>>>>> develop
 import { ErrorEntity, ErrorWithStatus } from '~/errors/errors.entityError'
 
 export const validate = (
