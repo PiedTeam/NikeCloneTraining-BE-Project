@@ -100,11 +100,17 @@ export const USER_MESSAGES = {
 
     // refresh token
     REFRESH_TOKEN_NOT_FOUND: 'Refresh token is not found',
+    REFRESH_TOKEN_SUCCESSFULLY: 'Refresh token successfully!',
+
+    //logout
     LOGOUT_SUCCESSFULLY: 'Logout successfully!',
 
     // search account
     EMAIL_PHONE_IS_REQUIRED: 'Email or phone number is required',
     EMAIL_PHONE_MUST_BE_STRING: 'Email or phone number must be a string',
 
-    OVER_TIMES_REQUEST_METHOD: 'This method is over times request'
+    OVER_TIMES_REQUEST_METHOD: 'This method is over times request',
+
+    //token
+    REFRESH_TOKEN_IS_REQUIRED: 'Refresh token is required'
 } as const

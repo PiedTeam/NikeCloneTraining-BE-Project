@@ -9,6 +9,7 @@ import { USER_MESSAGES } from './user.messages'
 import {
     LoginRequestBody,
     LogoutReqBody,
+    RefreshTokenReqBody,
     RegisterReqBody,
     TokenPayload,
     UpdateMeReqBody,
@@ -246,9 +247,33 @@ export const logoutController = async (
     req: Request<ParamsDictionary, any, LogoutReqBody>,
     res: Response
 ) => {
-    await usersService.logout(req.body)
+    console.log(req.cookies['refresh_token'])
+    await usersService.logout(req.cookies['refresh_token'])
     res.clearCookie('refresh_token')
     return res.json({
         message: USER_MESSAGES.LOGOUT_SUCCESSFULLY
+    })
+}
+
+export const refreshTokenController = async (
+    req: Request<ParamsDictionary, any, RefreshTokenReqBody>,
+    res: Response
+) => {
+    const payload = req.decoded_refresh_token as TokenPayload
+    const old_refresh_token = req.cookies['refresh_token']
+    const { access_token, refresh_token } = await usersService.refreshToken(
+        old_refresh_token,
+        payload
+    )
+
+    res.cookie('refresh_token', refresh_token, {
+        httpOnly: true,
+        secure: true,
+        maxAge: Number(process.env.COOKIE_EXPIRE)
+    })
+
+    return res.json({
+        message: USER_MESSAGES.REFRESH_TOKEN_SUCCESSFULLY,
+        data: { access_token }
     })
 }
