@@ -23,6 +23,7 @@ import {
     checkNewPasswordValidator,
     forgotPasswordValidator,
     loginValidator,
+    refreshTokenCookieValidator,
     refreshTokenValidator,
     registerValidator,
     resetPasswordValidator,
@@ -218,13 +219,13 @@ usersRouter.post(
 usersRouter.post(
     '/logout',
     accessTokenValidator,
-    refreshTokenValidator,
+    refreshTokenCookieValidator,
     wrapAsync(logoutController)
 )
 
 usersRouter.post(
     '/refresh-token',
-    refreshTokenValidator,
+    refreshTokenCookieValidator,
     wrapAsync(refreshTokenController)
 )
 
