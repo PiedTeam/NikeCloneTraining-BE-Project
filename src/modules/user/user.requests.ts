@@ -72,3 +72,7 @@ export type UserResponseAfterCheckEmailOrPhone =
 export type LogoutReqBody = {
     refresh_token: string
 }
+
+export type RefreshTokenReqBody = {
+    refresh_token: string
+}
