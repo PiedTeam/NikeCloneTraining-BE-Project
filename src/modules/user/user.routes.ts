@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { limiter } from '~/config/limitRequest'
+import { cronJobFake } from '~/utils/cronJobFake'
 import { wrapAsync } from '~/utils/handler'
 import {
     changePasswordController,
@@ -21,6 +22,7 @@ import {
     changePasswordValidator,
     checkEmailOrPhone,
     checkNewPasswordValidator,
+    checkVerifyAccount,
     forgotPasswordValidator,
     loginValidator,
     refreshTokenCookieValidator,
@@ -30,11 +32,9 @@ import {
     searchAccountValidator,
     updateMeValidator,
     verifiedUserValidator,
-    verifyAccountOTPValidator,
     verifyAccountValidator,
-    verifyForgotPasswordOTPValidator
+    verifyOTPValidator
 } from './user.middlewares'
-import { cronJobFake } from '~/utils/cronJobFake'
 
 const usersRouter = Router()
 
@@ -104,7 +104,7 @@ usersRouter.post(
 usersRouter.post(
     '/verify-otp',
     checkEmailOrPhone,
-    verifyForgotPasswordOTPValidator,
+    verifyOTPValidator,
     wrapAsync(verifyForgotPasswordTokenController)
 )
 
@@ -123,35 +123,38 @@ usersRouter.post(
     '/reset-password',
     resetPasswordValidator,
     checkEmailOrPhone,
-    verifyForgotPasswordOTPValidator,
+    verifyOTPValidator,
     checkNewPasswordValidator,
     wrapAsync(resetPasswordController)
 )
 
 /*
-  description: send otp verify account to user's email or phone number
-  path: /users/verify-account
-  method: POST
-  body: { email_phone: string }
+  * Description: Send OTP verify account to user's email or phone number
+  Path: /users/verify-account
+  Method: POST
+  Body: { email_phone: string }
 */
 usersRouter.post(
     '/send-verify-account-otp',
+    accessTokenValidator,
     checkEmailOrPhone,
     verifyAccountValidator,
     wrapAsync(sendVerifyAccountOTPController)
 )
 
 /*
-  description: verify account
-  path: /users/verify-account
-  method: POST
-  body: { email_phone: string, verify_account_otp: string }
+   * Description: Verify account
+  Path: /users/verify-account
+  Method: POST
+  Body: { email_phone: string, verify_account_otp: string }
 */
 usersRouter.post(
     '/verify-account',
+    accessTokenValidator,
+    checkVerifyAccount,
     checkEmailOrPhone,
     verifyAccountValidator,
-    verifyAccountOTPValidator,
+    verifyOTPValidator,
     wrapAsync(verifyAccountController)
 )
 

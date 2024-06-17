@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { first, omit, pick } from 'lodash'
+import { pick } from 'lodash'
 import { ObjectId } from 'mongodb'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import decrypt, { encrypt } from '~/utils/crypto'
@@ -13,10 +13,11 @@ import {
     RegisterReqBody,
     TokenPayload,
     UpdateMeReqBody,
-    UserResponseSearch
+    UserResponseAfterCheckEmailOrPhone
 } from './user.requests'
 import User from './user.schema'
 import usersService from './user.services'
+import { StatusCodes } from 'http-status-codes'
 
 export const registerController = async (
     req: Request<ParamsDictionary, any, RegisterReqBody>,
@@ -45,9 +46,11 @@ export const loginController = async (
 ) => {
     const user = req.user as User
     const user_id = user._id as ObjectId
+    const role = user.role
     const result = await usersService.login({
         user_id: user_id.toString(),
-        status: user.status
+        status: user.status,
+        role: role
     })
 
     const { refresh_token } = result
@@ -68,15 +71,39 @@ export const forgotPasswordController = async (
     res: Response,
     next: NextFunction
 ) => {
-    const result =
-        req.body.type === 'email'
-            ? await usersService.sendForgotPasswordOTPByEmail(req.body.email)
-            : await usersService.sendForgotPasswordOTPByPhone(
-                  req.body.phone_number
-              )
+    const data = req.body as UserResponseAfterCheckEmailOrPhone
+    let result
+
+    if (data.type === 'email') {
+        // if (!(await usersService.checkEmailIsVerified(encrypt(data.email)))) {
+        //     return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+        //         message: USER_MESSAGES.ACCOUNT_IS_NOT_VERIFIED
+        //     })
+        // } else {
+        //     result = await usersService.sendForgotPasswordOTPByEmail(
+        //         req.body.email
+        //     )
+        // }
+        result = await usersService.sendForgotPasswordOTPByEmail(req.body.email)
+    } else {
+        // if (
+        //     !(await usersService.checkPhoneNumberIsVerified(
+        //         encrypt(data.phone_number)
+        //     ))
+        // ) {
+        //     return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+        //         message: USER_MESSAGES.ACCOUNT_IS_NOT_VERIFIED
+        //     })
+        // } else {
+
+        // }
+        result = usersService.sendForgotPasswordOTPByPhone(
+            req.body.phone_number
+        )
+    }
+
     return res.status(200).json({
-        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY,
-        details: result
+        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY
     })
 }
 
@@ -111,8 +138,7 @@ export const sendVerifyAccountOTPController = async (
                   req.body.phone_number
               )
     return res.status(200).json({
-        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY,
-        details: result
+        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY
     })
 }
 
@@ -159,7 +185,8 @@ export const updateMeController = async (
         'email',
         'phone_number',
         'avatar_url',
-        'subscription'
+        'subscription',
+        'password'
     ]
     const body = pick(req.body, allowedFields)
     const user = await usersService.updateMe({
@@ -176,14 +203,14 @@ export const changePasswordController = async (req: Request, res: Response) => {
     const user_id = req.body.user_id
     const new_password = req.body.new_password
     const result = await usersService.resetPassword(user_id, new_password)
-    return res.status(200).json({
-        message: USER_MESSAGES.RESET_PASSWORD_SUCCESSFULLY,
+    return res.status(StatusCodes.OK).json({
+        message: USER_MESSAGES.CHANGE_PASSWORD_SUCCESSFULLY,
         details: result
     })
 }
 
 export const searchAccountController = async (req: Request, res: Response) => {
-    const data = req.body as UserResponseSearch
+    const data = req.body as UserResponseAfterCheckEmailOrPhone
 
     let result = false
     let user

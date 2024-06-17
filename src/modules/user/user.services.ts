@@ -9,7 +9,7 @@ import { signToken, verifyToken } from '~/utils/jwt'
 import { OTP_KIND } from '../otp/otp.enum'
 import otpService from '../otp/otp.services'
 import RefreshToken from '../refreshToken/refreshToken.schema'
-import { TokenType, UserVerifyStatus } from './user.enum'
+import { TokenType, UserRole, UserVerifyStatus } from './user.enum'
 import {
     LogoutReqBody,
     RegisterOauthReqBody,
@@ -27,6 +27,7 @@ class UsersService {
         })
     }
 
+<<<<<<< HEAD
     private signAccessToken({
         user_id,
         status
@@ -34,8 +35,20 @@ class UsersService {
         user_id: string
         status: UserVerifyStatus
     }) {
+=======
+    private signAccessToken(
+        user_id: string,
+        status: UserVerifyStatus,
+        role: UserRole
+    ) {
+>>>>>>> develop
         return signToken({
-            payload: { user_id: user_id, token_type: TokenType.Access, status },
+            payload: {
+                user_id: user_id,
+                token_type: TokenType.Access,
+                status,
+                role
+            },
             options: { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_MINUTES },
             privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
         })
@@ -84,16 +97,38 @@ class UsersService {
 
     private signAccessAndRefreshToken(
         user_id: string,
-        status: UserVerifyStatus
+        status: UserVerifyStatus,
+        role: UserRole
     ) {
         return Promise.all([
+<<<<<<< HEAD
             this.signAccessToken({ user_id, status }),
             this.signRefreshToken({ user_id, status })
+=======
+            this.signAccessToken(user_id, status, role),
+            this.signRefreshToken(user_id, status)
+>>>>>>> develop
         ])
     }
 
     async checkEmailExist(email: string) {
         const user = await databaseService.users.findOne({ email })
+        return Boolean(user)
+    }
+
+    async checkEmailIsVerified(email: string) {
+        const user = await databaseService.users.findOne({
+            email,
+            status: UserVerifyStatus.Verified
+        })
+        return Boolean(user)
+    }
+
+    async checkPhoneNumberIsVerified(phone_number: string) {
+        const user = await databaseService.users.findOne({
+            phone_number,
+            status: UserVerifyStatus.Verified
+        })
         return Boolean(user)
     }
 
@@ -131,6 +166,12 @@ class UsersService {
         return user
     }
 
+    // get all data from users collection for upsert to firebase
+    async findAllUser() {
+        const users = await databaseService.users.find().toArray()
+        return users
+    }
+
     async getMe(user_id: string) {
         const user = await databaseService.users.findOne(
             { _id: new ObjectId(user_id) },
@@ -152,7 +193,8 @@ class UsersService {
         const [access_token, refresh_token] =
             await this.signAccessAndRefreshToken(
                 user_id.toString(),
-                UserVerifyStatus.Unverified
+                UserVerifyStatus.Unverified,
+                UserRole.Customer
             )
 
         const { iat, exp } = await this.decodeRefreshToken(refresh_token)
@@ -165,7 +207,8 @@ class UsersService {
                         'phone_number'
                     ]) as RegisterOauthReqBody),
                     password: hashPassword(payload.password),
-                    email: encrypt(payload.email)
+                    email: encrypt(payload.email),
+                    status: UserVerifyStatus.Verified
                 })
             )
         } else {
@@ -202,13 +245,15 @@ class UsersService {
 
     async login({
         user_id,
-        status
+        status,
+        role
     }: {
         user_id: string
         status: UserVerifyStatus
+        role: UserRole
     }) {
         const [access_token, refresh_token] =
-            await this.signAccessAndRefreshToken(user_id, status)
+            await this.signAccessAndRefreshToken(user_id, status, role)
 
         const { iat, exp } = await this.decodeRefreshToken(refresh_token)
 
@@ -326,6 +371,8 @@ class UsersService {
         user_id: string
         payload: UpdateMeReqBody
     }) {
+        if (payload.password) payload.password = hashPassword(payload.password)
+
         const user = await databaseService.users.findOneAndUpdate(
             { _id: new ObjectId(user_id) },
             [
@@ -345,6 +392,7 @@ class UsersService {
                 }
             }
         )
+
         return user
     }
 
