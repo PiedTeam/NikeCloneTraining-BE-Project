@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { ParamSchema, checkSchema } from 'express-validator'
@@ -15,12 +16,12 @@ import { encrypt, hashPassword } from '~/utils/crypto'
 import { verifyToken } from '~/utils/jwt'
 import { isValidPhoneNumberForCountry, validate } from '~/utils/validation'
 import { OTP_STATUS } from '../otp/otp.enum'
+import { OTP_MESSAGES } from '../otp/otp.messages'
+import otpService from '../otp/otp.services'
 import { NoticeUser, UserVerifyStatus } from './user.enum'
 import { LoginRequestBody, TokenPayload } from './user.requests'
-import usersService from './user.services'
-import 'dotenv/config'
-import otpService from '../otp/otp.services'
 import User from './user.schema'
+import usersService from './user.services'
 
 export const paramSchema: ParamSchema = {
     customSanitizer: {
@@ -441,7 +442,7 @@ export const verifyForgotPasswordOTPValidator = validate(
                             status: OTP_STATUS.Available
                         })
                         if (!result) {
-                            throw new Error(USER_MESSAGES.OTP_NOT_FOUND)
+                            throw new Error(OTP_MESSAGES.OTP_NOT_FOUND)
                         }
                         if (result.incorrTimes >= 3) {
                             await databaseService.users.updateOne(
@@ -462,7 +463,7 @@ export const verifyForgotPasswordOTPValidator = validate(
                             (result?.type === 0 && req.body.type === 'email')
                         ) {
                             throw new Error(
-                                USER_MESSAGES.REQUIRE_FIELD_IS_INVALID
+                                OTP_MESSAGES.REQUIRE_FIELD_IS_INVALID
                             )
                         }
                         const otp = result?.OTP
@@ -478,7 +479,7 @@ export const verifyForgotPasswordOTPValidator = validate(
                                 }
                             )
                             //                             console.log(result)
-                            throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
+                            throw new Error(OTP_MESSAGES.OTP_IS_INCORRECT)
                         }
                         req.body.user_id = user._id
                     }
@@ -661,7 +662,7 @@ export const verifyAccountOTPValidator = validate(
                         status: OTP_STATUS.Available
                     })
                     if (!result) {
-                        throw new Error(USER_MESSAGES.OTP_NOT_FOUND)
+                        throw new Error(OTP_MESSAGES.OTP_NOT_FOUND)
                     }
                     if (result.incorrTimes >= 3) {
                         await databaseService.users.updateOne(
@@ -679,7 +680,7 @@ export const verifyAccountOTPValidator = validate(
                             req.body.type === 'phone_number') ||
                         (result?.type === 0 && req.body.type === 'email')
                     ) {
-                        throw new Error(USER_MESSAGES.REQUIRE_FIELD_IS_INVALID)
+                        throw new Error(OTP_MESSAGES.REQUIRE_FIELD_IS_INVALID)
                     }
                     const otp = result?.OTP
                     if (value !== otp) {
@@ -693,7 +694,7 @@ export const verifyAccountOTPValidator = validate(
                                 }
                             }
                         )
-                        throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
+                        throw new Error(OTP_MESSAGES.OTP_IS_INCORRECT)
                     }
                     req.body.user_id = user._id
                 }
@@ -710,7 +711,7 @@ export const verifyOTPValidator = validate(
                 custom: {
                     options: async (value, { req }) => {
                         if (!value) {
-                            throw new Error(USER_MESSAGES.OTP_IS_REQUIRED)
+                            throw new Error(OTP_MESSAGES.OTP_IS_REQUIRED)
                         }
 
                         const user =
@@ -733,7 +734,7 @@ export const verifyOTPValidator = validate(
                             status: OTP_STATUS.Available
                         })
 
-                        if (!result) throw new Error(USER_MESSAGES.OTP_iS_USED)
+                        if (!result) throw new Error(OTP_MESSAGES.OTP_iS_USED)
 
                         const isExpired = await otpService.isOTPExpired(result)
                         console.log(isExpired)
@@ -742,7 +743,7 @@ export const verifyOTPValidator = validate(
                                 { user_id: user._id },
                                 { $set: { status: OTP_STATUS.Unavailable } }
                             )
-                            throw new Error(USER_MESSAGES.OTP_IS_EXPIRED)
+                            throw new Error(OTP_MESSAGES.OTP_IS_EXPIRED)
                         }
                         if (result.incorrTimes >= 3) {
                             await databaseService.users.updateOne(
@@ -767,7 +768,7 @@ export const verifyOTPValidator = validate(
                             (result?.type === 0 && req.body.type === 'email')
                         ) {
                             throw new Error(
-                                USER_MESSAGES.REQUIRE_FIELD_IS_INVALID
+                                OTP_MESSAGES.REQUIRE_FIELD_IS_INVALID
                             )
                         }
                         const otp = result?.OTP
@@ -783,7 +784,7 @@ export const verifyOTPValidator = validate(
                                 }
                             )
                             console.log(result)
-                            throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
+                            throw new Error(OTP_MESSAGES.OTP_IS_INCORRECT)
                         }
                         req.body.user_id = user._id
                     }

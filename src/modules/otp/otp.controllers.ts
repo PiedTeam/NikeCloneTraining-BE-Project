@@ -46,7 +46,7 @@ export const sendOtpPhoneNumberController = async (
 
     // Send OTP to phone number
     return res.status(StatusCodes.OK).json({
-        message: OTP_MESSAGES.SEND_OTP_PHONE_SUCCESS
+        message: OTP_MESSAGES.SEND_OTP_SUCCESSFULLY
     })
 }
 
@@ -79,6 +79,6 @@ export const sendOtpMailController = async (
 
     // Send OTP to phone number
     return res.status(StatusCodes.OK).json({
-        message: OTP_MESSAGES.SEND_OTP_MAIL_SUCCESS
+        message: OTP_MESSAGES.SEND_OTP_SUCCESSFULLY
     })
 }

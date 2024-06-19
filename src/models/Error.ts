@@ -1,5 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
-import { OTP_MESSAGES } from '~/modules/otp/otp.messages'
+import { ERRORS_MESSAGE } from '~/constants/errorsMessage'
 
 type ErrorsType = Record<
     string,
@@ -21,7 +21,7 @@ export class ErrorWithStatus {
 export class EntityError extends ErrorWithStatus {
     errors: ErrorsType
     constructor({
-        message = OTP_MESSAGES.VALIDATION_ERROR,
+        message = ERRORS_MESSAGE.VALIDATION_ERROR,
         errors
     }: {
         message?: string

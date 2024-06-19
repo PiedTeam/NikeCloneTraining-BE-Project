@@ -1,10 +1,12 @@
 import 'dotenv/config'
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
+import { StatusCodes } from 'http-status-codes'
 import { pick } from 'lodash'
 import { ObjectId } from 'mongodb'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import decrypt, { encrypt } from '~/utils/crypto'
+import { OTP_MESSAGES } from '../otp/otp.messages'
 import { USER_MESSAGES } from './user.messages'
 import {
     LoginRequestBody,
@@ -17,7 +19,6 @@ import {
 } from './user.requests'
 import User from './user.schema'
 import usersService from './user.services'
-import { StatusCodes } from 'http-status-codes'
 
 export const registerController = async (
     req: Request<ParamsDictionary, any, RegisterReqBody>,
@@ -103,7 +104,7 @@ export const forgotPasswordController = async (
     }
 
     return res.status(200).json({
-        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY
+        message: OTP_MESSAGES.SEND_OTP_SUCCESSFULLY
     })
 }
 
@@ -113,7 +114,7 @@ export const verifyForgotPasswordTokenController = async (
     next: NextFunction
 ) => {
     return res.status(200).json({
-        message: USER_MESSAGES.VERIFY_OTP_SUCCESSFULLY
+        message: OTP_MESSAGES.VERIFY_OTP_SUCCESSFULLY
     })
 }
 
@@ -122,7 +123,7 @@ export const resetPasswordController = async (req: Request, res: Response) => {
     const password = req.body.password
     const result = await usersService.resetPassword(user_id, password)
     return res.status(200).json({
-        message: USER_MESSAGES.RESET_PASSWORD_SUCCESSFULLY,
+        message: OTP_MESSAGES.RESET_PASSWORD_SUCCESSFULLY,
         details: result
     })
 }
@@ -138,7 +139,7 @@ export const sendVerifyAccountOTPController = async (
                   req.body.phone_number
               )
     return res.status(200).json({
-        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY
+        message: OTP_MESSAGES.SEND_OTP_SUCCESSFULLY
     })
 }
 
