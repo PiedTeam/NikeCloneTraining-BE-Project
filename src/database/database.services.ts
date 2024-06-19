@@ -1,9 +1,9 @@
-import { MainCategory, SubCategory } from './../modules/menu/menu.schema'
-import { Collection, Db, MongoClient } from 'mongodb'
 import 'dotenv/config'
-import User from '~/modules/user/user.schema'
+import { Collection, Db, MongoClient } from 'mongodb'
 import Otp from '~/modules/otp/otp.schema'
 import RefreshToken from '~/modules/refreshToken/refreshToken.schema'
+import User from '~/modules/user/user.schema'
+import { MainCategory, SubCategory } from './../modules/menu/menu.schema'
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@piednike.tq8fhlk.mongodb.net/`
 

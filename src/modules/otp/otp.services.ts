@@ -1,15 +1,16 @@
-import databaseService from '~/database/database.services'
 import { StatusCodes } from 'http-status-codes'
-import Otp from '../otp/otp.schema'
+import moment from 'moment'
+import { ObjectId } from 'mongodb'
+import nodemailer from 'nodemailer'
+import databaseService from '~/database/database.services'
 import { ErrorWithStatus } from '~/models/Error'
+import { encrypt } from '~/utils/crypto'
+import { sendOtpMail, sendOtpPhone } from '~/utils/sendOtp'
+import Otp from '../otp/otp.schema'
+import { NoticeUser } from '../user/user.enum'
+import { USER_MESSAGES } from '../user/user.messages'
 import { OTP_KIND, OTP_STATUS, OTP_TYPE } from './otp.enum'
 import { OTP_MESSAGES } from './otp.messages'
-import nodemailer from 'nodemailer'
-import { encrypt } from '~/utils/crypto'
-import { ObjectId } from 'mongodb'
-import { sendOtpMail, sendOtpPhone } from '~/utils/sendOtp'
-import { NoticeUser } from '../user/user.enum'
-import moment from 'moment'
 
 class OtpService {
     isOTPExpired(otp: Otp) {
@@ -159,7 +160,7 @@ class OtpService {
 
         if (!user) {
             throw new ErrorWithStatus({
-                message: OTP_MESSAGES.USER_NOT_FOUND,
+                message: USER_MESSAGES.USER_NOT_FOUND,
                 status: StatusCodes.NOT_FOUND
             })
         }
@@ -202,7 +203,7 @@ class OtpService {
         })
         if (!user) {
             throw new ErrorWithStatus({
-                message: OTP_MESSAGES.USER_NOT_FOUND,
+                message: USER_MESSAGES.USER_NOT_FOUND,
                 status: StatusCodes.NOT_FOUND
             })
         }
