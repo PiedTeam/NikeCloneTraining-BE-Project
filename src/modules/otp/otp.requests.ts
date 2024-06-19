@@ -1,7 +1,7 @@
-export interface SendOtpViaPhoneReqBody {
+export type OtpPhoneReqBody = {
     phone_number: string
 }
 
-export interface SendOtpViaMailReqBody {
+export type OtpMailReqBody = {
     email: string
 }

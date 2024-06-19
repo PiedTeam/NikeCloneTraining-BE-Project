@@ -1,8 +1,17 @@
-import twilio from 'twilio'
 import nodemailer from 'nodemailer'
-import path from 'path'
 import hbs from 'nodemailer-express-handlebars'
+import otpGenerator from 'otp-generator'
+import path from 'path'
+import twilio from 'twilio'
 import { OTP_KIND } from '~/modules/otp/otp.enum'
+
+export const generateOTP = (): string => {
+    return otpGenerator.generate(6, {
+        upperCaseAlphabets: false,
+        lowerCaseAlphabets: false,
+        specialChars: false
+    })
+}
 
 export const sendOtpPhone = async (payload: {
     kind: OTP_KIND
