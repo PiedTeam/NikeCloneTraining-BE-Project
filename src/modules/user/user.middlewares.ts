@@ -443,10 +443,17 @@ export const loginValidator = validate(
                                     status: StatusCodes.LOCKED
                                 })
                             }
+
                             throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
                         }
 
+                        // reset wrongPasswordTimes to 0 when user login successfully
+                        await databaseService.users.updateOne(
+                            { phone_number: encrypt(value) },
+                            [{ $set: { wrongPasswordTimes: 0 } }]
+                        )
                         ;(req as Request).user = user
+
                         return true
                     }
                 }
