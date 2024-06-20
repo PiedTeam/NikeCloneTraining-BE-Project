@@ -20,11 +20,13 @@ class MenuService {
                 }
             ])
             .toArray()
-        console.log(1)
-
         return result
     }
 }
 
 const menuService = new MenuService()
 export default menuService
+
+/**
+ *
+ *  */
