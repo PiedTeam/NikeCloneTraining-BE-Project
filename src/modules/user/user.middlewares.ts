@@ -8,8 +8,7 @@ import { ObjectId } from 'mongodb'
 import validator from 'validator'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import databaseService from '~/database/database.services'
-import { ErrorEntity } from '~/errors/errors.entityError'
-import { ErrorWithStatus } from '~/models/Error'
+import { ErrorEntity, ErrorWithStatus } from '~/errors/errors.entityError'
 import { USER_MESSAGES } from '~/modules/user/user.messages'
 import { isDeveloperAgent } from '~/utils/agent'
 import { encrypt, hashPassword } from '~/utils/crypto'
@@ -20,8 +19,8 @@ import { OTP_MESSAGES } from '../otp/otp.messages'
 import otpService from '../otp/otp.services'
 import { NoticeUser, UserVerifyStatus } from './user.enum'
 import { LoginRequestBody, TokenPayload } from './user.requests'
-import User from './user.schema'
 import usersService from './user.services'
+import { StatusCodes } from 'http-status-codes'
 
 export const paramSchema: ParamSchema = {
     customSanitizer: {
@@ -289,31 +288,6 @@ export const checkEmailOrPhone = (
 export const loginValidator = validate(
     checkSchema(
         {
-            // username: {
-            //     optional: true,
-            //     ...usernameSchema,
-            //     custom: {
-            //         options: async (value, { req }) => {
-            //             if (!/[a-zA-Z]/.test(value)) {
-            //                 throw new Error(
-            //                     USER_MESSAGES.USERNAME_MUST_CONTAIN_ALPHABET
-            //                 )
-            //             }
-
-            //             const user = await databaseService.users.findOne({
-            //                 username: value
-            //             })
-            //             if (user === null) {
-            //                 throw new Error(USER_MESSAGES.USERNAME_NOT_FOUND)
-            //             }
-            //             if (user.password !== hashPassword(req.body.password)) {
-            //                 throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
-            //             }
-            //             req.user = user
-            //             return true
-            //         }
-            //     }
-            // },
             email: {
                 ...paramSchema,
                 optional: true,
@@ -332,7 +306,10 @@ export const loginValidator = validate(
                             user.notice === NoticeUser.Banned ||
                             user.reasonBanned !== ''
                         ) {
-                            throw new Error(USER_MESSAGES.ACCOUNT_IS_BANNED)
+                            throw new ErrorWithStatus({
+                                message: USER_MESSAGES.ACCOUNT_IS_BANNED,
+                                status: StatusCodes.LOCKED
+                            })
                         }
 
                         const wrongPasswordTimes =
@@ -345,6 +322,7 @@ export const loginValidator = validate(
                                 wrongPasswordTimes <=
                                 NUMBER_LIMIT_WRONG_PASSWORD - 1
                             ) {
+                                // For each wrong password, wrongPasswordTimes++
                                 await databaseService.users.updateOne(
                                     { email: encrypt(value) },
                                     [
@@ -362,6 +340,7 @@ export const loginValidator = validate(
                                 (user.wrongPasswordTimes as number) >=
                                 NUMBER_LIMIT_WRONG_PASSWORD - 1
                             ) {
+                                // Banned user
                                 await databaseService.users.updateOne(
                                     { email: encrypt(value) },
                                     [
@@ -374,7 +353,10 @@ export const loginValidator = validate(
                                         }
                                     ]
                                 )
-                                throw new Error(USER_MESSAGES.ACCOUNT_IS_BANNED)
+                                throw new ErrorWithStatus({
+                                    message: USER_MESSAGES.ACCOUNT_IS_BANNED,
+                                    status: StatusCodes.LOCKED
+                                })
                             }
                             throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
                         }
@@ -385,6 +367,7 @@ export const loginValidator = validate(
                             [{ $set: { wrongPasswordTimes: 0 } }]
                         )
                         ;(req as Request).user = user
+
                         return true
                     }
                 }
@@ -398,14 +381,71 @@ export const loginValidator = validate(
                         const user = await databaseService.users.findOne({
                             phone_number: encrypt(value)
                         })
-                        if (user === null) {
+                        if (!user) {
                             throw new Error(
                                 USER_MESSAGES.PHONE_NUMBER_NOT_FOUND
                             )
                         }
+
+                        if (
+                            user.notice === NoticeUser.Banned ||
+                            user.reasonBanned !== ''
+                        ) {
+                            throw new ErrorWithStatus({
+                                message: USER_MESSAGES.ACCOUNT_IS_BANNED,
+                                status: StatusCodes.LOCKED
+                            })
+                        }
+
+                        const wrongPasswordTimes =
+                            user.wrongPasswordTimes as number
+                        const NUMBER_LIMIT_WRONG_PASSWORD = 5
+
                         if (user.password !== hashPassword(req.body.password)) {
+                            // user input wrong password 5 times => account will be banned
+                            if (
+                                wrongPasswordTimes <=
+                                NUMBER_LIMIT_WRONG_PASSWORD - 1
+                            ) {
+                                // For each wrong password, wrongPasswordTimes++
+                                await databaseService.users.updateOne(
+                                    { phone_number: encrypt(value) },
+                                    [
+                                        {
+                                            $set: {
+                                                wrongPasswordTimes:
+                                                    wrongPasswordTimes + 1
+                                            }
+                                        }
+                                    ]
+                                )
+                            }
+
+                            if (
+                                (user.wrongPasswordTimes as number) >=
+                                NUMBER_LIMIT_WRONG_PASSWORD - 1
+                            ) {
+                                // Banned user
+                                await databaseService.users.updateOne(
+                                    { phone_number: encrypt(value) },
+                                    [
+                                        {
+                                            $set: {
+                                                notice: NoticeUser.Banned,
+                                                reasonBanned:
+                                                    USER_MESSAGES.WRONG_PASS_5_TIMES
+                                            }
+                                        }
+                                    ]
+                                )
+                                throw new ErrorWithStatus({
+                                    message: USER_MESSAGES.ACCOUNT_IS_BANNED,
+                                    status: StatusCodes.LOCKED
+                                })
+                            }
                             throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
                         }
+
                         ;(req as Request).user = user
                         return true
                     }
