@@ -74,6 +74,7 @@ export const USER_MESSAGES = {
     VERIFY_ACCOUNT_OTP_IS_REQUIRED: 'Verify account otp is required',
     VERIFY_ACCOUNT_SUCCESSFULLY: 'Verify account successfully',
     ACCOUNT_ALREADY_VERIFIED: 'Your account is already verified!',
+    ACCOUNT_IS_BANNED: 'Your account has been banned!',
 
     //get me
     ACCESS_TOKEN_IS_REQUIRED: 'Access token is required!',
@@ -101,6 +102,7 @@ export const USER_MESSAGES = {
     EMAIL_PHONE_MUST_BE_STRING: 'Email or phone number must be a string',
 
     OVER_TIMES_REQUEST_METHOD: 'This method is over times request',
+    WRONG_PASS_5_TIMES: 'Entered wrong password over 5 times!',
 
     //token
     REFRESH_TOKEN_IS_REQUIRED: 'Refresh token is required'

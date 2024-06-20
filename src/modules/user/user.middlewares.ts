@@ -323,12 +323,67 @@ export const loginValidator = validate(
                         const user = await databaseService.users.findOne({
                             email: encrypt(value)
                         })
-                        if (user === null) {
+
+                        if (!user) {
                             throw new Error(USER_MESSAGES.EMAIL_NOT_FOUND)
                         }
+
+                        if (
+                            user.notice === NoticeUser.Banned ||
+                            user.reasonBanned !== ''
+                        ) {
+                            throw new Error(USER_MESSAGES.ACCOUNT_IS_BANNED)
+                        }
+
+                        const wrongPasswordTimes =
+                            user.wrongPasswordTimes as number
+                        const NUMBER_LIMIT_WRONG_PASSWORD = 5
+
                         if (user.password !== hashPassword(req.body.password)) {
+                            // user input wrong password 5 times => account will be banned
+                            if (
+                                wrongPasswordTimes <=
+                                NUMBER_LIMIT_WRONG_PASSWORD - 1
+                            ) {
+                                await databaseService.users.updateOne(
+                                    { email: encrypt(value) },
+                                    [
+                                        {
+                                            $set: {
+                                                wrongPasswordTimes:
+                                                    wrongPasswordTimes + 1
+                                            }
+                                        }
+                                    ]
+                                )
+                            }
+
+                            if (
+                                (user.wrongPasswordTimes as number) >=
+                                NUMBER_LIMIT_WRONG_PASSWORD - 1
+                            ) {
+                                await databaseService.users.updateOne(
+                                    { email: encrypt(value) },
+                                    [
+                                        {
+                                            $set: {
+                                                notice: NoticeUser.Banned,
+                                                reasonBanned:
+                                                    USER_MESSAGES.WRONG_PASS_5_TIMES
+                                            }
+                                        }
+                                    ]
+                                )
+                                throw new Error(USER_MESSAGES.ACCOUNT_IS_BANNED)
+                            }
                             throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
                         }
+
+                        // reset wrongPasswordTimes to 0 when user login successfully
+                        await databaseService.users.updateOne(
+                            { email: encrypt(value) },
+                            [{ $set: { wrongPasswordTimes: 0 } }]
+                        )
                         ;(req as Request).user = user
                         return true
                     }
