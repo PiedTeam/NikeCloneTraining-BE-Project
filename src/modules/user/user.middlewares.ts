@@ -22,6 +22,7 @@ import { LoginRequestBody, TokenPayload } from './user.requests'
 import usersService from './user.services'
 import { StatusCodes } from 'http-status-codes'
 
+//! Prevent db injection, XSS attack
 export const paramSchema: ParamSchema = {
     customSanitizer: {
         options: async (value) => {
@@ -91,7 +92,7 @@ export const phone_numberSchema: ParamSchema = {
     }
 }
 
-const passwordSchema: ParamSchema = {
+export const passwordSchema: ParamSchema = {
     trim: true,
     notEmpty: { errorMessage: USER_MESSAGES.PASSWORD_IS_REQUIRED },
     isString: { errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING },
@@ -134,7 +135,7 @@ const confirmPasswordSchema: ParamSchema = {
     }
 }
 
-const firstnameSchema: ParamSchema = {
+export const firstnameSchema: ParamSchema = {
     trim: true,
     notEmpty: { errorMessage: USER_MESSAGES.FIRST_NAME_IS_REQUIRED },
     isString: { errorMessage: USER_MESSAGES.FIRST_NAME_MUST_BE_STRING },
@@ -144,7 +145,7 @@ const firstnameSchema: ParamSchema = {
     }
 }
 
-const lastnameSchema: ParamSchema = {
+export const lastnameSchema: ParamSchema = {
     trim: true,
     notEmpty: { errorMessage: USER_MESSAGES.LAST_NAME_IS_REQUIRED },
     isString: { errorMessage: USER_MESSAGES.LAST_NAME_MUST_BE_STRING },
@@ -154,7 +155,7 @@ const lastnameSchema: ParamSchema = {
     }
 }
 
-const imageSchema: ParamSchema = {
+export const imageSchema: ParamSchema = {
     optional: true,
     isString: { errorMessage: USER_MESSAGES.IMAGE_URL_MUST_BE_A_STRING },
     trim: true,
@@ -167,28 +168,6 @@ const imageSchema: ParamSchema = {
 export const registerValidator = validate(
     checkSchema(
         {
-            // username: {
-            //     ...usernameSchema,
-            //     custom: {
-            //         options: async (value) => {
-            //             if (!/[a-zA-Z]/.test(value)) {
-            //                 throw new Error(
-            //                     USER_MESSAGES.USERNAME_MUST_CONTAIN_ALPHABET
-            //                 )
-            //             }
-
-            //             const isExist =
-            //                 await usersService.checkUsernameExist(value)
-
-            //             if (isExist) {
-            //                 throw new Error(
-            //                     USER_MESSAGES.USERNAME_ALREADY_EXISTS
-            //                 )
-            //             }
-            //             return true
-            //         }
-            //     }
-            // },
             first_name: { ...paramSchema, ...firstnameSchema },
             last_name: { ...paramSchema, ...lastnameSchema },
             password: { ...paramSchema, ...passwordSchema },
@@ -804,6 +783,7 @@ export const verifyAccountOTPValidator = validate(
         }
     })
 )
+
 export const verifyOTPValidator = validate(
     checkSchema(
         {
@@ -896,6 +876,7 @@ export const verifyOTPValidator = validate(
         ['body']
     )
 )
+
 export const blockPostman = async (
     req: Request,
     res: Response,
