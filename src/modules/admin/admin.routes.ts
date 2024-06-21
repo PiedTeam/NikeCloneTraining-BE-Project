@@ -42,7 +42,7 @@ adminRouter.post(
  * Method: POST
  * Headers: { Authorization: 'Bearer <access_token>' }
  * Body: { 
- 
+      ...
  *  }
  */
 adminRouter.post(
@@ -58,7 +58,16 @@ adminRouter.post(
  ** Description: Update account by id
  * Method: PATCH
  * Headers: { Authorization: 'Bearer <access_token>' }
- * Body: { user_name?: string, role?: UserRole, date_of_birth?: string, phone_number?: string, email?: string }
+ * Body: { 'first_name',
+        'last_name',
+        'phone_number',
+        'password',
+        'role',
+        'salary',
+        'attendance_date',
+        'contract_signed_date',
+        'contract_expired_date'
+      }
  */
 adminRouter.patch(
     '/:id',
