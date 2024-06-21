@@ -6,6 +6,7 @@ type MainCategoryType = {
     index: number
     nameMain: string
     language: MENU_LANGUAGES
+    route: string
     status: boolean
 }
 
@@ -14,12 +15,14 @@ export class MainCategory {
     nameMain: string
     index: number
     language: MENU_LANGUAGES
+    route: string
     status: boolean
 
     constructor(data: MainCategoryType) {
         this._id = data._id
         this.index = data.index
         this.nameMain = data.nameMain
+        this.route = data.route
         this.language = data.language
         this.status = data.status
     }
