@@ -1,53 +1,53 @@
-import { StatusCodes } from 'http-status-codes'
-import moment from 'moment'
-import { ObjectId } from 'mongodb'
-import nodemailer from 'nodemailer'
-import databaseService from '~/database/database.services'
-import { ErrorWithStatus } from '~/errors/errors.entityError'
-import { encrypt } from '~/utils/crypto'
-import { sendOtpMail, sendOtpPhone } from '~/utils/sendOtp'
-import Otp from '../otp/otp.schema'
-import { NoticeUser } from '../user/user.enum'
-import { USER_MESSAGES } from '../user/user.messages'
-import { OTP_KIND, OTP_STATUS, OTP_TYPE } from './otp.enum'
-import { OTP_MESSAGES } from './otp.messages'
+import { StatusCodes } from "http-status-codes";
+import moment from "moment";
+import { ObjectId } from "mongodb";
+import nodemailer from "nodemailer";
+import databaseService from "~/database/database.services";
+import { ErrorWithStatus } from "~/errors/errors.entityError";
+import { encrypt } from "~/utils/crypto";
+import { sendOtpMail, sendOtpPhone } from "~/utils/sendOtp";
+import Otp from "../otp/otp.schema";
+import { NoticeUser } from "../user/user.enum";
+import { USER_MESSAGES } from "../user/user.messages";
+import { OTP_KIND, OTP_STATUS, OTP_TYPE } from "./otp.enum";
+import { OTP_MESSAGES } from "./otp.messages";
 
 class OtpService {
     isOTPExpired(otp: Otp) {
-        const timeNow = moment()
-        const duration = moment.duration(timeNow.diff(otp.created_at))
-        const minutes = duration.asMinutes()
-        console.log(minutes)
-        return minutes > Number(process.env.OTP_EXPIRED_TIME)
+        const timeNow = moment();
+        const duration = moment.duration(timeNow.diff(otp.created_at));
+        const minutes = duration.asMinutes();
+        console.log(minutes);
+        return minutes > Number(process.env.OTP_EXPIRED_TIME);
     }
     async checkExistOtp(user_id: ObjectId) {
         const exsitOtp = await databaseService.OTP.findOne({
             user_id,
-            status: OTP_STATUS.Available
-        })
+            status: OTP_STATUS.Available,
+        });
 
         if (exsitOtp) {
             await databaseService.OTP.updateOne(
                 {
                     _id: exsitOtp._id,
-                    status: OTP_STATUS.Available
+                    status: OTP_STATUS.Available,
                 },
-                { $set: { status: OTP_STATUS.Unavailable } }
-            )
-            return exsitOtp.incorrTimes
+                { $set: { status: OTP_STATUS.Unavailable } },
+            );
+            return exsitOtp.incorrTimes;
         }
-        return 0
+        return 0;
     }
     async checkLimit(user_id: ObjectId, type: OTP_TYPE) {
         const exsitUser = await databaseService.OTP.findOne({
-            user_id
-        })
+            user_id,
+        });
         if (exsitUser) {
-            const timeNow = new Date()
+            const timeNow = new Date();
             const lim = await databaseService.OTP.aggregate([
                 { $match: { user_id, type } },
-                { $group: { _id: user_id, count: { $sum: 1 } } }
-            ]).toArray()
+                { $group: { _id: user_id, count: { $sum: 1 } } },
+            ]).toArray();
 
             for (const i of lim) {
                 if (i.count >= 3) {
@@ -60,40 +60,40 @@ class OtpService {
                         ) {
                             await databaseService.users.updateOne(
                                 { _id: user_id },
-                                { $set: { notice: NoticeUser.Warning } }
-                            )
+                                { $set: { notice: NoticeUser.Warning } },
+                            );
                             throw new ErrorWithStatus({
                                 message: OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME,
-                                status: StatusCodes.BAD_REQUEST
-                            })
+                                status: StatusCodes.BAD_REQUEST,
+                            });
                         }
                         await databaseService.OTP.deleteMany({
-                            user_id: exsitUser.user_id
-                        })
+                            user_id: exsitUser.user_id,
+                        });
                     }
                     throw new ErrorWithStatus({
                         message: OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME,
-                        status: StatusCodes.NOT_ACCEPTABLE
-                    })
+                        status: StatusCodes.NOT_ACCEPTABLE,
+                    });
                 }
                 if (exsitUser.created_at !== undefined) {
                     if (
                         timeNow.getTime() - exsitUser.created_at.getTime() >
                         Number(process.env.TIMETORESET)
                     ) {
-                        console.log('timeNow', timeNow.getTime())
+                        console.log("timeNow", timeNow.getTime());
                         console.log(
-                            'exsitUserTIME ',
-                            exsitUser.created_at.getTime()
-                        )
+                            "exsitUserTIME ",
+                            exsitUser.created_at.getTime(),
+                        );
                         console.log(
-                            'timeNow - exsitUserTIME ',
-                            timeNow.getTime() - exsitUser.created_at.getTime()
-                        )
-                        console.log('ahihi xóa opt rồi')
+                            "timeNow - exsitUserTIME ",
+                            timeNow.getTime() - exsitUser.created_at.getTime(),
+                        );
+                        console.log("ahihi xóa opt rồi");
                         await databaseService.OTP.deleteMany({
-                            user_id: exsitUser.user_id
-                        })
+                            user_id: exsitUser.user_id,
+                        });
                     }
                 }
                 // if (lim === 3) {
@@ -104,7 +104,7 @@ class OtpService {
                 //     })
                 // }
             }
-            return true
+            return true;
         }
     }
     // async checkLimitOtp(user_id: ObjectId) {
@@ -148,24 +148,24 @@ class OtpService {
     //     return true
     // }
     async sendPhone(payload: {
-        phone_number: string
-        otp: string
-        kind: OTP_KIND
+        phone_number: string;
+        otp: string;
+        kind: OTP_KIND;
     }) {
-        const { phone_number, otp, kind } = payload
+        const { phone_number, otp, kind } = payload;
 
         const user = await databaseService.users.findOne({
-            phone_number: encrypt(payload.phone_number)
-        })
+            phone_number: encrypt(payload.phone_number),
+        });
 
         if (!user) {
             throw new ErrorWithStatus({
                 message: USER_MESSAGES.USER_NOT_FOUND,
-                status: StatusCodes.NOT_FOUND
-            })
+                status: StatusCodes.NOT_FOUND,
+            });
         }
-        const incorrTimes = await this.checkExistOtp(user._id)
-        await this.checkLimit(user._id, OTP_TYPE.PhoneNumber)
+        const incorrTimes = await this.checkExistOtp(user._id);
+        await this.checkLimit(user._id, OTP_TYPE.PhoneNumber);
         // lưu otp vào db
         const result = await databaseService.OTP.insertOne(
             new Otp({
@@ -173,43 +173,43 @@ class OtpService {
                 OTP: payload.otp,
                 type: OTP_TYPE.PhoneNumber,
                 status: OTP_STATUS.Available,
-                incorrTimes: incorrTimes
-            })
-        )
+                incorrTimes: incorrTimes,
+            }),
+        );
 
         await sendOtpPhone({
             kind,
             otp,
             phone_number,
-            username: user.first_name.length ? user.first_name : user.last_name
-        })
+            username: user.first_name.length ? user.first_name : user.last_name,
+        });
 
-        return result
+        return result;
     }
 
     async sendEmail(payload: { email: string; otp: string; kind: OTP_KIND }) {
-        const { email, otp, kind } = payload
+        const { email, otp, kind } = payload;
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            service: "gmail",
             auth: {
                 user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASSWORD
-            }
-        })
+                pass: process.env.EMAIL_PASSWORD,
+            },
+        });
 
         // const user = await usersService.checkEmailExist(email)
         const user = await databaseService.users.findOne({
-            email: encrypt(email)
-        })
+            email: encrypt(email),
+        });
         if (!user) {
             throw new ErrorWithStatus({
                 message: USER_MESSAGES.USER_NOT_FOUND,
-                status: StatusCodes.NOT_FOUND
-            })
+                status: StatusCodes.NOT_FOUND,
+            });
         }
 
-        const incorrTimes = await this.checkExistOtp(user._id)
-        await this.checkLimit(user._id, OTP_TYPE.Email)
+        const incorrTimes = await this.checkExistOtp(user._id);
+        await this.checkLimit(user._id, OTP_TYPE.Email);
 
         const result = await databaseService.OTP.insertOne(
             new Otp({
@@ -217,17 +217,17 @@ class OtpService {
                 OTP: otp,
                 type: OTP_TYPE.Email,
                 status: OTP_STATUS.Available,
-                incorrTimes: incorrTimes
-            })
-        )
+                incorrTimes: incorrTimes,
+            }),
+        );
         const username = user.first_name.length
             ? user.first_name
-            : user.last_name
-        await sendOtpMail({ kind, otp, email, username: username })
+            : user.last_name;
+        await sendOtpMail({ kind, otp, email, username: username });
 
-        return result
+        return result;
     }
 }
 
-const otpService = new OtpService()
-export default otpService
+const otpService = new OtpService();
+export default otpService;

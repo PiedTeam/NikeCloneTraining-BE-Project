@@ -1,24 +1,24 @@
-import { Router } from 'express'
-import { wrapAsync } from '~/utils/handler'
+import { Router } from "express";
+import { wrapAsync } from "~/utils/handler";
 import {
     createEmpController,
     loginController,
-    updateEmpController
-} from './admin.controllers'
+    updateEmpController,
+} from "./admin.controllers";
 import {
     accessTokenValidator,
-    checkEmailOrPhone
-} from '../user/user.middlewares'
+    checkEmailOrPhone,
+} from "../user/user.middlewares";
 import {
     checkRoleAdmin,
     createEmpValidator,
     loginValidator,
-    updateAccValidator
-} from './admin.middlewares'
-import { filterMiddleware } from '~/utils/common.middlewares'
-import { UpdateAccountReqBody } from './admin.requests'
+    updateAccValidator,
+} from "./admin.middlewares";
+import { filterMiddleware } from "~/utils/common.middlewares";
+import { UpdateAccountReqBody } from "./admin.requests";
 
-const adminRouter = Router()
+const adminRouter = Router();
 
 /*
   Description: Admin login 
@@ -30,12 +30,12 @@ const adminRouter = Router()
   }
 */
 adminRouter.post(
-    '/login',
+    "/login",
     // limiter,
     checkEmailOrPhone,
     loginValidator,
-    wrapAsync(loginController)
-)
+    wrapAsync(loginController),
+);
 
 /**
  ** Description: Create new employee
@@ -46,13 +46,13 @@ adminRouter.post(
  *  }
  */
 adminRouter.post(
-    '/createEmployee',
+    "/createEmployee",
     accessTokenValidator,
     wrapAsync(checkRoleAdmin),
     checkEmailOrPhone,
     createEmpValidator,
-    wrapAsync(createEmpController)
-)
+    wrapAsync(createEmpController),
+);
 
 /**
  ** Description: Update account by id
@@ -70,22 +70,22 @@ adminRouter.post(
       }
  */
 adminRouter.patch(
-    '/:id',
+    "/:id",
     accessTokenValidator,
     wrapAsync(checkRoleAdmin),
     updateAccValidator,
     filterMiddleware<UpdateAccountReqBody>([
-        'first_name',
-        'last_name',
-        'phone_number',
-        'password',
-        'role',
-        'salary',
-        'attendance_date',
-        'contract_signed_date',
-        'contract_expired_date'
+        "first_name",
+        "last_name",
+        "phone_number",
+        "password",
+        "role",
+        "salary",
+        "attendance_date",
+        "contract_signed_date",
+        "contract_expired_date",
     ]),
-    wrapAsync(updateEmpController)
-)
+    wrapAsync(updateEmpController),
+);
 
-export default adminRouter
+export default adminRouter;
