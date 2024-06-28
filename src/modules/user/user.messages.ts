@@ -5,7 +5,7 @@ export const USER_MESSAGES = {
     USERNAME_LENGTH_MUST_BE_FROM_1_TO_50:
         'Username must be between 1 and 50 characters',
     USERNAME_MUST_CONTAIN_ALPHABET: 'Username must contain alphabet',
-    USER_NOT_FOUND: 'User is not found',
+    USER_NOT_FOUND: 'User not found!',
 
     // email
     EMAIL_IS_REQUIRED: 'Email is required',
@@ -23,6 +23,7 @@ export const USER_MESSAGES = {
     PASSWORD_IS_REQUIRED: 'Password is required',
     PASSWORD_MUST_BE_STRING: 'Password must be a string',
     PASSWORD_MUST_BE_STRONG: 'Password must be strong',
+    CHANGE_PASSWORD_SUCCESSFULLY: 'Change password successfully',
 
     // new_password
     NEW_PASSWORD_MUST_BE_NEW: 'New password is not same as the old one!',
@@ -68,17 +69,12 @@ export const USER_MESSAGES = {
     CHECK_EMAIL_TO_RESET_PASSWORD:
         'Check your email to get OTP code to reset password',
     FORGOT_PASSWORD_OTP_IS_REQUIRED: 'Forgot password otp is required',
-    SEND_OTP_SUCCESSFULLY: 'Send OTP successfully!',
-    OTP_IS_INCORRECT: 'OTP is incorrect',
-    VERIFY_OTP_SUCCESSFULLY: 'Verify OTP successfully',
-    RESET_PASSWORD_SUCCESSFULLY: 'Reset password successfully',
-    OTP_NOT_FOUND: 'OTP is not found',
-    REQUIRE_FIELD_IS_INVALID: 'Require field is invalid',
-    OTP_IS_EXPIRED: 'OTP is expired',
 
     // verify account
     VERIFY_ACCOUNT_OTP_IS_REQUIRED: 'Verify account otp is required',
     VERIFY_ACCOUNT_SUCCESSFULLY: 'Verify account successfully',
+    ACCOUNT_ALREADY_VERIFIED: 'Your account is already verified!',
+    ACCOUNT_IS_BANNED: 'Your account has been banned!',
 
     //get me
     ACCESS_TOKEN_IS_REQUIRED: 'Access token is required!',
@@ -96,6 +92,9 @@ export const USER_MESSAGES = {
 
     // refresh token
     REFRESH_TOKEN_NOT_FOUND: 'Refresh token is not found',
+    REFRESH_TOKEN_SUCCESSFULLY: 'Refresh token successfully!',
+
+    //logout
     LOGOUT_SUCCESSFULLY: 'Logout successfully!',
 
     // search account
@@ -103,5 +102,9 @@ export const USER_MESSAGES = {
     EMAIL_PHONE_MUST_BE_STRING: 'Email or phone number must be a string',
 
     OVER_TIMES_REQUEST_METHOD: 'This method is over times request',
-    ACCOUNT_IS_BANNED: 'Account is banned!'
+    WRONG_PASS_5_TIMES: 'Entered wrong password over 5 times!',
+
+    //token
+    REFRESH_TOKEN_IS_REQUIRED: 'Refresh token is required',
+    OTP_IS_INCORRECT: 'OTP is incorrect'
 } as const

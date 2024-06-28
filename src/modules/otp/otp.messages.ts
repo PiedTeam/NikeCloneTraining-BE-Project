@@ -16,5 +16,20 @@ export const OTP_MESSAGES = {
     OTP_LENGTH_IS_6: 'OTP must be 6 characters',
     VERIFY_OTP_SUCCESS: 'Verify OTP successfully',
     CAN_NOT_SEND_OTP_BY: 'Can not send OTP by',
-    ACCOUNT_IS_BANNED: 'Account is banned'
+    ACCOUNT_IS_BANNED: 'Account is banned',
+    // OTP Validation Messages
+    OTP_iS_USED: 'OTP has been already used or has been expired',
+    OTP_IS_INCORRECT: 'OTP is incorrect',
+    OTP_NOT_FOUND: 'OTP is not found',
+
+    // OTP Success | Fail Messages
+    SEND_OTP_SUCCESSFULLY: 'Send OTP successfully!',
+    VERIFY_OTP_SUCCESSFULLY: 'Verify OTP successfully',
+    RESET_PASSWORD_SUCCESSFULLY: 'Reset password successfully',
+
+    // OTP Expired Messages
+    OTP_IS_EXPIRED: 'OTP is expired',
+
+    // Other Messages
+    REQUIRE_FIELD_IS_INVALID: 'Require field is invalid'
 } as const

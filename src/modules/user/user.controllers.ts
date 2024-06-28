@@ -1,14 +1,17 @@
 import 'dotenv/config'
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { first, omit, pick } from 'lodash'
+import { StatusCodes } from 'http-status-codes'
+import { pick } from 'lodash'
 import { ObjectId } from 'mongodb'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import decrypt, { encrypt } from '~/utils/crypto'
+import { OTP_MESSAGES } from '../otp/otp.messages'
 import { USER_MESSAGES } from './user.messages'
 import {
     LoginRequestBody,
     LogoutReqBody,
+    RefreshTokenReqBody,
     RegisterReqBody,
     TokenPayload,
     UpdateMeReqBody,
@@ -76,7 +79,7 @@ export const forgotPasswordController = async (
                   req.body.phone_number
               )
     return res.status(200).json({
-        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY
+        message: OTP_MESSAGES.SEND_OTP_SUCCESSFULLY
     })
 }
 
@@ -86,7 +89,7 @@ export const verifyForgotPasswordTokenController = async (
     next: NextFunction
 ) => {
     return res.status(200).json({
-        message: USER_MESSAGES.VERIFY_OTP_SUCCESSFULLY
+        message: OTP_MESSAGES.VERIFY_OTP_SUCCESSFULLY
     })
 }
 
@@ -95,7 +98,7 @@ export const resetPasswordController = async (req: Request, res: Response) => {
     const password = req.body.password
     const result = await usersService.resetPassword(user_id, password)
     return res.status(200).json({
-        message: USER_MESSAGES.RESET_PASSWORD_SUCCESSFULLY,
+        message: OTP_MESSAGES.RESET_PASSWORD_SUCCESSFULLY,
         details: result
     })
 }
@@ -111,7 +114,7 @@ export const sendVerifyAccountOTPController = async (
                   req.body.phone_number
               )
     return res.status(200).json({
-        message: USER_MESSAGES.SEND_OTP_SUCCESSFULLY
+        message: OTP_MESSAGES.SEND_OTP_SUCCESSFULLY
     })
 }
 
@@ -176,8 +179,8 @@ export const changePasswordController = async (req: Request, res: Response) => {
     const user_id = req.body.user_id
     const new_password = req.body.new_password
     const result = await usersService.resetPassword(user_id, new_password)
-    return res.status(200).json({
-        message: USER_MESSAGES.RESET_PASSWORD_SUCCESSFULLY,
+    return res.status(StatusCodes.OK).json({
+        message: USER_MESSAGES.CHANGE_PASSWORD_SUCCESSFULLY,
         details: result
     })
 }
@@ -220,9 +223,33 @@ export const logoutController = async (
     req: Request<ParamsDictionary, any, LogoutReqBody>,
     res: Response
 ) => {
-    await usersService.logout(req.body)
+    console.log(req.cookies['refresh_token'])
+    await usersService.logout(req.cookies['refresh_token'])
     res.clearCookie('refresh_token')
     return res.json({
         message: USER_MESSAGES.LOGOUT_SUCCESSFULLY
+    })
+}
+
+export const refreshTokenController = async (
+    req: Request<ParamsDictionary, any, RefreshTokenReqBody>,
+    res: Response
+) => {
+    const payload = req.decoded_refresh_token as TokenPayload
+    const old_refresh_token = req.cookies['refresh_token']
+    const { access_token, refresh_token } = await usersService.refreshToken(
+        old_refresh_token,
+        payload
+    )
+
+    res.cookie('refresh_token', refresh_token, {
+        httpOnly: true,
+        secure: true,
+        maxAge: Number(process.env.COOKIE_EXPIRE)
+    })
+
+    return res.json({
+        message: USER_MESSAGES.REFRESH_TOKEN_SUCCESSFULLY,
+        data: { access_token }
     })
 }

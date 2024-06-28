@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb'
-import { OTP_TYPE, OTP_STATUS } from './otp.enum'
+import { OTP_STATUS, OTP_TYPE } from './otp.enum'
 
 interface OtpType {
     _id?: ObjectId

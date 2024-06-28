@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { limiter } from '~/config/limitRequest'
+// import { limiter } from '~/config/limitRequest'
 import { cronJobFake } from '~/utils/cronJobFake'
 import { wrapAsync } from '~/utils/handler'
 import {
@@ -8,6 +8,7 @@ import {
     getMeController,
     loginController,
     logoutController,
+    refreshTokenController,
     registerController,
     resetPasswordController,
     searchAccountController,
@@ -21,9 +22,10 @@ import {
     changePasswordValidator,
     checkEmailOrPhone,
     checkNewPasswordValidator,
+    checkVerifyAccount,
     forgotPasswordValidator,
     loginValidator,
-    refreshTokenValidator,
+    refreshTokenCookieValidator,
     registerValidator,
     resetPasswordValidator,
     searchAccountValidator,
@@ -36,10 +38,10 @@ import {
 const usersRouter = Router()
 
 /*
-  route: register by username
-  path: user/register
-  method: POST
-  body: {
+  Description: register by username
+  Path: user/register
+  Method: POST
+  Body: {
     username: string,
     password: string,
     email: string,
@@ -57,29 +59,27 @@ usersRouter.post(
 )
 
 /*
-route: login
-path: user/login
-method: POST
-body: {
-  username?: string,
-  email?: string,
-  phone_number?: string,
-  password: string
-}/register
+  Description: User login 
+  Path: user/login
+  Method: POST
+  Body: {
+    email_phone: string,
+    password: string
+  }
 */
 usersRouter.post(
     '/login',
-    limiter,
+    // limiter,
     checkEmailOrPhone,
     loginValidator,
     wrapAsync(loginController)
 )
 
 /*
-  description: send otp forgot password to user's email or phone number
-  path: /user/forgot-password
-  method: 'POST'
-  body: { email_phone: string }
+  Description: send otp forgot password to user's email or phone number
+  Path: /user/forgot-password
+  Method: 'POST'
+  Body: { email_phone: string }
 */
 usersRouter.post(
     '/forgot-password',
@@ -90,13 +90,13 @@ usersRouter.post(
 )
 
 /*
-  description: verify otp
-  path: /users/verify-password
-  method: 'POST'
-  body: {
-          email_phone: string,
-          forgot_password_otp: string
-        }
+  Description: verify otp
+  Path: /users/verify-password
+  Method: 'POST'
+  Body: {
+    email_phone: string,
+    forgot_password_otp: string
+  }
 */
 usersRouter.post(
     '/verify-otp',
@@ -126,10 +126,11 @@ usersRouter.post(
 )
 
 /*
-  description: send otp verify account to user's email or phone number
-  path: /users/verify-account
-  method: POST
-  body: { email_phone: string }
+  Description: Send OTP verify account to user's email or phone number
+  Path: /users/verify-account
+  Method: POST
+  Header: { Authorization: Bearer <access_token> }
+  Body: { email_phone: string }
 */
 usersRouter.post(
     '/send-verify-account-otp',
@@ -140,14 +141,16 @@ usersRouter.post(
 )
 
 /*
-  description: verify account
-  path: /users/verify-account
-  method: POST
-  body: { email_phone: string, verify_account_otp: string }
+   * Description: Verify account
+  Path: /users/verify-account
+  Method: POST
+  Header: { Authorization: Bearer <access_token> }
+  Body: { email_phone: string, verify_account_otp: string }
 */
 usersRouter.post(
     '/verify-account',
     accessTokenValidator,
+    checkVerifyAccount,
     checkEmailOrPhone,
     verifyAccountValidator,
     verifyOTPValidator,
@@ -155,11 +158,11 @@ usersRouter.post(
 )
 
 /*
-des: change password
-path: '/change-password'
-method: post
-Header: {Authorization: Bearer <access_token>}
-body: { old_password: string, new_password: string }
+  Description: change password
+  Path: '/change-password'
+  Method: POST
+  Header: { Authorization: Bearer <access_token> }
+  Body: { old_password: string, new_password: string }
 */
 usersRouter.post(
     '/change-password',
@@ -169,20 +172,20 @@ usersRouter.post(
 )
 
 /*
-des: get user's profile
-path: '/me'
-method: get
-Header: {Authorization: Bearer <access_token>}
-body: {}
+  Description: get user's profile
+  Path: '/me'
+  Method: get
+  Header: { Authorization: Bearer <access_token> }
+  Body: {}
 */
 usersRouter.get('/me', accessTokenValidator, wrapAsync(getMeController))
 
 /*
-  description: update user's profile
-  path: '/me'
-  method: patch
-  header: {Authorization: Bearer <access_token>}
-  body: { first_name: string, last_name: string, email: string, phone_number: string, ...}
+  Description: update user's profile
+  Path: '/me'
+  Method: patch
+  Header: { Authorization: Bearer <access_token> }
+  Body: { first_name: string, last_name: string, email: string, phone_number: string, ...}
 */
 usersRouter.patch(
     '/me',
@@ -193,11 +196,11 @@ usersRouter.patch(
 )
 
 /*
- description: search API account
- path: /users/search
-  method: GET
-  header: {Authorization: Bearer <access_token>}
-  body: {email_phone: string}
+  Description: search API account
+  Path: /users/search
+  Method: GET
+  Header: { Authorization: Bearer <access_token> }
+  Body: { email_phone: string }
 */
 // usersRouter.post(
 //     '/search',
@@ -218,8 +221,14 @@ usersRouter.post(
 usersRouter.post(
     '/logout',
     accessTokenValidator,
-    refreshTokenValidator,
+    refreshTokenCookieValidator,
     wrapAsync(logoutController)
+)
+
+usersRouter.post(
+    '/refresh-token',
+    refreshTokenCookieValidator,
+    wrapAsync(refreshTokenController)
 )
 
 export default usersRouter

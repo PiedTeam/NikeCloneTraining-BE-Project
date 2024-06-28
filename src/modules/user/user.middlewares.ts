@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { ParamSchema, checkSchema } from 'express-validator'
@@ -7,20 +8,21 @@ import { ObjectId } from 'mongodb'
 import validator from 'validator'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import databaseService from '~/database/database.services'
-import { ErrorEntity } from '~/errors/errors.entityError'
-import { ErrorWithStatus } from '~/models/Error'
+import { ErrorEntity, ErrorWithStatus } from '~/errors/errors.entityError'
 import { USER_MESSAGES } from '~/modules/user/user.messages'
 import { isDeveloperAgent } from '~/utils/agent'
 import { encrypt, hashPassword } from '~/utils/crypto'
 import { verifyToken } from '~/utils/jwt'
 import { isValidPhoneNumberForCountry, validate } from '~/utils/validation'
 import { OTP_STATUS } from '../otp/otp.enum'
+import { OTP_MESSAGES } from '../otp/otp.messages'
+import otpService from '../otp/otp.services'
 import { NoticeUser, UserVerifyStatus } from './user.enum'
 import { LoginRequestBody, TokenPayload } from './user.requests'
 import usersService from './user.services'
-import 'dotenv/config'
-import otpService from '../otp/otp.services'
+import { StatusCodes } from 'http-status-codes'
 
+//! Prevent db injection, XSS attack
 export const paramSchema: ParamSchema = {
     customSanitizer: {
         options: async (value) => {
@@ -90,7 +92,7 @@ export const phone_numberSchema: ParamSchema = {
     }
 }
 
-const passwordSchema: ParamSchema = {
+export const passwordSchema: ParamSchema = {
     trim: true,
     notEmpty: { errorMessage: USER_MESSAGES.PASSWORD_IS_REQUIRED },
     isString: { errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING },
@@ -133,7 +135,7 @@ const confirmPasswordSchema: ParamSchema = {
     }
 }
 
-const firstnameSchema: ParamSchema = {
+export const firstnameSchema: ParamSchema = {
     trim: true,
     notEmpty: { errorMessage: USER_MESSAGES.FIRST_NAME_IS_REQUIRED },
     isString: { errorMessage: USER_MESSAGES.FIRST_NAME_MUST_BE_STRING },
@@ -143,7 +145,7 @@ const firstnameSchema: ParamSchema = {
     }
 }
 
-const lastnameSchema: ParamSchema = {
+export const lastnameSchema: ParamSchema = {
     trim: true,
     notEmpty: { errorMessage: USER_MESSAGES.LAST_NAME_IS_REQUIRED },
     isString: { errorMessage: USER_MESSAGES.LAST_NAME_MUST_BE_STRING },
@@ -153,7 +155,7 @@ const lastnameSchema: ParamSchema = {
     }
 }
 
-const imageSchema: ParamSchema = {
+export const imageSchema: ParamSchema = {
     optional: true,
     isString: { errorMessage: USER_MESSAGES.IMAGE_URL_MUST_BE_A_STRING },
     trim: true,
@@ -166,28 +168,6 @@ const imageSchema: ParamSchema = {
 export const registerValidator = validate(
     checkSchema(
         {
-            // username: {
-            //     ...usernameSchema,
-            //     custom: {
-            //         options: async (value) => {
-            //             if (!/[a-zA-Z]/.test(value)) {
-            //                 throw new Error(
-            //                     USER_MESSAGES.USERNAME_MUST_CONTAIN_ALPHABET
-            //                 )
-            //             }
-
-            //             const isExist =
-            //                 await usersService.checkUsernameExist(value)
-
-            //             if (isExist) {
-            //                 throw new Error(
-            //                     USER_MESSAGES.USERNAME_ALREADY_EXISTS
-            //                 )
-            //             }
-            //             return true
-            //         }
-            //     }
-            // },
             first_name: { ...paramSchema, ...firstnameSchema },
             last_name: { ...paramSchema, ...lastnameSchema },
             password: { ...paramSchema, ...passwordSchema },
@@ -250,6 +230,14 @@ export const loginCheckMissingField = (
     next()
 }
 
+export const checkVerifyAccount = validate(
+    checkSchema({
+        email_phone: {
+            notEmpty: { errorMessage: USER_MESSAGES.EMAIL_PHONE_IS_REQUIRED }
+        }
+    })
+)
+
 export const checkEmailOrPhone = (
     req: Request,
     res: Response,
@@ -257,7 +245,6 @@ export const checkEmailOrPhone = (
 ) => {
     const body = req.body as ParamsDictionary
     const email_phone = body.email_phone
-
     if (validator.isEmail(email_phone)) {
         req.body.email = email_phone
         req.body.type = 'email'
@@ -280,31 +267,6 @@ export const checkEmailOrPhone = (
 export const loginValidator = validate(
     checkSchema(
         {
-            // username: {
-            //     optional: true,
-            //     ...usernameSchema,
-            //     custom: {
-            //         options: async (value, { req }) => {
-            //             if (!/[a-zA-Z]/.test(value)) {
-            //                 throw new Error(
-            //                     USER_MESSAGES.USERNAME_MUST_CONTAIN_ALPHABET
-            //                 )
-            //             }
-
-            //             const user = await databaseService.users.findOne({
-            //                 username: value
-            //             })
-            //             if (user === null) {
-            //                 throw new Error(USER_MESSAGES.USERNAME_NOT_FOUND)
-            //             }
-            //             if (user.password !== hashPassword(req.body.password)) {
-            //                 throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
-            //             }
-            //             req.user = user
-            //             return true
-            //         }
-            //     }
-            // },
             email: {
                 ...paramSchema,
                 optional: true,
@@ -314,13 +276,77 @@ export const loginValidator = validate(
                         const user = await databaseService.users.findOne({
                             email: encrypt(value)
                         })
-                        if (user === null) {
+
+                        if (!user) {
                             throw new Error(USER_MESSAGES.EMAIL_NOT_FOUND)
                         }
+
+                        if (
+                            user.notice === NoticeUser.Banned ||
+                            user.reasonBanned !== ''
+                        ) {
+                            throw new ErrorWithStatus({
+                                message: USER_MESSAGES.ACCOUNT_IS_BANNED,
+                                status: StatusCodes.LOCKED
+                            })
+                        }
+
+                        const wrongPasswordTimes =
+                            user.wrongPasswordTimes as number
+                        const NUMBER_LIMIT_WRONG_PASSWORD = 5
+
                         if (user.password !== hashPassword(req.body.password)) {
+                            // user input wrong password 5 times => account will be banned
+                            if (
+                                wrongPasswordTimes <=
+                                NUMBER_LIMIT_WRONG_PASSWORD - 1
+                            ) {
+                                // For each wrong password, wrongPasswordTimes++
+                                await databaseService.users.updateOne(
+                                    { email: encrypt(value) },
+                                    [
+                                        {
+                                            $set: {
+                                                wrongPasswordTimes:
+                                                    wrongPasswordTimes + 1
+                                            }
+                                        }
+                                    ]
+                                )
+                            }
+
+                            if (
+                                (user.wrongPasswordTimes as number) >=
+                                NUMBER_LIMIT_WRONG_PASSWORD - 1
+                            ) {
+                                // Banned user
+                                await databaseService.users.updateOne(
+                                    { email: encrypt(value) },
+                                    [
+                                        {
+                                            $set: {
+                                                notice: NoticeUser.Banned,
+                                                reasonBanned:
+                                                    USER_MESSAGES.WRONG_PASS_5_TIMES
+                                            }
+                                        }
+                                    ]
+                                )
+                                throw new ErrorWithStatus({
+                                    message: USER_MESSAGES.ACCOUNT_IS_BANNED,
+                                    status: StatusCodes.LOCKED
+                                })
+                            }
                             throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
                         }
+
+                        // reset wrongPasswordTimes to 0 when user login successfully
+                        await databaseService.users.updateOne(
+                            { email: encrypt(value) },
+                            [{ $set: { wrongPasswordTimes: 0 } }]
+                        )
                         ;(req as Request).user = user
+
                         return true
                     }
                 }
@@ -334,15 +360,79 @@ export const loginValidator = validate(
                         const user = await databaseService.users.findOne({
                             phone_number: encrypt(value)
                         })
-                        if (user === null) {
+                        if (!user) {
                             throw new Error(
                                 USER_MESSAGES.PHONE_NUMBER_NOT_FOUND
                             )
                         }
+
+                        if (
+                            user.notice === NoticeUser.Banned ||
+                            user.reasonBanned !== ''
+                        ) {
+                            throw new ErrorWithStatus({
+                                message: USER_MESSAGES.ACCOUNT_IS_BANNED,
+                                status: StatusCodes.LOCKED
+                            })
+                        }
+
+                        const wrongPasswordTimes =
+                            user.wrongPasswordTimes as number
+                        const NUMBER_LIMIT_WRONG_PASSWORD = 5
+
                         if (user.password !== hashPassword(req.body.password)) {
+                            // user input wrong password 5 times => account will be banned
+                            if (
+                                wrongPasswordTimes <=
+                                NUMBER_LIMIT_WRONG_PASSWORD - 1
+                            ) {
+                                // For each wrong password, wrongPasswordTimes++
+                                await databaseService.users.updateOne(
+                                    { phone_number: encrypt(value) },
+                                    [
+                                        {
+                                            $set: {
+                                                wrongPasswordTimes:
+                                                    wrongPasswordTimes + 1
+                                            }
+                                        }
+                                    ]
+                                )
+                            }
+
+                            if (
+                                (user.wrongPasswordTimes as number) >=
+                                NUMBER_LIMIT_WRONG_PASSWORD - 1
+                            ) {
+                                // Banned user
+                                await databaseService.users.updateOne(
+                                    { phone_number: encrypt(value) },
+                                    [
+                                        {
+                                            $set: {
+                                                notice: NoticeUser.Banned,
+                                                reasonBanned:
+                                                    USER_MESSAGES.WRONG_PASS_5_TIMES
+                                            }
+                                        }
+                                    ]
+                                )
+                                throw new ErrorWithStatus({
+                                    message: USER_MESSAGES.ACCOUNT_IS_BANNED,
+                                    status: StatusCodes.LOCKED
+                                })
+                            }
+
                             throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
                         }
+
+                        // reset wrongPasswordTimes to 0 when user login successfully
+                        await databaseService.users.updateOne(
+                            { phone_number: encrypt(value) },
+                            [{ $set: { wrongPasswordTimes: 0 } }]
+                        )
                         ;(req as Request).user = user
+
                         return true
                     }
                 }
@@ -450,7 +540,7 @@ export const verifyForgotPasswordOTPValidator = validate(
                             status: OTP_STATUS.Available
                         })
                         if (!result) {
-                            throw new Error(USER_MESSAGES.OTP_NOT_FOUND)
+                            throw new Error(OTP_MESSAGES.OTP_NOT_FOUND)
                         }
                         if (result.incorrTimes >= 3) {
                             await databaseService.users.updateOne(
@@ -471,7 +561,7 @@ export const verifyForgotPasswordOTPValidator = validate(
                             (result?.type === 0 && req.body.type === 'email')
                         ) {
                             throw new Error(
-                                USER_MESSAGES.REQUIRE_FIELD_IS_INVALID
+                                OTP_MESSAGES.REQUIRE_FIELD_IS_INVALID
                             )
                         }
                         const otp = result?.OTP
@@ -487,7 +577,7 @@ export const verifyForgotPasswordOTPValidator = validate(
                                 }
                             )
                             //                             console.log(result)
-                            throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
+                            throw new Error(OTP_MESSAGES.OTP_IS_INCORRECT)
                         }
                         req.body.user_id = user._id
                     }
@@ -608,6 +698,12 @@ export const verifyAccountValidator = validate(
                                 status: HTTP_STATUS.FORBIDDEN
                             })
                         }
+                        if (user.status === UserVerifyStatus.Verified) {
+                            throw new Error(
+                                USER_MESSAGES.ACCOUNT_ALREADY_VERIFIED
+                            )
+                        }
+
                         req.user = user
                         return true
                     }
@@ -632,6 +728,11 @@ export const verifyAccountValidator = validate(
                                 message: USER_MESSAGES.ACCOUNT_IS_BANNED,
                                 status: HTTP_STATUS.FORBIDDEN
                             })
+                        }
+                        if (user.status === UserVerifyStatus.Verified) {
+                            throw new Error(
+                                USER_MESSAGES.ACCOUNT_ALREADY_VERIFIED
+                            )
                         }
                         req.user = user
                         return true
@@ -671,7 +772,7 @@ export const verifyAccountOTPValidator = validate(
                         status: OTP_STATUS.Available
                     })
                     if (!result) {
-                        throw new Error(USER_MESSAGES.OTP_NOT_FOUND)
+                        throw new Error(OTP_MESSAGES.OTP_NOT_FOUND)
                     }
                     if (result.incorrTimes >= 3) {
                         await databaseService.users.updateOne(
@@ -689,7 +790,7 @@ export const verifyAccountOTPValidator = validate(
                             req.body.type === 'phone_number') ||
                         (result?.type === 0 && req.body.type === 'email')
                     ) {
-                        throw new Error(USER_MESSAGES.REQUIRE_FIELD_IS_INVALID)
+                        throw new Error(OTP_MESSAGES.REQUIRE_FIELD_IS_INVALID)
                     }
                     const otp = result?.OTP
                     if (value !== otp) {
@@ -703,7 +804,7 @@ export const verifyAccountOTPValidator = validate(
                                 }
                             }
                         )
-                        throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
+                        throw new Error(OTP_MESSAGES.OTP_IS_INCORRECT)
                     }
                     req.body.user_id = user._id
                 }
@@ -711,6 +812,7 @@ export const verifyAccountOTPValidator = validate(
         }
     })
 )
+
 export const verifyOTPValidator = validate(
     checkSchema(
         {
@@ -720,10 +822,9 @@ export const verifyOTPValidator = validate(
                 custom: {
                     options: async (value, { req }) => {
                         if (!value) {
-                            throw new Error(
-                                USER_MESSAGES.FORGOT_PASSWORD_OTP_IS_REQUIRED
-                            )
+                            throw new Error(OTP_MESSAGES.OTP_IS_REQUIRED)
                         }
+
                         const user =
                             req.body.type === 'email'
                                 ? await databaseService.users.findOne({
@@ -734,23 +835,25 @@ export const verifyOTPValidator = validate(
                                           req.body.phone_number
                                       )
                                   })
+
                         if (!user) {
                             throw new Error(USER_MESSAGES.USER_NOT_FOUND)
                         }
+
                         const result = await databaseService.OTP.findOne({
                             user_id: user._id,
                             status: OTP_STATUS.Available
                         })
-                        if (!result) {
-                            throw new Error(USER_MESSAGES.OTP_NOT_FOUND)
-                        }
+
+                        if (!result) throw new Error(OTP_MESSAGES.OTP_iS_USED)
+
                         const isExpired = await otpService.isOTPExpired(result)
                         if (isExpired) {
                             await databaseService.OTP.updateOne(
                                 { user_id: user._id },
                                 { $set: { status: OTP_STATUS.Unavailable } }
                             )
-                            throw new Error(USER_MESSAGES.OTP_IS_EXPIRED)
+                            throw new Error(OTP_MESSAGES.OTP_IS_EXPIRED)
                         }
                         if (result.incorrTimes >= 3) {
                             const isWarning = await usersService.isWarning(
@@ -790,7 +893,7 @@ export const verifyOTPValidator = validate(
                             (result?.type === 0 && req.body.type === 'email')
                         ) {
                             throw new Error(
-                                USER_MESSAGES.REQUIRE_FIELD_IS_INVALID
+                                OTP_MESSAGES.REQUIRE_FIELD_IS_INVALID
                             )
                         }
                         const otp = result?.OTP
@@ -815,6 +918,7 @@ export const verifyOTPValidator = validate(
         ['body']
     )
 )
+
 export const blockPostman = async (
     req: Request,
     res: Response,
@@ -1016,3 +1120,53 @@ export const searchAccountValidator = validate(
         }
     })
 )
+
+export const refreshTokenCookieValidator = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    const value = req.cookies['refresh_token']
+
+    if (!value) {
+        return next(
+            new ErrorWithStatus({
+                message: USER_MESSAGES.REFRESH_TOKEN_IS_REQUIRED,
+                status: HTTP_STATUS.UNAUTHORIZED
+            })
+        )
+    }
+    try {
+        const [decoded_refresh_token, refresh_token] = await Promise.all([
+            verifyToken({
+                token: value,
+                secretOrPublickey: process.env
+                    .JWT_SECRET_REFRESH_TOKEN as string
+            }),
+            databaseService.refreshTokens.findOne({
+                token: value
+            })
+        ])
+
+        if (!refresh_token) {
+            throw new ErrorWithStatus({
+                message: USER_MESSAGES.REFRESH_TOKEN_NOT_FOUND,
+                status: HTTP_STATUS.UNAUTHORIZED
+            })
+        }
+
+        req.decoded_refresh_token = decoded_refresh_token
+    } catch (error) {
+        if (error instanceof JsonWebTokenError) {
+            next(
+                new ErrorWithStatus({
+                    message: capitalize((error as JsonWebTokenError).message),
+                    status: HTTP_STATUS.UNAUTHORIZED
+                })
+            )
+        }
+        next(error)
+    }
+
+    next()
+}

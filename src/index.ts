@@ -10,6 +10,8 @@ import otpRouter from './modules/otp/otp.routes'
 import passwordRouter from './modules/password/pass.routes'
 import 'dotenv/config'
 import menuRouter from './modules/menu/menu.route'
+import adminRouter from './modules/admin/admin.routes'
+import capchaRouter from './modules/capcha/capcha.routes'
 
 const app = express()
 const PORT = process.env.PORT || 4000
@@ -54,6 +56,8 @@ app.use('/user', usersRouter)
 app.use('/oauth', oauthRouter)
 app.use('/otp', otpRouter)
 app.use('/menu', menuRouter)
+app.use('/admin', adminRouter)
+app.use('/capcha', capchaRouter)
 // Create route to handle error for all routes in this app
 app.use(defaultErrorHandler)
 

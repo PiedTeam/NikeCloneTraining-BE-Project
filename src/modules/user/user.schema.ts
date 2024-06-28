@@ -19,6 +19,8 @@ interface UserType {
     updated_at?: Date
     status?: UserVerifyStatus
     notice?: NoticeUser
+    wrongPasswordTimes?: number
+    reasonBanned?: string
     avatar_url?: string
     subscription: Subscription
 }
@@ -36,6 +38,8 @@ export default class User {
     updated_at: Date
     status: UserVerifyStatus
     notice: NoticeUser
+    wrongPasswordTimes?: number
+    reasonBanned?: string
     avatar_url: string
     subscription: Subscription
     constructor(user: UserType) {
@@ -52,6 +56,8 @@ export default class User {
         this.updated_at = user.updated_at || date
         this.status = user.status || UserVerifyStatus.Unverified
         this.notice = NoticeUser.Active
+        this.wrongPasswordTimes = 0
+        this.reasonBanned = user.reasonBanned || ''
         this.avatar_url = user.avatar_url || ''
         this.subscription = user.subscription || Subscription.False
     }
