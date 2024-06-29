@@ -463,6 +463,17 @@ export const forgotPasswordValidator = validate(
                         if (user === null) {
                             throw new Error(USER_MESSAGES.EMAIL_NOT_FOUND)
                         }
+                        if (user.status === UserVerifyStatus.Unverified) {
+                            throw new Error(
+                                USER_MESSAGES.ACCOUNT_IS_NOT_VERIFIED
+                            )
+                        }
+                        if (user.notice === NoticeUser.Banned) {
+                            throw new ErrorWithStatus({
+                                message: USER_MESSAGES.ACCOUNT_IS_BANNED,
+                                status: HTTP_STATUS.FORBIDDEN
+                            })
+                        }
                         req.user = user
                         return true
                     }
@@ -481,6 +492,12 @@ export const forgotPasswordValidator = validate(
                             throw new Error(
                                 USER_MESSAGES.PHONE_NUMBER_NOT_FOUND
                             )
+                        }
+                        if (user.notice === NoticeUser.Banned) {
+                            throw new ErrorWithStatus({
+                                message: USER_MESSAGES.ACCOUNT_IS_BANNED,
+                                status: HTTP_STATUS.FORBIDDEN
+                            })
                         }
                         req.user = user
                         return true
@@ -675,6 +692,12 @@ export const verifyAccountValidator = validate(
                         if (user === null) {
                             throw new Error(USER_MESSAGES.EMAIL_NOT_FOUND)
                         }
+                        if (user.notice === NoticeUser.Banned) {
+                            throw new ErrorWithStatus({
+                                message: USER_MESSAGES.ACCOUNT_IS_BANNED,
+                                status: HTTP_STATUS.FORBIDDEN
+                            })
+                        }
                         if (user.status === UserVerifyStatus.Verified) {
                             throw new Error(
                                 USER_MESSAGES.ACCOUNT_ALREADY_VERIFIED
@@ -699,6 +722,12 @@ export const verifyAccountValidator = validate(
                             throw new Error(
                                 USER_MESSAGES.PHONE_NUMBER_NOT_FOUND
                             )
+                        }
+                        if (user.notice === NoticeUser.Banned) {
+                            throw new ErrorWithStatus({
+                                message: USER_MESSAGES.ACCOUNT_IS_BANNED,
+                                status: HTTP_STATUS.FORBIDDEN
+                            })
                         }
                         if (user.status === UserVerifyStatus.Verified) {
                             throw new Error(
@@ -819,7 +848,6 @@ export const verifyOTPValidator = validate(
                         if (!result) throw new Error(OTP_MESSAGES.OTP_iS_USED)
 
                         const isExpired = await otpService.isOTPExpired(result)
-                        console.log(isExpired)
                         if (isExpired) {
                             await databaseService.OTP.updateOne(
                                 { user_id: user._id },
@@ -828,6 +856,20 @@ export const verifyOTPValidator = validate(
                             throw new Error(OTP_MESSAGES.OTP_IS_EXPIRED)
                         }
                         if (result.incorrTimes >= 3) {
+                            const isWarning = await usersService.isWarning(
+                                user._id
+                            )
+                            if (isWarning) {
+                                await databaseService.users.updateOne(
+                                    { _id: user._id },
+                                    {
+                                        $set: {
+                                            notice: NoticeUser.Banned
+                                        }
+                                    }
+                                )
+                                throw new Error(USER_MESSAGES.ACCOUNT_IS_BANNED)
+                            }
                             await databaseService.users.updateOne(
                                 { _id: user._id },
                                 {
@@ -844,6 +886,7 @@ export const verifyOTPValidator = validate(
                                 USER_MESSAGES.OVER_TIMES_REQUEST_METHOD
                             )
                         }
+
                         if (
                             (result?.type === 1 &&
                                 req.body.type === 'phone_number') ||
@@ -865,8 +908,7 @@ export const verifyOTPValidator = validate(
                                     }
                                 }
                             )
-                            console.log(result)
-                            throw new Error(OTP_MESSAGES.OTP_IS_INCORRECT)
+                            throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
                         }
                         req.body.user_id = user._id
                     }

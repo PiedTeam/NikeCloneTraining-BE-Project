@@ -9,7 +9,7 @@ import { signToken, verifyToken } from '~/utils/jwt'
 import { OTP_KIND } from '../otp/otp.enum'
 import otpService from '../otp/otp.services'
 import RefreshToken from '../refreshToken/refreshToken.schema'
-import { TokenType, UserRole, UserVerifyStatus } from './user.enum'
+import { NoticeUser, TokenType, UserRole, UserVerifyStatus } from './user.enum'
 import {
     LogoutReqBody,
     RegisterOauthReqBody,
@@ -167,6 +167,13 @@ class UsersService {
             }
         )
         return user as User
+    }
+
+    async isWarning(user_id: ObjectId) {
+        const user = await databaseService.users.findOne({
+            _id: user_id
+        })
+        return user?.notice === NoticeUser.Warning
     }
 
     async register(

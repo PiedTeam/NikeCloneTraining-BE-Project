@@ -1,16 +1,16 @@
-import { StatusCodes } from 'http-status-codes'
-import moment from 'moment'
-import { ObjectId } from 'mongodb'
-import nodemailer from 'nodemailer'
 import databaseService from '~/database/database.services'
-import { ErrorWithStatus } from '~/errors/errors.entityError'
-import { encrypt } from '~/utils/crypto'
-import { sendOtpMail, sendOtpPhone } from '~/utils/sendOtp'
+import { StatusCodes } from 'http-status-codes'
 import Otp from '../otp/otp.schema'
-import { NoticeUser } from '../user/user.enum'
-import { USER_MESSAGES } from '../user/user.messages'
+import { ErrorWithStatus } from '~/errors/errors.entityError'
 import { OTP_KIND, OTP_STATUS, OTP_TYPE } from './otp.enum'
 import { OTP_MESSAGES } from './otp.messages'
+import nodemailer from 'nodemailer'
+import { encrypt } from '~/utils/crypto'
+import { ObjectId } from 'mongodb'
+import { sendOtpMail, sendOtpPhone } from '~/utils/sendOtp'
+import { NoticeUser } from '../user/user.enum'
+import moment from 'moment'
+import usersService from '../user/user.services'
 
 class OtpService {
     isOTPExpired(otp: Otp) {
@@ -40,72 +40,121 @@ class OtpService {
     }
     async checkLimit(user_id: ObjectId, type: OTP_TYPE) {
         const exsitUser = await databaseService.OTP.findOne({
-            user_id
+            user_id,
+            type
         })
-        if (exsitUser) {
-            const timeNow = new Date()
-            const lim = await databaseService.OTP.aggregate([
-                { $match: { user_id, type } },
+        if (!exsitUser) {
+            console.log('lỗi 0')
+            return true
+        }
+        const timeNow = new Date()
+        const lim = await databaseService.OTP.aggregate([
+            { $match: { user_id, type } },
+            { $group: { _id: user_id, count: { $sum: 1 } } }
+        ]).toArray()
+        if (
+            timeNow.getTime() - exsitUser.created_at.getTime() >=
+            Number(process.env.TIMETORESET)
+        ) {
+            await databaseService.OTP.deleteOne({
+                user_id: exsitUser
+            })
+            return true
+        }
+        if (lim[0].count == 3) {
+            const total = await databaseService.OTP.aggregate([
+                { $match: { user_id } },
                 { $group: { _id: user_id, count: { $sum: 1 } } }
             ]).toArray()
-
-            for (const i of lim) {
-                if (i.count >= 3) {
-                    // otpLimiter
-                    if (exsitUser.created_at !== undefined) {
-                        if (
-                            timeNow.getTime() -
-                                exsitUser.created_at.getTime() <=
-                            Number(process.env.TIMETORESET)
-                        ) {
-                            await databaseService.users.updateOne(
-                                { _id: user_id },
-                                { $set: { notice: NoticeUser.Warning } }
-                            )
-                            throw new ErrorWithStatus({
-                                message: OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME,
-                                status: StatusCodes.BAD_REQUEST
-                            })
-                        }
-                        await databaseService.OTP.deleteMany({
-                            user_id: exsitUser.user_id
-                        })
-                    }
+            if (total[0].count == 6) {
+                const isWarning = await usersService.isWarning(user_id)
+                if (isWarning) {
+                    await databaseService.users.updateOne(
+                        {
+                            _id: user_id
+                        },
+                        { $set: { notice: NoticeUser.Banned } }
+                    )
+                    console.log('lỗi 3')
                     throw new ErrorWithStatus({
-                        message: OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME,
+                        message: OTP_MESSAGES.ACCOUNT_IS_BANNED,
                         status: StatusCodes.NOT_ACCEPTABLE
                     })
                 }
-                if (exsitUser.created_at !== undefined) {
-                    if (
-                        timeNow.getTime() - exsitUser.created_at.getTime() >
-                        Number(process.env.TIMETORESET)
-                    ) {
-                        console.log('timeNow', timeNow.getTime())
-                        console.log(
-                            'exsitUserTIME ',
-                            exsitUser.created_at.getTime()
-                        )
-                        console.log(
-                            'timeNow - exsitUserTIME ',
-                            timeNow.getTime() - exsitUser.created_at.getTime()
-                        )
-                        console.log('ahihi xóa opt rồi')
-                        await databaseService.OTP.deleteMany({
-                            user_id: exsitUser.user_id
-                        })
-                    }
-                }
-                // if (lim === 3) {
-                //     otpLimiter
-                //     throw new ErrorWithStatus({
-                //         message: OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME,
-                //         status: StatusCodes.NOT_ACCEPTABLE
-                //     })
-                // }
+
+                await databaseService.users.updateOne(
+                    { _id: user_id },
+                    { $set: { notice: NoticeUser.Warning } }
+                )
+                throw new ErrorWithStatus({
+                    message: OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME,
+                    status: StatusCodes.NOT_ACCEPTABLE
+                })
             }
-            return true
+            console.log('lỗi 2')
+            throw new ErrorWithStatus({
+                message: `${OTP_MESSAGES.CAN_NOT_SEND_OTP_BY} ${OTP_TYPE[type]}`,
+                status: StatusCodes.NOT_ACCEPTABLE
+            })
         }
+
+        // for (const i of lim) {
+        //     if (i.count >= 3) {
+        //         const total = await databaseService.OTP.aggregate([
+        //             { $match: { user_id } },
+        //             { $group: { _id: user_id, count: { $sum: 1 } } }
+        //         ]).toArray()
+        //         if (total[0].count == 6) {
+        //             await databaseService.users.updateOne(
+        //                 { _id: user_id },
+        //                 { $set: { notice: NoticeUser.Warning } }
+        //             )
+        //             throw new ErrorWithStatus({
+        //                 message: OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME,
+        //                 status: StatusCodes.NOT_ACCEPTABLE
+        //             })
+        //         }
+        //         // otpLimiter
+        //         if (exsitUser.created_at !== undefined) {
+        //             if (
+        //                 -exsitUser.created_at.getTime() +
+        //                     timeNow.getTime() <=
+        //                 Number(process.env.TIMETORESET)
+        //             ) {
+        //                 throw new ErrorWithStatus({
+        //                     message: `${OTP_MESSAGES.CAN_NOT_SEND_OTP_BY} ${type}`,
+        //                     status: StatusCodes.BAD_REQUEST
+        //                 })
+        //             }
+        //             await databaseService.OTP.deleteMany({
+        //                 user_id: exsitUser
+        //             })
+        //         }
+        //         throw new ErrorWithStatus({
+        //             message: OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME,
+        //             status: StatusCodes.NOT_ACCEPTABLE
+        //         })
+        //     }
+        //     if (exsitUser.created_at !== undefined) {
+        //         if (
+        //             -exsitUser.created_at.getTime() + timeNow.getTime() >
+        //             Number(process.env.TIMETORESET)
+        //         ) {
+        //             await databaseService.OTP.deleteMany({
+        //                 user_id: exsitUser
+        //             })
+        //         }
+        //     }
+        //     // if (lim === 3) {
+        //     //     otpLimiter
+        //     //     throw new ErrorWithStatus({
+        //     //         message: OTP_MESSAGES.SEND_OTP_OVER_LIMIT_TIME,
+        //     //         status: StatusCodes.NOT_ACCEPTABLE
+        //     //     })
+        //     // }
+        // }
+        console.log('lỗi 1')
+        return true
     }
     // async checkLimitOtp(user_id: ObjectId) {
     //     const limit = await databaseService.OTP.findOne({
@@ -160,7 +209,7 @@ class OtpService {
 
         if (!user) {
             throw new ErrorWithStatus({
-                message: USER_MESSAGES.USER_NOT_FOUND,
+                message: OTP_MESSAGES.USER_NOT_FOUND,
                 status: StatusCodes.NOT_FOUND
             })
         }
@@ -173,7 +222,9 @@ class OtpService {
                 OTP: payload.otp,
                 type: OTP_TYPE.PhoneNumber,
                 status: OTP_STATUS.Available,
-                incorrTimes: incorrTimes
+                incorrTimes: incorrTimes,
+                created_at: new Date(),
+                expired_at: new Date()
             })
         )
 
@@ -203,7 +254,7 @@ class OtpService {
         })
         if (!user) {
             throw new ErrorWithStatus({
-                message: USER_MESSAGES.USER_NOT_FOUND,
+                message: OTP_MESSAGES.USER_NOT_FOUND,
                 status: StatusCodes.NOT_FOUND
             })
         }
@@ -217,7 +268,9 @@ class OtpService {
                 OTP: otp,
                 type: OTP_TYPE.Email,
                 status: OTP_STATUS.Available,
-                incorrTimes: incorrTimes
+                incorrTimes: incorrTimes,
+                created_at: new Date(),
+                expired_at: new Date()
             })
         )
         const username = user.first_name.length
