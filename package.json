@@ -4,9 +4,9 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "dev": "npx nodemon",
+        "dev": "cross-env npx nodemon",
         "build": "tsc && tsc-alias",
-        "start": "node dist/src/index.js",
+        "start": "cross-env node dist/src/index.js",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "prettier": "prettier --check .",
@@ -39,15 +39,16 @@
         "prettier": "^3.2.5",
         "rimraf": "^5.0.5",
         "ts-node": "^10.9.2",
-        "tsc-alias": "^1.8.8",
         "tsconfig-paths": "^4.2.0",
-        "typescript": "^5.4.3"
+        "typescript": "^5.4.3",
+        "tsc-alias": "^1.8.8"
     },
     "dependencies": {
         "@types/request": "^2.48.12",
         "cookie-parser": "^1.4.6",
         "cookie-session": "^2.1.0",
         "cors": "^2.8.5",
+        "cross-env": "^7.0.3",
         "crypto-js": "^4.2.0",
         "cryptojs": "^2.5.3",
         "dotenv": "^16.4.5",
