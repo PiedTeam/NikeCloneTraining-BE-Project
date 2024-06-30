@@ -225,13 +225,13 @@ usersRouter.post(
 usersRouter.post(
     "/logout",
     accessTokenValidator,
-    refreshTokenCookieValidator,
+    wrapAsync(refreshTokenCookieValidator),
     wrapAsync(logoutController),
 );
 
 usersRouter.post(
     "/refresh-token",
-    refreshTokenCookieValidator,
+    wrapAsync(refreshTokenCookieValidator),
     wrapAsync(refreshTokenController),
 );
 
