@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express'
 import { NextFunction, Request, Response } from 'express-serve-static-core'
+import { forEach } from 'lodash'
 
 export const wrapAsync =
     (func: RequestHandler) =>
@@ -10,3 +11,10 @@ export const wrapAsync =
             next(err)
         }
     }
+
+export function numberToEnum(
+    number: number,
+    enumType: { [key: string]: number | string }
+) {
+    return enumType[number]
+}

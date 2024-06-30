@@ -7,11 +7,12 @@ import { CreateEmployeeReqBody, UpdateAccountReqBody } from './admin.requests'
 import Employee from '../employee/employee.schema'
 import { capitalizePro } from '~/utils/capitalize'
 import { omit } from 'lodash'
-import { encrypt, hashPassword } from '~/utils/crypto'
+import decrypt, { encrypt, hashPassword } from '~/utils/crypto'
 import { TokenType } from '../user/user.enum'
 import { signToken, verifyToken } from '~/utils/jwt'
 import RefreshToken from '../refreshToken/refreshToken.schema'
 import { EmployeeRole } from './admin.enum'
+import { UserList } from '~/constants/user.type'
 
 class AdminService {
     private decodeRefreshToken(refresh_token: string) {
@@ -156,6 +157,40 @@ class AdminService {
                 returnDocument: 'after'
             }
         )
+    }
+
+    async getListAccountEmployee() {
+        const listEmployee = await databaseService.employee
+            .find<UserList>(
+                {},
+                {
+                    projection: {
+                        created_at: 0,
+                        updated_at: 0,
+                        salary: 0,
+                        attendance_date: 0,
+                        CV: 0,
+                        avatar_url: 0,
+                        contract_signed_date: 0,
+                        contract_expired_date: 0
+                    }
+                }
+            )
+            .toArray()
+        const result = listEmployee.map((user) => {
+            if (user.email && user.phone_number) {
+                const email = decrypt(user.email)
+                const phoneNumber = decrypt(user.phone_number)
+                return { ...user, email: email, phone_number: phoneNumber }
+            } else if (user.email) {
+                const email = decrypt(user.email)
+                return { ...user, email: email }
+            } else {
+                const phoneNumber = decrypt(user.phone_number)
+                return { ...user, phone_number: phoneNumber }
+            }
+        })
+        return result
     }
 }
 

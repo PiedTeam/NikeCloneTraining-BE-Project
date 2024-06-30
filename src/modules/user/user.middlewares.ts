@@ -17,10 +17,11 @@ import { isValidPhoneNumberForCountry, validate } from '~/utils/validation'
 import { OTP_STATUS } from '../otp/otp.enum'
 import { OTP_MESSAGES } from '../otp/otp.messages'
 import otpService from '../otp/otp.services'
-import { NoticeUser, UserVerifyStatus } from './user.enum'
+import { NoticeUser, UserRole, UserVerifyStatus } from './user.enum'
 import { LoginRequestBody, TokenPayload } from './user.requests'
 import usersService from './user.services'
 import { StatusCodes } from 'http-status-codes'
+import { numberToEnum } from '~/utils/handler'
 
 //! Prevent db injection, XSS attack
 export const paramSchema: ParamSchema = {
@@ -1169,4 +1170,51 @@ export const refreshTokenCookieValidator = async (
     }
 
     next()
+}
+
+export const isUserRole =
+    (arrayUserRole: UserRole[]) =>
+    async (req: Request, res: Response, next: NextFunction) => {
+        const payload = req.decoded_authorization as TokenPayload
+        if (!arrayUserRole.includes(payload.role)) {
+            next(
+                new ErrorWithStatus({
+                    message: USER_MESSAGES.DONT_HAVE_PERMISSION,
+                    status: StatusCodes.UNAUTHORIZED
+                })
+            )
+        }
+
+        next()
+    }
+
+export const pagination = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    const {
+        page = 1,
+        limit = 20,
+        role
+    } = req.query as {
+        [key: string]: string | number
+    }
+
+    if (!role) {
+        const newPage = Number(page)
+        const newLimit = Number(limit)
+        req.queryListAccount = { page: newPage, limit: newLimit }
+        next()
+    } else {
+        const newRole = numberToEnum(Number(role), UserRole)
+        const newPage = Number(page)
+        const newLimit = Number(limit)
+        req.queryListAccount = {
+            page: newPage,
+            limit: newLimit,
+            role: newRole as UserRole
+        }
+        next()
+    }
 }

@@ -5,6 +5,7 @@ import { wrapAsync } from '~/utils/handler'
 import {
     changePasswordController,
     forgotPasswordController,
+    getListUserController,
     getMeController,
     loginController,
     logoutController,
@@ -24,7 +25,9 @@ import {
     checkNewPasswordValidator,
     checkVerifyAccount,
     forgotPasswordValidator,
+    isUserRole,
     loginValidator,
+    pagination,
     refreshTokenCookieValidator,
     registerValidator,
     resetPasswordValidator,
@@ -34,6 +37,7 @@ import {
     verifyAccountValidator,
     verifyOTPValidator
 } from './user.middlewares'
+import { UserRole } from './user.enum'
 
 const usersRouter = Router()
 
@@ -229,6 +233,14 @@ usersRouter.post(
     '/refresh-token',
     refreshTokenCookieValidator,
     wrapAsync(refreshTokenController)
+)
+
+usersRouter.get(
+    '/list-account',
+    // accessTokenValidator,
+    // wrapAsync(isUserRole([UserRole.Admin])),
+    wrapAsync(pagination),
+    wrapAsync(getListUserController)
 )
 
 export default usersRouter

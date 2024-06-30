@@ -1,5 +1,10 @@
 import { JwtPayload } from 'jsonwebtoken'
-import { Subscription, TokenType, UserVerifyStatus } from './user.enum'
+import {
+    Subscription,
+    TokenType,
+    UserRole,
+    UserVerifyStatus
+} from './user.enum'
 
 export interface RegisterReqBody {
     email_phone: string
@@ -75,4 +80,10 @@ export type LogoutReqBody = {
 
 export type RefreshTokenReqBody = {
     refresh_token: string
+}
+
+export type ListAccountQuery = {
+    page?: number
+    limit?: number
+    role?: UserRole
 }

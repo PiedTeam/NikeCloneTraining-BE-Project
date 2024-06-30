@@ -106,5 +106,8 @@ export const USER_MESSAGES = {
 
     //token
     REFRESH_TOKEN_IS_REQUIRED: 'Refresh token is required',
-    OTP_IS_INCORRECT: 'OTP is incorrect'
+    OTP_IS_INCORRECT: 'OTP is incorrect',
+
+    //don't have permission
+    DONT_HAVE_PERMISSION: `You don't have permission`
 } as const

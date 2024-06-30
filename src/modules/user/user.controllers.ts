@@ -9,6 +9,7 @@ import decrypt, { encrypt } from '~/utils/crypto'
 import { OTP_MESSAGES } from '../otp/otp.messages'
 import { USER_MESSAGES } from './user.messages'
 import {
+    ListAccountQuery,
     LoginRequestBody,
     LogoutReqBody,
     RefreshTokenReqBody,
@@ -19,6 +20,7 @@ import {
 } from './user.requests'
 import User from './user.schema'
 import usersService from './user.services'
+import adminService from '../admin/admin.services'
 
 export const registerController = async (
     req: Request<ParamsDictionary, any, RegisterReqBody>,
@@ -252,4 +254,31 @@ export const refreshTokenController = async (
         message: USER_MESSAGES.REFRESH_TOKEN_SUCCESSFULLY,
         data: { access_token }
     })
+}
+
+export const getListUserController = async (req: Request, res: Response) => {
+    const query = req.queryListAccount as ListAccountQuery
+    if (!query.role) {
+        const listUser = await usersService.getListCustomer()
+        const listEmployee = await adminService.getListAccountEmployee()
+        const newList = { ...listUser, ...listEmployee }
+        const result = newList.filter(
+            (user, index) =>
+                index >= Number(query.limit) * Number(query.page) &&
+                index <= Number(query.limit) * Number(query.page) + Number()
+        )
+        const total_page = Math.ceil(newList.length / Number(query.limit))
+
+        return res.json({
+            message: 'Get list user success',
+            data: {
+                list_user: result,
+                pagination: {
+                    page: query.page,
+                    limit: query.limit,
+                    total_page
+                }
+            }
+        })
+    }
 }
