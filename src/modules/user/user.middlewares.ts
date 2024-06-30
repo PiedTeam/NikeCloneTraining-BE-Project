@@ -1154,6 +1154,20 @@ export const refreshTokenCookieValidator = async (
         req.decoded_refresh_token = decoded_refresh_token;
     } catch (error) {
         if (error instanceof JsonWebTokenError) {
+            if (error.message === "jwt expired") {
+                res.clearCookie("refresh_token");
+                await databaseService.refreshTokens.deleteOne({
+                    token: value,
+                });
+                next(
+                    new ErrorWithStatus({
+                        message: capitalize(
+                            (error as JsonWebTokenError).message,
+                        ),
+                        status: HTTP_STATUS.UNAUTHORIZED,
+                    }),
+                );
+            }
             next(
                 new ErrorWithStatus({
                     message: capitalize((error as JsonWebTokenError).message),

@@ -37,7 +37,7 @@ const whitelist = [
 
 // THIS IS FOR TESTING ONLY
 const corsOptions = {
-    origin: "*",
+    origin: whitelist,
     credentials: true, // access-control-allow-credentials:true
     allowedHeaders: ["Content-Type", "Authorization"], // access-control-allow-headers
     optionSuccessStatus: 200,
