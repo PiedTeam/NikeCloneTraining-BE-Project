@@ -9,6 +9,7 @@ import decrypt, { encrypt } from '~/utils/crypto'
 import { OTP_MESSAGES } from '../otp/otp.messages'
 import { USER_MESSAGES } from './user.messages'
 import {
+    BlockBody,
     LoginRequestBody,
     LogoutReqBody,
     RefreshTokenReqBody,
@@ -19,6 +20,7 @@ import {
 } from './user.requests'
 import User from './user.schema'
 import usersService from './user.services'
+import databaseService from '~/database/database.services'
 
 export const registerController = async (
     req: Request<ParamsDictionary, any, RegisterReqBody>,
@@ -252,4 +254,49 @@ export const refreshTokenController = async (
         message: USER_MESSAGES.REFRESH_TOKEN_SUCCESSFULLY,
         data: { access_token }
     })
+}
+
+export const blockAccountController = async (
+    req: Request<ParamsDictionary, any, BlockBody>,
+    res: Response
+) => {
+    console.log(req.cookies['refresh_token'])
+    await usersService.logout(req.cookies['refresh_token'])
+    res.clearCookie('refresh_token')
+    try {
+        const reason = req.body.description_reason
+        const picture_image_prove = req.body.picture_image_prove
+        const timeBlock = new Date()
+        const user_id = req.body._id
+        await usersService.blockAccount(
+            user_id,
+            reason,
+            picture_image_prove,
+            timeBlock
+        )
+        return res.json({
+            message: USER_MESSAGES.USER_HAS_BEEN_BLOCKED
+        })
+    } catch (error) {
+        return res.status(400).json({
+            message: 'Bad request'
+        })
+    }
+}
+
+export const unblockAccountController = async (
+    req: Request<ParamsDictionary, any, BlockBody>,
+    res: Response
+) => {
+    try {
+        const user_id = req.body._id
+        await usersService.unblockAccount(user_id)
+        return res.json({
+            message: USER_MESSAGES.USER_UNBLOCK_SUCCESSFULLY
+        })
+    } catch (error) {
+        return res.status(400).json({
+            message: 'Bad request'
+        })
+    }
 }

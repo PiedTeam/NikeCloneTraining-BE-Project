@@ -106,5 +106,8 @@ export const USER_MESSAGES = {
 
     //token
     REFRESH_TOKEN_IS_REQUIRED: 'Refresh token is required',
-    OTP_IS_INCORRECT: 'OTP is incorrect'
+    OTP_IS_INCORRECT: 'OTP is incorrect',
+    // block
+    USER_HAS_BEEN_BLOCKED: 'user has been blocked',
+    USER_UNBLOCK_SUCCESSFULLY: 'user unblock successfully'
 } as const

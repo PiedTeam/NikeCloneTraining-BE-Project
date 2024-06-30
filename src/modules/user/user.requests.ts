@@ -1,5 +1,6 @@
 import { JwtPayload } from 'jsonwebtoken'
 import { Subscription, TokenType, UserVerifyStatus } from './user.enum'
+import { ObjectId } from 'mongodb'
 
 export interface RegisterReqBody {
     email_phone: string
@@ -74,5 +75,11 @@ export type LogoutReqBody = {
 }
 
 export type RefreshTokenReqBody = {
+    refresh_token: string
+}
+export interface BlockBody {
+    _id: ObjectId
+    description_reason?: string
+    picture_image_prove?: string
     refresh_token: string
 }

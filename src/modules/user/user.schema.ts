@@ -19,6 +19,10 @@ interface UserType {
     updated_at?: Date
     status?: UserVerifyStatus
     notice?: NoticeUser
+    block?: Subscription
+    reasonBlocked?: string
+    picture_image_prove?: string
+    block_time?: Date
     wrongPasswordTimes?: number
     reasonBanned?: string
     avatar_url?: string
@@ -38,6 +42,10 @@ export default class User {
     updated_at: Date
     status: UserVerifyStatus
     notice: NoticeUser
+    block: Subscription
+    reasonBlocked?: string
+    picture_image_prove?: string
+    block_time: Date
     wrongPasswordTimes?: number
     reasonBanned?: string
     avatar_url: string
@@ -56,6 +64,10 @@ export default class User {
         this.updated_at = user.updated_at || date
         this.status = user.status || UserVerifyStatus.Unverified
         this.notice = NoticeUser.Active
+        this.block = Subscription.False
+        this.reasonBlocked = user.reasonBlocked || ''
+        this.picture_image_prove = user.picture_image_prove || ''
+        this.block_time = user.block_time || date
         this.wrongPasswordTimes = 0
         this.reasonBanned = user.reasonBanned || ''
         this.avatar_url = user.avatar_url || ''

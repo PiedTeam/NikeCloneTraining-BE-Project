@@ -3,6 +3,7 @@ import { Router } from 'express'
 import { cronJobFake } from '~/utils/cronJobFake'
 import { wrapAsync } from '~/utils/handler'
 import {
+    blockAccountController,
     changePasswordController,
     forgotPasswordController,
     getMeController,
@@ -13,6 +14,7 @@ import {
     resetPasswordController,
     searchAccountController,
     sendVerifyAccountOTPController,
+    unblockAccountController,
     updateMeController,
     verifyAccountController,
     verifyForgotPasswordTokenController
@@ -231,4 +233,12 @@ usersRouter.post(
     wrapAsync(refreshTokenController)
 )
 
+usersRouter.post(
+    '/block',
+    accessTokenValidator,
+    refreshTokenCookieValidator,
+    wrapAsync(blockAccountController)
+)
+
+usersRouter.post('/unblock', wrapAsync(unblockAccountController))
 export default usersRouter

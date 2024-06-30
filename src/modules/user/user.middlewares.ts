@@ -17,7 +17,7 @@ import { isValidPhoneNumberForCountry, validate } from '~/utils/validation'
 import { OTP_STATUS } from '../otp/otp.enum'
 import { OTP_MESSAGES } from '../otp/otp.messages'
 import otpService from '../otp/otp.services'
-import { NoticeUser, UserVerifyStatus } from './user.enum'
+import { NoticeUser, Subscription, UserVerifyStatus } from './user.enum'
 import { LoginRequestBody, TokenPayload } from './user.requests'
 import usersService from './user.services'
 import { StatusCodes } from 'http-status-codes'
@@ -283,7 +283,8 @@ export const loginValidator = validate(
 
                         if (
                             user.notice === NoticeUser.Banned ||
-                            user.reasonBanned !== ''
+                            user.reasonBanned !== '' ||
+                            user.block === Subscription.True
                         ) {
                             throw new ErrorWithStatus({
                                 message: USER_MESSAGES.ACCOUNT_IS_BANNED,
@@ -368,7 +369,8 @@ export const loginValidator = validate(
 
                         if (
                             user.notice === NoticeUser.Banned ||
-                            user.reasonBanned !== ''
+                            user.reasonBanned !== '' ||
+                            user.block === Subscription.True
                         ) {
                             throw new ErrorWithStatus({
                                 message: USER_MESSAGES.ACCOUNT_IS_BANNED,
