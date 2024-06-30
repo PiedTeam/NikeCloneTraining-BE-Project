@@ -6,9 +6,9 @@ import { ADMIN_MESSAGES } from './admin.messages'
 import { CreateEmployeeReqBody, UpdateAccountReqBody } from './admin.requests'
 import Employee from '../employee/employee.schema'
 import { capitalizePro } from '~/utils/capitalize'
-import { omit } from 'lodash'
+import { create, omit } from 'lodash'
 import decrypt, { encrypt, hashPassword } from '~/utils/crypto'
-import { TokenType } from '../user/user.enum'
+import { TokenType, UserRole } from '../user/user.enum'
 import { signToken, verifyToken } from '~/utils/jwt'
 import RefreshToken from '../refreshToken/refreshToken.schema'
 import { EmployeeRole } from './admin.enum'
@@ -162,17 +162,17 @@ class AdminService {
     async getListAccountEmployee() {
         const listEmployee = await databaseService.employee
             .find<UserList>(
-                {},
+                {
+                    role: 2
+                },
                 {
                     projection: {
-                        created_at: 0,
-                        updated_at: 0,
-                        salary: 0,
-                        attendance_date: 0,
-                        CV: 0,
-                        avatar_url: 0,
-                        contract_signed_date: 0,
-                        contract_expired_date: 0
+                        _id: 1,
+                        first_name: 1,
+                        last_name: 1,
+                        email: 1,
+                        phone_number: 1,
+                        role: 1
                     }
                 }
             )

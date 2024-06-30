@@ -11,7 +11,8 @@ export enum NoticeUser {
 
 export enum UserRole {
     Admin,
-    Customer
+    Customer,
+    Employee
 }
 
 export enum TokenType {

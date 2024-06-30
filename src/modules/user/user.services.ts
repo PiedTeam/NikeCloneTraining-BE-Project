@@ -418,17 +418,20 @@ class UsersService {
 
     async getListCustomer() {
         const listUser = await databaseService.users
-            .find<UserList>({
-                projection: {
-                    password: 0,
-                    updated_at: 0,
-                    created_at: 0,
-                    notice: 0,
-                    wrongPasswordTimes: 0,
-                    reasonBanned: 0,
-                    subscription: 0
+            .find<UserList>(
+                {},
+                {
+                    projection: {
+                        password: 0,
+                        updated_at: 0,
+                        created_at: 0,
+                        notice: 0,
+                        wrongPasswordTimes: 0,
+                        reasonBanned: 0,
+                        subscription: 0
+                    }
                 }
-            })
+            )
             .toArray()
         const result = listUser.map((user) => {
             if (user.email && user.phone_number) {

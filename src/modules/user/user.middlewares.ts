@@ -1207,13 +1207,13 @@ export const pagination = async (
         req.queryListAccount = { page: newPage, limit: newLimit }
         next()
     } else {
-        const newRole = numberToEnum(Number(role), UserRole)
+        const newRole = role as UserRole
         const newPage = Number(page)
         const newLimit = Number(limit)
         req.queryListAccount = {
             page: newPage,
             limit: newLimit,
-            role: newRole as UserRole
+            role: newRole
         }
         next()
     }
