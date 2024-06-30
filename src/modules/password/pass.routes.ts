@@ -1,13 +1,13 @@
-import { Router } from 'express'
-import { wrapAsync } from '~/utils/handler'
-import { registerPassword } from './pass.controllers'
-import { registerPasswordValidator } from './pass.middleware'
+import { Router } from "express";
+import { wrapAsync } from "~/utils/handler";
+import { registerPassword } from "./pass.controllers";
+import { registerPasswordValidator } from "./pass.middleware";
 
-const passwordRouter = Router()
+const passwordRouter = Router();
 passwordRouter.post(
-    '/updatePass',
+    "/updatePass",
     registerPasswordValidator,
-    wrapAsync(registerPassword)
-)
+    wrapAsync(registerPassword),
+);
 
-export default passwordRouter
+export default passwordRouter;

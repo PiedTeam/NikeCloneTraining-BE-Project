@@ -1,14 +1,14 @@
-import { ParamSchema, checkSchema } from 'express-validator'
-import { validate } from '~/utils/validation'
-import { USER_MESSAGES } from '../user/user.messages'
+import { ParamSchema, checkSchema } from "express-validator";
+import { validate } from "~/utils/validation";
+import { USER_MESSAGES } from "../user/user.messages";
 
 const passwordSchema: ParamSchema = {
     trim: true,
     notEmpty: {
-        errorMessage: USER_MESSAGES.PASSWORD_IS_REQUIRED
+        errorMessage: USER_MESSAGES.PASSWORD_IS_REQUIRED,
     },
     isString: {
-        errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING
+        errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING,
     },
     isStrongPassword: {
         options: {
@@ -16,17 +16,17 @@ const passwordSchema: ParamSchema = {
             minLowercase: 1,
             minUppercase: 1,
             minNumbers: 1,
-            minSymbols: 1
+            minSymbols: 1,
         },
-        errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRONG
-    }
-}
+        errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRONG,
+    },
+};
 export const registerPasswordValidator = validate(
     checkSchema(
         {
-            password: passwordSchema
+            password: passwordSchema,
             // confirm_password: confirmPasswordSchema
         },
-        ['body']
-    )
-)
+        ["body"],
+    ),
+);

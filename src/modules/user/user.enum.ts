@@ -1,26 +1,26 @@
 export enum UserVerifyStatus {
     Unverified,
-    Verified
+    Verified,
 }
 
 export enum NoticeUser {
     Active,
     Warning,
-    Banned
+    Banned,
 }
 
 export enum UserRole {
     Admin,
-    Customer
+    Customer,
 }
 
 export enum TokenType {
     Access,
     Refresh,
-    ForgotPasswordToken
+    ForgotPasswordToken,
 }
 
 export enum Subscription {
     False,
-    True
+    True,
 }

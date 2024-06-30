@@ -1,13 +1,12 @@
+import { Router } from "express";
+import { wrapAsync } from "~/utils/handler";
+import { verifyTokenCapchaController } from "./capcha.controllers";
 
-import { Router } from 'express'
-import { wrapAsync } from '~/utils/handler'
-import { verifyTokenCapchaController } from './capcha.controllers'
+const capchaRouter = Router();
 
-const capchaRouter = Router()
-
-capchaRouter.get('/', (req, res) => {
-  res.send('Hello Capcha')
-})
+capchaRouter.get("/", (req, res) => {
+    res.send("Hello Capcha");
+});
 
 /*
   * Description: Verify token capcha
@@ -15,9 +14,6 @@ capchaRouter.get('/', (req, res) => {
   Method: POST
   Body: { capcha: string }
 */
-capchaRouter.post(
-  '/verify',
-  wrapAsync(verifyTokenCapchaController)
-)
+capchaRouter.post("/verify", wrapAsync(verifyTokenCapchaController));
 
-export default capchaRouter
+export default capchaRouter;
