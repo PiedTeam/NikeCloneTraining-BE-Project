@@ -1,13 +1,13 @@
-import { ObjectId } from 'mongodb'
+import { ObjectId } from "mongodb";
 import {
     NoticeUser,
     Subscription,
     UserRole,
-    UserVerifyStatus
-} from './user.enum'
+    UserVerifyStatus,
+} from "./user.enum";
 
 interface UserType {
-    _id?: ObjectId
+    _id?: ObjectId;
     // username: string
     first_name: string
     last_name: string
@@ -30,7 +30,7 @@ interface UserType {
 }
 
 export default class User {
-    _id?: ObjectId
+    _id?: ObjectId;
     // username: string
     first_name: string
     last_name: string
@@ -50,9 +50,10 @@ export default class User {
     reasonBanned?: string
     avatar_url: string
     subscription: Subscription
+
     constructor(user: UserType) {
-        const date = new Date()
-        this._id = user._id || new ObjectId()
+        const date = new Date();
+        this._id = user._id || new ObjectId();
         // this.username = user.username || ''
         this.first_name = user.first_name || ''
         this.last_name = user.last_name || ''

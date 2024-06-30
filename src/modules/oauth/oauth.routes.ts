@@ -1,12 +1,12 @@
-import passport, { Profile } from 'passport'
-import { Router } from 'express'
+import passport, { Profile } from "passport";
+import { Router } from "express";
 import {
     loginFailController,
-    loginSuccessController
-} from './oauth.controllers'
-import { wrapAsync } from '~/utils/handler'
+    loginSuccessController,
+} from "./oauth.controllers";
+import { wrapAsync } from "~/utils/handler";
 
-export const oauthRouter = Router()
+export const oauthRouter = Router();
 
 /*
   route: register or login by google
@@ -22,12 +22,12 @@ export const oauthRouter = Router()
   }
 */
 oauthRouter.get(
-    '/google',
-    passport.authenticate('google', {
-        scope: ['profile', 'email'],
-        session: false
-    })
-)
+    "/google",
+    passport.authenticate("google", {
+        scope: ["profile", "email"],
+        session: false,
+    }),
+);
 
 /*
 route: callback after login by google
@@ -43,29 +43,29 @@ body: {
 }
 */
 oauthRouter.get(
-    '/google/callback',
+    "/google/callback",
     (req, res, next) => {
-        passport.authenticate('google', (err: Error, profile: Profile) => {
-            req.body = profile
-            next()
-        })(req, res, next)
+        passport.authenticate("google", (err: Error, profile: Profile) => {
+            req.body = profile;
+            next();
+        })(req, res, next);
     },
     (req, res) => {
-        const { access_token, refresh_token, new_user, iat, exp } = req.body
+        const { access_token, refresh_token, new_user, iat, exp } = req.body;
         // res.redirect(
         //     `${process.env.LOGIN_SUCCESS_URL}/?access_token=${access_token}&refresh_token=${refresh_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
         // )
-        res.cookie('refresh_token', refresh_token, {
+        res.cookie("refresh_token", refresh_token, {
             httpOnly: true,
             secure: true,
-            maxAge: Number(process.env.COOKIE_EXPIRE)
-        })
+            maxAge: Number(process.env.COOKIE_EXPIRE),
+        });
 
         res.redirect(
-            `${process.env.FE_REDIRECT_URL}/?access_token=${access_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
-        )
-    }
-)
+            `${process.env.FE_REDIRECT_URL}/?access_token=${access_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`,
+        );
+    },
+);
 
 /*
   route: register or login by Facebook
@@ -81,12 +81,12 @@ oauthRouter.get(
   }
 */
 oauthRouter.get(
-    '/facebook',
-    passport.authenticate('facebook', {
+    "/facebook",
+    passport.authenticate("facebook", {
         session: false,
-        scope: ['email']
-    })
-)
+        scope: ["email"],
+    }),
+);
 
 /*
 route: callback after login by Facebook
@@ -102,27 +102,27 @@ body: {
 }
 */
 oauthRouter.get(
-    '/facebook/callback',
+    "/facebook/callback",
     (req, res, next) => {
-        passport.authenticate('facebook', (err: Error, profile: Profile) => {
-            req.body = profile
-            next()
-        })(req, res, next)
+        passport.authenticate("facebook", (err: Error, profile: Profile) => {
+            req.body = profile;
+            next();
+        })(req, res, next);
     },
     (req, res) => {
-        const { access_token, refresh_token, new_user, iat, exp } = req.body
+        const { access_token, refresh_token, new_user, iat, exp } = req.body;
         // res.redirect(
         //     `${process.env.LOGIN_SUCCESS_URL}/?access_token=${access_token}&refresh_token=${refresh_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
         // )
-        res.cookie('refresh_token', refresh_token, {
+        res.cookie("refresh_token", refresh_token, {
             httpOnly: true,
             secure: true,
-            maxAge: Number(process.env.COOKIE_EXPIRE)
-        })
+            maxAge: Number(process.env.COOKIE_EXPIRE),
+        });
         res.redirect(
-            `${process.env.FE_REDIRECT_URL}/?access_token=${access_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`
-        )
-    }
-)
-oauthRouter.post('/login-success', wrapAsync(loginSuccessController))
-oauthRouter.post('/login-fail', wrapAsync(loginFailController))
+            `${process.env.FE_REDIRECT_URL}/?access_token=${access_token}&new_user=${new_user}&iat=${iat}&exp=${exp}`,
+        );
+    },
+);
+oauthRouter.post("/login-success", wrapAsync(loginSuccessController));
+oauthRouter.post("/login-fail", wrapAsync(loginFailController));

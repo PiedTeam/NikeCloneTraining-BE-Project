@@ -1,20 +1,25 @@
 {
     "compilerOptions": {
-        "module": "CommonJS", // Quy định output module được sử dụng
-        "moduleResolution": "node", //
-        "target": "ES2020", // Target ouput cho code
-        "outDir": "dist", // Đường dẫn output cho thư mục build
+        "module": "CommonJS",
+        "moduleResolution": "node",
+        "target": "ES2020",
+        "outDir": "./dist",
         "esModuleInterop": true /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */,
-        "strict": true /* Enable all strict type-checking options. */,
+        "strict": true,
         "skipLibCheck": true /* Skip type checking all .d.ts files. */,
-        "baseUrl": ".", // Đường dẫn base cho các import
+        "baseUrl": ".",
+        "sourceMap": true,
+        "useDefineForClassFields": true,
+        "resolveJsonModule": true,
+        // "allowImportingTsExtensions": true,
+        // "noEmit": false,
         "paths": {
-            "~/*": ["src/*"] // Đường dẫn tương đối cho các import (alias)
+            "~/*": ["src/*"] // Import (alias)
         }
     },
     "ts-node": {
         "require": ["tsconfig-paths/register"]
     },
-    "files": ["src/type.d.ts"], // Các file dùng để defined global type cho dự án
-    "include": ["src/**/*", "passport.config.ts"] // Đường dẫn include cho các file cần build
+    "files": ["src/type.d.ts"], // Defined global type cho dự án
+    "include": ["src/**/*", "passport.config.ts"]
 }

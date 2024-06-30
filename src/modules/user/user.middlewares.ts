@@ -1,3 +1,4 @@
+
 import 'dotenv/config'
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
@@ -17,52 +18,54 @@ import { isValidPhoneNumberForCountry, validate } from '~/utils/validation'
 import { OTP_STATUS } from '../otp/otp.enum'
 import { OTP_MESSAGES } from '../otp/otp.messages'
 import otpService from '../otp/otp.services'
-import { NoticeUser, Subscription, UserVerifyStatus } from './user.enum'
+import { NoticeUser, Subscription, UserVerifyStatus, UserRole, } from './user.enum'
 import { LoginRequestBody, TokenPayload } from './user.requests'
 import usersService from './user.services'
 import { StatusCodes } from 'http-status-codes'
+import { numberToEnum } from "~/utils/handler";
+
 
 //! Prevent db injection, XSS attack
 export const paramSchema: ParamSchema = {
     customSanitizer: {
         options: async (value) => {
-            return escape(value)
-        }
-    }
-}
+            return escape(value);
+        },
+    },
+};
 
 export const usernameSchema: ParamSchema = {
     trim: true,
     notEmpty: {
-        errorMessage: USER_MESSAGES.USERNAME_IS_REQUIRED
+        errorMessage: USER_MESSAGES.USERNAME_IS_REQUIRED,
     },
     isString: {
-        errorMessage: USER_MESSAGES.USERNAME_MUST_BE_STRING
+        errorMessage: USER_MESSAGES.USERNAME_MUST_BE_STRING,
     },
     isLength: {
         options: {
             min: 1,
-            max: 50
+            max: 50,
         },
-        errorMessage: USER_MESSAGES.USERNAME_LENGTH_MUST_BE_FROM_1_TO_50
+        errorMessage: USER_MESSAGES.USERNAME_LENGTH_MUST_BE_FROM_1_TO_50,
     },
     custom: {
         options: (value: string) => {
             if (!/[a-zA-Z]/.test(value)) {
-                throw new Error(USER_MESSAGES.USERNAME_MUST_CONTAIN_ALPHABET)
+                throw new Error(USER_MESSAGES.USERNAME_MUST_CONTAIN_ALPHABET);
             }
-            return true
-        }
-    }
-}
+            return true;
+        },
+    },
+};
 
 export const emailSchema: ParamSchema = {
     trim: true,
     notEmpty: {
-        errorMessage: USER_MESSAGES.EMAIL_IS_REQUIRED
+        errorMessage: USER_MESSAGES.EMAIL_IS_REQUIRED,
     },
     isEmail: {
-        errorMessage: USER_MESSAGES.EMAIL_IS_INVALID
+        errorMessage: USER_MESSAGES.EMAIL_IS_INVALID,
     },
     normalizeEmail: {
         options: {
@@ -76,10 +79,10 @@ export const emailSchema: ParamSchema = {
             yahoo_lowercase: true,
             yahoo_remove_subaddress: true,
             icloud_lowercase: true,
-            icloud_remove_subaddress: true
-        }
-    }
-}
+            icloud_remove_subaddress: true,
+        },
+    },
+};
 
 export const phone_numberSchema: ParamSchema = {
     optional: { options: { nullable: true } },
@@ -87,10 +90,10 @@ export const phone_numberSchema: ParamSchema = {
     notEmpty: { errorMessage: USER_MESSAGES.PHONE_NUMBER_IS_REQUIRED },
     isString: { errorMessage: USER_MESSAGES.PHONE_NUMBER_MUST_BE_STRING },
     isMobilePhone: {
-        options: ['vi-VN'],
-        errorMessage: USER_MESSAGES.PHONE_NUMBER_IS_INVALID
-    }
-}
+        options: ["vi-VN"],
+        errorMessage: USER_MESSAGES.PHONE_NUMBER_IS_INVALID,
+    },
+};
 
 export const passwordSchema: ParamSchema = {
     trim: true,
@@ -102,11 +105,11 @@ export const passwordSchema: ParamSchema = {
             minLowercase: 1,
             minUppercase: 1,
             minNumbers: 1,
-            minSymbols: 1
+            minSymbols: 1,
         },
-        errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRONG
-    }
-}
+        errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRONG,
+    },
+};
 
 const confirmPasswordSchema: ParamSchema = {
     trim: true,
@@ -118,22 +121,22 @@ const confirmPasswordSchema: ParamSchema = {
             minLowercase: 1,
             minUppercase: 1,
             minNumbers: 1,
-            minSymbols: 1
+            minSymbols: 1,
         },
-        errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRONG
+        errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRONG,
     },
     custom: {
         options: (value, { req }) => {
             if (value !== req.body.password) {
                 throw new Error(
-                    USER_MESSAGES.CONFIRM_PASSWORD_MUST_MATCH_PASSWORD
-                )
+                    USER_MESSAGES.CONFIRM_PASSWORD_MUST_MATCH_PASSWORD,
+                );
             }
 
-            return true
-        }
-    }
-}
+            return true;
+        },
+    },
+};
 
 export const firstnameSchema: ParamSchema = {
     trim: true,
@@ -141,9 +144,9 @@ export const firstnameSchema: ParamSchema = {
     isString: { errorMessage: USER_MESSAGES.FIRST_NAME_MUST_BE_STRING },
     isLength: {
         options: { min: 1, max: 50 },
-        errorMessage: USER_MESSAGES.FIRST_NAME_LENGTH_MUST_BE_FROM_1_TO_50
-    }
-}
+        errorMessage: USER_MESSAGES.FIRST_NAME_LENGTH_MUST_BE_FROM_1_TO_50,
+    },
+};
 
 export const lastnameSchema: ParamSchema = {
     trim: true,
@@ -151,9 +154,9 @@ export const lastnameSchema: ParamSchema = {
     isString: { errorMessage: USER_MESSAGES.LAST_NAME_MUST_BE_STRING },
     isLength: {
         options: { min: 1, max: 50 },
-        errorMessage: USER_MESSAGES.LAST_NAME_LENGTH_MUST_BE_FROM_1_TO_50
-    }
-}
+        errorMessage: USER_MESSAGES.LAST_NAME_LENGTH_MUST_BE_FROM_1_TO_50,
+    },
+};
 
 export const imageSchema: ParamSchema = {
     optional: true,
@@ -161,9 +164,9 @@ export const imageSchema: ParamSchema = {
     trim: true,
     isLength: {
         options: { min: 1, max: 400 },
-        errorMessage: USER_MESSAGES.IMAGE_URL_LENGTH_MUST_BE_LESS_THAN_400
-    }
-}
+        errorMessage: USER_MESSAGES.IMAGE_URL_LENGTH_MUST_BE_LESS_THAN_400,
+    },
+};
 
 export const registerValidator = validate(
     checkSchema(
@@ -179,16 +182,16 @@ export const registerValidator = validate(
                     options: async (value) => {
                         const isExist =
                             await usersService.checkPhoneNumberExist(
-                                encrypt(value)
-                            )
+                                encrypt(value),
+                            );
                         if (isExist) {
                             throw new Error(
-                                USER_MESSAGES.PHONE_NUMBER_IS_ALREADY_EXISTED
-                            )
+                                USER_MESSAGES.PHONE_NUMBER_IS_ALREADY_EXISTED,
+                            );
                         }
-                        return true
-                    }
-                }
+                        return true;
+                    },
+                },
             },
             email: {
                 ...paramSchema,
@@ -197,72 +200,72 @@ export const registerValidator = validate(
                 custom: {
                     options: async (value) => {
                         const isExist = await usersService.checkEmailExist(
-                            encrypt(value)
-                        )
+                            encrypt(value),
+                        );
                         if (isExist) {
-                            throw new Error(USER_MESSAGES.EMAIL_ALREADY_EXISTS)
+                            throw new Error(USER_MESSAGES.EMAIL_ALREADY_EXISTS);
                         }
-                        return true
-                    }
-                }
-            }
+                        return true;
+                    },
+                },
+            },
             // confirm_password: confirmPasswordSchema
         },
-        ['body']
-    )
-)
+        ["body"],
+    ),
+);
 
 export const loginCheckMissingField = (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) => {
-    const body = req.body as LoginRequestBody
+    const body = req.body as LoginRequestBody;
     if (!body.email && !body.phone_number) {
         next(
             new ErrorEntity({
                 message: USER_MESSAGES.UNPROCESSABLE_ENTITY,
                 status: HTTP_STATUS.UNPROCESSABLE_ENTITY,
-                data: { field: { msg: USER_MESSAGES.FIELD_IS_REQUIRED } }
-            })
-        )
+                data: { field: { msg: USER_MESSAGES.FIELD_IS_REQUIRED } },
+            }),
+        );
     }
-    next()
-}
+    next();
+};
 
 export const checkVerifyAccount = validate(
     checkSchema({
         email_phone: {
-            notEmpty: { errorMessage: USER_MESSAGES.EMAIL_PHONE_IS_REQUIRED }
-        }
-    })
-)
+            notEmpty: { errorMessage: USER_MESSAGES.EMAIL_PHONE_IS_REQUIRED },
+        },
+    }),
+);
 
 export const checkEmailOrPhone = (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) => {
-    const body = req.body as ParamsDictionary
-    const email_phone = body.email_phone
+    const body = req.body as ParamsDictionary;
+    const email_phone = body.email_phone;
     if (validator.isEmail(email_phone)) {
-        req.body.email = email_phone
-        req.body.type = 'email'
-    } else if (isValidPhoneNumberForCountry(email_phone, 'VN')) {
-        req.body.phone_number = email_phone
-        req.body.type = 'phone_number'
+        req.body.email = email_phone;
+        req.body.type = "email";
+    } else if (isValidPhoneNumberForCountry(email_phone, "VN")) {
+        req.body.phone_number = email_phone;
+        req.body.type = "phone_number";
     } else {
         next(
             new ErrorEntity({
                 message: USER_MESSAGES.UNPROCESSABLE_ENTITY,
                 status: HTTP_STATUS.UNPROCESSABLE_ENTITY,
-                data: { field: { msg: USER_MESSAGES.FIELD_ERROR_FORMAT } }
-            })
-        )
+                data: { field: { msg: USER_MESSAGES.FIELD_ERROR_FORMAT } },
+            }),
+        );
     }
-    delete req.body.email_phone
-    next()
-}
+    delete req.body.email_phone;
+    next();
+};
 
 export const loginValidator = validate(
     checkSchema(
@@ -274,27 +277,28 @@ export const loginValidator = validate(
                 custom: {
                     options: async (value, { req }) => {
                         const user = await databaseService.users.findOne({
-                            email: encrypt(value)
-                        })
+                            email: encrypt(value),
+                        });
 
                         if (!user) {
-                            throw new Error(USER_MESSAGES.EMAIL_NOT_FOUND)
+                            throw new Error(USER_MESSAGES.EMAIL_NOT_FOUND);
                         }
 
                         if (
                             user.notice === NoticeUser.Banned ||
                             user.reasonBanned !== '' ||
                             user.block === Subscription.True
+
                         ) {
                             throw new ErrorWithStatus({
                                 message: USER_MESSAGES.ACCOUNT_IS_BANNED,
-                                status: StatusCodes.LOCKED
-                            })
+                                status: StatusCodes.LOCKED,
+                            });
                         }
 
                         const wrongPasswordTimes =
-                            user.wrongPasswordTimes as number
-                        const NUMBER_LIMIT_WRONG_PASSWORD = 5
+                            user.wrongPasswordTimes as number;
+                        const NUMBER_LIMIT_WRONG_PASSWORD = 5;
 
                         if (user.password !== hashPassword(req.body.password)) {
                             // user input wrong password 5 times => account will be banned
@@ -309,11 +313,11 @@ export const loginValidator = validate(
                                         {
                                             $set: {
                                                 wrongPasswordTimes:
-                                                    wrongPasswordTimes + 1
-                                            }
-                                        }
-                                    ]
-                                )
+                                                    wrongPasswordTimes + 1,
+                                            },
+                                        },
+                                    ],
+                                );
                             }
 
                             if (
@@ -328,29 +332,29 @@ export const loginValidator = validate(
                                             $set: {
                                                 notice: NoticeUser.Banned,
                                                 reasonBanned:
-                                                    USER_MESSAGES.WRONG_PASS_5_TIMES
-                                            }
-                                        }
-                                    ]
-                                )
+                                                    USER_MESSAGES.WRONG_PASS_5_TIMES,
+                                            },
+                                        },
+                                    ],
+                                );
                                 throw new ErrorWithStatus({
                                     message: USER_MESSAGES.ACCOUNT_IS_BANNED,
-                                    status: StatusCodes.LOCKED
-                                })
+                                    status: StatusCodes.LOCKED,
+                                });
                             }
-                            throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
+                            throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG);
                         }
 
                         // reset wrongPasswordTimes to 0 when user login successfully
                         await databaseService.users.updateOne(
                             { email: encrypt(value) },
-                            [{ $set: { wrongPasswordTimes: 0 } }]
-                        )
-                        ;(req as Request).user = user
+                            [{ $set: { wrongPasswordTimes: 0 } }],
+                        );
+                        (req as Request).user = user;
 
-                        return true
-                    }
-                }
+                        return true;
+                    },
+                },
             },
             phone_number: {
                 ...paramSchema,
@@ -359,12 +363,12 @@ export const loginValidator = validate(
                 custom: {
                     options: async (value, { req }) => {
                         const user = await databaseService.users.findOne({
-                            phone_number: encrypt(value)
-                        })
+                            phone_number: encrypt(value),
+                        });
                         if (!user) {
                             throw new Error(
-                                USER_MESSAGES.PHONE_NUMBER_NOT_FOUND
-                            )
+                                USER_MESSAGES.PHONE_NUMBER_NOT_FOUND,
+                            );
                         }
 
                         if (
@@ -374,13 +378,13 @@ export const loginValidator = validate(
                         ) {
                             throw new ErrorWithStatus({
                                 message: USER_MESSAGES.ACCOUNT_IS_BANNED,
-                                status: StatusCodes.LOCKED
-                            })
+                                status: StatusCodes.LOCKED,
+                            });
                         }
 
                         const wrongPasswordTimes =
-                            user.wrongPasswordTimes as number
-                        const NUMBER_LIMIT_WRONG_PASSWORD = 5
+                            user.wrongPasswordTimes as number;
+                        const NUMBER_LIMIT_WRONG_PASSWORD = 5;
 
                         if (user.password !== hashPassword(req.body.password)) {
                             // user input wrong password 5 times => account will be banned
@@ -395,11 +399,11 @@ export const loginValidator = validate(
                                         {
                                             $set: {
                                                 wrongPasswordTimes:
-                                                    wrongPasswordTimes + 1
-                                            }
-                                        }
-                                    ]
-                                )
+                                                    wrongPasswordTimes + 1,
+                                            },
+                                        },
+                                    ],
+                                );
                             }
 
                             if (
@@ -414,41 +418,41 @@ export const loginValidator = validate(
                                             $set: {
                                                 notice: NoticeUser.Banned,
                                                 reasonBanned:
-                                                    USER_MESSAGES.WRONG_PASS_5_TIMES
-                                            }
-                                        }
-                                    ]
-                                )
+                                                    USER_MESSAGES.WRONG_PASS_5_TIMES,
+                                            },
+                                        },
+                                    ],
+                                );
                                 throw new ErrorWithStatus({
                                     message: USER_MESSAGES.ACCOUNT_IS_BANNED,
-                                    status: StatusCodes.LOCKED
-                                })
+                                    status: StatusCodes.LOCKED,
+                                });
                             }
 
-                            throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
+                            throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG);
                         }
 
                         // reset wrongPasswordTimes to 0 when user login successfully
                         await databaseService.users.updateOne(
                             { phone_number: encrypt(value) },
-                            [{ $set: { wrongPasswordTimes: 0 } }]
-                        )
-                        ;(req as Request).user = user
+                            [{ $set: { wrongPasswordTimes: 0 } }],
+                        );
+                        (req as Request).user = user;
 
-                        return true
-                    }
-                }
+                        return true;
+                    },
+                },
             },
             password: {
                 ...paramSchema,
                 trim: true,
-                notEmpty: { errorMessage: 'Password is required' },
-                isString: { errorMessage: 'Password must be a string' }
-            }
+                notEmpty: { errorMessage: "Password is required" },
+                isString: { errorMessage: "Password must be a string" },
+            },
         },
-        ['body']
-    )
-)
+        ["body"],
+    ),
+);
 
 export const forgotPasswordValidator = validate(
     checkSchema(
@@ -460,26 +464,26 @@ export const forgotPasswordValidator = validate(
                 custom: {
                     options: async (value, { req }) => {
                         const user = await databaseService.users.findOne({
-                            email: encrypt(value)
-                        })
+                            email: encrypt(value),
+                        });
                         if (user === null) {
-                            throw new Error(USER_MESSAGES.EMAIL_NOT_FOUND)
+                            throw new Error(USER_MESSAGES.EMAIL_NOT_FOUND);
                         }
                         if (user.status === UserVerifyStatus.Unverified) {
                             throw new Error(
-                                USER_MESSAGES.ACCOUNT_IS_NOT_VERIFIED
-                            )
+                                USER_MESSAGES.ACCOUNT_IS_NOT_VERIFIED,
+                            );
                         }
                         if (user.notice === NoticeUser.Banned) {
                             throw new ErrorWithStatus({
                                 message: USER_MESSAGES.ACCOUNT_IS_BANNED,
-                                status: HTTP_STATUS.FORBIDDEN
-                            })
+                                status: HTTP_STATUS.FORBIDDEN,
+                            });
                         }
-                        req.user = user
-                        return true
-                    }
-                }
+                        req.user = user;
+                        return true;
+                    },
+                },
             },
             phone_number: {
                 ...paramSchema,
@@ -488,28 +492,28 @@ export const forgotPasswordValidator = validate(
                 custom: {
                     options: async (value, { req }) => {
                         const user = await databaseService.users.findOne({
-                            phone_number: encrypt(value)
-                        })
+                            phone_number: encrypt(value),
+                        });
                         if (user === null) {
                             throw new Error(
-                                USER_MESSAGES.PHONE_NUMBER_NOT_FOUND
-                            )
+                                USER_MESSAGES.PHONE_NUMBER_NOT_FOUND,
+                            );
                         }
                         if (user.notice === NoticeUser.Banned) {
                             throw new ErrorWithStatus({
                                 message: USER_MESSAGES.ACCOUNT_IS_BANNED,
-                                status: HTTP_STATUS.FORBIDDEN
-                            })
+                                status: HTTP_STATUS.FORBIDDEN,
+                            });
                         }
-                        req.user = user
-                        return true
-                    }
-                }
-            }
+                        req.user = user;
+                        return true;
+                    },
+                },
+            },
         },
-        ['body']
-    )
-)
+        ["body"],
+    ),
+);
 
 export const verifyForgotPasswordOTPValidator = validate(
     checkSchema(
@@ -521,74 +525,74 @@ export const verifyForgotPasswordOTPValidator = validate(
                     options: async (value, { req }) => {
                         if (!value) {
                             throw new Error(
-                                USER_MESSAGES.FORGOT_PASSWORD_OTP_IS_REQUIRED
-                            )
+                                USER_MESSAGES.FORGOT_PASSWORD_OTP_IS_REQUIRED,
+                            );
                         }
                         const user =
-                            req.body.type === 'email'
+                            req.body.type === "email"
                                 ? await databaseService.users.findOne({
-                                      email: encrypt(req.body.email)
+                                      email: encrypt(req.body.email),
                                   })
                                 : await databaseService.users.findOne({
                                       phone_number: encrypt(
-                                          req.body.phone_number
-                                      )
-                                  })
+                                          req.body.phone_number,
+                                      ),
+                                  });
                         if (!user) {
-                            throw new Error(USER_MESSAGES.USER_NOT_FOUND)
+                            throw new Error(USER_MESSAGES.USER_NOT_FOUND);
                         }
                         const result = await databaseService.OTP.findOne({
                             user_id: user._id,
-                            status: OTP_STATUS.Available
-                        })
+                            status: OTP_STATUS.Available,
+                        });
                         if (!result) {
-                            throw new Error(OTP_MESSAGES.OTP_NOT_FOUND)
+                            throw new Error(OTP_MESSAGES.OTP_NOT_FOUND);
                         }
                         if (result.incorrTimes >= 3) {
                             await databaseService.users.updateOne(
                                 { _id: user._id },
-                                { $set: { notice: NoticeUser.Warning } }
-                            )
+                                { $set: { notice: NoticeUser.Warning } },
+                            );
                             await databaseService.OTP.updateOne(
                                 { _id: result._id },
-                                { $set: { status: OTP_STATUS.Unavailable } }
-                            )
+                                { $set: { status: OTP_STATUS.Unavailable } },
+                            );
                             throw new Error(
-                                USER_MESSAGES.OVER_TIMES_REQUEST_METHOD
-                            )
+                                USER_MESSAGES.OVER_TIMES_REQUEST_METHOD,
+                            );
                         }
                         if (
                             (result?.type === 1 &&
-                                req.body.type === 'phone_number') ||
-                            (result?.type === 0 && req.body.type === 'email')
+                                req.body.type === "phone_number") ||
+                            (result?.type === 0 && req.body.type === "email")
                         ) {
                             throw new Error(
-                                OTP_MESSAGES.REQUIRE_FIELD_IS_INVALID
-                            )
+                                OTP_MESSAGES.REQUIRE_FIELD_IS_INVALID,
+                            );
                         }
-                        const otp = result?.OTP
+                        const otp = result?.OTP;
                         if (value !== otp) {
                             await databaseService.OTP.updateOne(
                                 {
-                                    _id: result._id
+                                    _id: result._id,
                                 },
                                 {
                                     $set: {
-                                        incorrTimes: result.incorrTimes + 1
-                                    }
-                                }
-                            )
+                                        incorrTimes: result.incorrTimes + 1,
+                                    },
+                                },
+                            );
                             //                             console.log(result)
-                            throw new Error(OTP_MESSAGES.OTP_IS_INCORRECT)
+                            throw new Error(OTP_MESSAGES.OTP_IS_INCORRECT);
                         }
-                        req.body.user_id = user._id
-                    }
-                }
-            }
+                        req.body.user_id = user._id;
+                    },
+                },
+            },
         },
-        ['body']
-    )
-)
+        ["body"],
+    ),
+);
 
 export const resetPasswordValidator = validate(
     checkSchema(
@@ -598,16 +602,16 @@ export const resetPasswordValidator = validate(
             email_phone: {
                 ...paramSchema,
                 notEmpty: {
-                    errorMessage: USER_MESSAGES.EMAIL_PHONE_IS_REQUIRED
+                    errorMessage: USER_MESSAGES.EMAIL_PHONE_IS_REQUIRED,
                 },
                 isString: {
-                    errorMessage: USER_MESSAGES.EMAIL_PHONE_MUST_BE_STRING
-                }
-            }
+                    errorMessage: USER_MESSAGES.EMAIL_PHONE_MUST_BE_STRING,
+                },
+            },
         },
-        ['body']
-    )
-)
+        ["body"],
+    ),
+);
 
 export const checkNewPasswordValidator = validate(
     checkSchema(
@@ -617,20 +621,20 @@ export const checkNewPasswordValidator = validate(
                 custom: {
                     options: async (value, { req }) => {
                         const user = await databaseService.users.findOne({
-                            _id: req.body.user_id
-                        })
+                            _id: req.body.user_id,
+                        });
                         if (user?.password === hashPassword(value)) {
                             throw new Error(
-                                USER_MESSAGES.NEW_PASSWORD_MUST_BE_NEW
-                            )
+                                USER_MESSAGES.NEW_PASSWORD_MUST_BE_NEW,
+                            );
                         }
-                    }
-                }
-            }
+                    },
+                },
+            },
         },
-        ['body']
-    )
-)
+        ["body"],
+    ),
+);
 
 export const changePasswordValidator = validate(
     checkSchema(
@@ -641,18 +645,18 @@ export const changePasswordValidator = validate(
                 custom: {
                     options: async (value, { req }) => {
                         const user_info =
-                            req.decoded_authorization as TokenPayload
+                            req.decoded_authorization as TokenPayload;
                         const user = await databaseService.users.findOne({
                             _id: new ObjectId(user_info.user_id),
-                            password: hashPassword(value)
-                        })
+                            password: hashPassword(value),
+                        });
                         if (!user) {
-                            throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG)
+                            throw new Error(USER_MESSAGES.PASSWORD_IS_WRONG);
                         }
-                        req.body.user_id = user._id
-                        delete req.decoded_authorization
-                    }
-                }
+                        req.body.user_id = user._id;
+                        delete req.decoded_authorization;
+                    },
+                },
             },
             new_password: {
                 ...paramSchema,
@@ -660,24 +664,24 @@ export const changePasswordValidator = validate(
                 custom: {
                     options: async (value, { req }) => {
                         const user_info =
-                            req.decoded_authorization as TokenPayload
+                            req.decoded_authorization as TokenPayload;
                         const user = await databaseService.users.findOne({
                             _id: new ObjectId(user_info.user_id),
-                            password: hashPassword(value)
-                        })
+                            password: hashPassword(value),
+                        });
 
                         if (user?.password === hashPassword(value)) {
                             throw new Error(
-                                USER_MESSAGES.NEW_PASSWORD_MUST_BE_NEW
-                            )
+                                USER_MESSAGES.NEW_PASSWORD_MUST_BE_NEW,
+                            );
                         }
-                    }
-                }
-            }
+                    },
+                },
+            },
         },
-        ['body']
-    )
-)
+        ["body"],
+    ),
+);
 
 export const verifyAccountValidator = validate(
     checkSchema(
@@ -689,27 +693,27 @@ export const verifyAccountValidator = validate(
                 custom: {
                     options: async (value, { req }) => {
                         const user = await databaseService.users.findOne({
-                            email: encrypt(value)
-                        })
+                            email: encrypt(value),
+                        });
                         if (user === null) {
-                            throw new Error(USER_MESSAGES.EMAIL_NOT_FOUND)
+                            throw new Error(USER_MESSAGES.EMAIL_NOT_FOUND);
                         }
                         if (user.notice === NoticeUser.Banned) {
                             throw new ErrorWithStatus({
                                 message: USER_MESSAGES.ACCOUNT_IS_BANNED,
-                                status: HTTP_STATUS.FORBIDDEN
-                            })
+                                status: HTTP_STATUS.FORBIDDEN,
+                            });
                         }
                         if (user.status === UserVerifyStatus.Verified) {
                             throw new Error(
-                                USER_MESSAGES.ACCOUNT_ALREADY_VERIFIED
-                            )
+                                USER_MESSAGES.ACCOUNT_ALREADY_VERIFIED,
+                            );
                         }
 
-                        req.user = user
-                        return true
-                    }
-                }
+                        req.user = user;
+                        return true;
+                    },
+                },
             },
             phone_number: {
                 ...paramSchema,
@@ -718,33 +722,33 @@ export const verifyAccountValidator = validate(
                 custom: {
                     options: async (value, { req }) => {
                         const user = await databaseService.users.findOne({
-                            phone_number: encrypt(value)
-                        })
+                            phone_number: encrypt(value),
+                        });
                         if (user === null) {
                             throw new Error(
-                                USER_MESSAGES.PHONE_NUMBER_NOT_FOUND
-                            )
+                                USER_MESSAGES.PHONE_NUMBER_NOT_FOUND,
+                            );
                         }
                         if (user.notice === NoticeUser.Banned) {
                             throw new ErrorWithStatus({
                                 message: USER_MESSAGES.ACCOUNT_IS_BANNED,
-                                status: HTTP_STATUS.FORBIDDEN
-                            })
+                                status: HTTP_STATUS.FORBIDDEN,
+                            });
                         }
                         if (user.status === UserVerifyStatus.Verified) {
                             throw new Error(
-                                USER_MESSAGES.ACCOUNT_ALREADY_VERIFIED
-                            )
+                                USER_MESSAGES.ACCOUNT_ALREADY_VERIFIED,
+                            );
                         }
-                        req.user = user
-                        return true
-                    }
-                }
-            }
+                        req.user = user;
+                        return true;
+                    },
+                },
+            },
         },
-        ['body']
-    )
-)
+        ["body"],
+    ),
+);
 
 export const verifyAccountOTPValidator = validate(
     checkSchema({
@@ -755,65 +759,67 @@ export const verifyAccountOTPValidator = validate(
                 options: async (value, { req }) => {
                     if (!value) {
                         throw new Error(
-                            USER_MESSAGES.VERIFY_ACCOUNT_OTP_IS_REQUIRED
-                        )
+                            USER_MESSAGES.VERIFY_ACCOUNT_OTP_IS_REQUIRED,
+                        );
                     }
                     const user =
-                        req.body.type === 'email'
+                        req.body.type === "email"
                             ? await databaseService.users.findOne({
-                                  email: encrypt(req.body.email)
+                                  email: encrypt(req.body.email),
                               })
                             : await databaseService.users.findOne({
-                                  phone_number: encrypt(req.body.phone_number)
-                              })
+                                  phone_number: encrypt(req.body.phone_number),
+                              });
                     if (!user) {
-                        throw new Error(USER_MESSAGES.USER_NOT_FOUND)
+                        throw new Error(USER_MESSAGES.USER_NOT_FOUND);
                     }
                     const result = await databaseService.OTP.findOne({
                         user_id: user._id,
-                        status: OTP_STATUS.Available
-                    })
+                        status: OTP_STATUS.Available,
+                    });
                     if (!result) {
-                        throw new Error(OTP_MESSAGES.OTP_NOT_FOUND)
+                        throw new Error(OTP_MESSAGES.OTP_NOT_FOUND);
                     }
                     if (result.incorrTimes >= 3) {
                         await databaseService.users.updateOne(
                             { _id: user._id },
-                            { $set: { notice: NoticeUser.Warning } }
-                        )
+                            { $set: { notice: NoticeUser.Warning } },
+                        );
                         await databaseService.OTP.updateOne(
                             { _id: result._id },
-                            { $set: { status: OTP_STATUS.Unavailable } }
-                        )
-                        throw new Error(USER_MESSAGES.OVER_TIMES_REQUEST_METHOD)
+                            { $set: { status: OTP_STATUS.Unavailable } },
+                        );
+                        throw new Error(
+                            USER_MESSAGES.OVER_TIMES_REQUEST_METHOD,
+                        );
                     }
                     if (
                         (result?.type === 1 &&
-                            req.body.type === 'phone_number') ||
-                        (result?.type === 0 && req.body.type === 'email')
+                            req.body.type === "phone_number") ||
+                        (result?.type === 0 && req.body.type === "email")
                     ) {
-                        throw new Error(OTP_MESSAGES.REQUIRE_FIELD_IS_INVALID)
+                        throw new Error(OTP_MESSAGES.REQUIRE_FIELD_IS_INVALID);
                     }
-                    const otp = result?.OTP
+                    const otp = result?.OTP;
                     if (value !== otp) {
                         await databaseService.OTP.updateOne(
                             {
-                                _id: result._id
+                                _id: result._id,
                             },
                             {
                                 $set: {
-                                    incorrTimes: result.incorrTimes + 1
-                                }
-                            }
-                        )
-                        throw new Error(OTP_MESSAGES.OTP_IS_INCORRECT)
+                                    incorrTimes: result.incorrTimes + 1,
+                                },
+                            },
+                        );
+                        throw new Error(OTP_MESSAGES.OTP_IS_INCORRECT);
                     }
-                    req.body.user_id = user._id
-                }
-            }
-        }
-    })
-)
+                    req.body.user_id = user._id;
+                },
+            },
+        },
+    }),
+);
 
 export const verifyOTPValidator = validate(
     checkSchema(
@@ -824,124 +830,126 @@ export const verifyOTPValidator = validate(
                 custom: {
                     options: async (value, { req }) => {
                         if (!value) {
-                            throw new Error(OTP_MESSAGES.OTP_IS_REQUIRED)
+                            throw new Error(OTP_MESSAGES.OTP_IS_REQUIRED);
                         }
 
                         const user =
-                            req.body.type === 'email'
+                            req.body.type === "email"
                                 ? await databaseService.users.findOne({
-                                      email: encrypt(req.body.email)
+                                      email: encrypt(req.body.email),
                                   })
                                 : await databaseService.users.findOne({
                                       phone_number: encrypt(
-                                          req.body.phone_number
-                                      )
-                                  })
+                                          req.body.phone_number,
+                                      ),
+                                  });
 
                         if (!user) {
-                            throw new Error(USER_MESSAGES.USER_NOT_FOUND)
+                            throw new Error(USER_MESSAGES.USER_NOT_FOUND);
                         }
 
                         const result = await databaseService.OTP.findOne({
                             user_id: user._id,
-                            status: OTP_STATUS.Available
-                        })
+                            status: OTP_STATUS.Available,
+                        });
 
-                        if (!result) throw new Error(OTP_MESSAGES.OTP_iS_USED)
+                        if (!result) throw new Error(OTP_MESSAGES.OTP_iS_USED);
 
-                        const isExpired = await otpService.isOTPExpired(result)
+                        const isExpired = await otpService.isOTPExpired(result);
                         if (isExpired) {
                             await databaseService.OTP.updateOne(
                                 { user_id: user._id },
-                                { $set: { status: OTP_STATUS.Unavailable } }
-                            )
-                            throw new Error(OTP_MESSAGES.OTP_IS_EXPIRED)
+                                { $set: { status: OTP_STATUS.Unavailable } },
+                            );
+                            throw new Error(OTP_MESSAGES.OTP_IS_EXPIRED);
                         }
                         if (result.incorrTimes >= 3) {
                             const isWarning = await usersService.isWarning(
-                                user._id
-                            )
+                                user._id,
+                            );
                             if (isWarning) {
                                 await databaseService.users.updateOne(
                                     { _id: user._id },
                                     {
                                         $set: {
-                                            notice: NoticeUser.Banned
-                                        }
-                                    }
-                                )
-                                throw new Error(USER_MESSAGES.ACCOUNT_IS_BANNED)
+                                            notice: NoticeUser.Banned,
+                                        },
+                                    },
+                                );
+                                throw new Error(
+                                    USER_MESSAGES.ACCOUNT_IS_BANNED,
+                                );
                             }
                             await databaseService.users.updateOne(
                                 { _id: user._id },
                                 {
                                     $set: {
-                                        notice: NoticeUser.Warning
-                                    }
-                                }
-                            )
+                                        notice: NoticeUser.Warning,
+                                    },
+                                },
+                            );
                             await databaseService.OTP.updateOne(
                                 { user_id: user._id },
-                                { $set: { status: OTP_STATUS.Unavailable } }
-                            )
+                                { $set: { status: OTP_STATUS.Unavailable } },
+                            );
                             throw new Error(
-                                USER_MESSAGES.OVER_TIMES_REQUEST_METHOD
-                            )
+                                USER_MESSAGES.OVER_TIMES_REQUEST_METHOD,
+                            );
                         }
 
                         if (
                             (result?.type === 1 &&
-                                req.body.type === 'phone_number') ||
-                            (result?.type === 0 && req.body.type === 'email')
+                                req.body.type === "phone_number") ||
+                            (result?.type === 0 && req.body.type === "email")
                         ) {
                             throw new Error(
-                                OTP_MESSAGES.REQUIRE_FIELD_IS_INVALID
-                            )
+                                OTP_MESSAGES.REQUIRE_FIELD_IS_INVALID,
+                            );
                         }
-                        const otp = result?.OTP
+                        const otp = result?.OTP;
                         if (value !== otp) {
                             await databaseService.OTP.updateOne(
                                 {
-                                    _id: result._id
+                                    _id: result._id,
                                 },
                                 {
                                     $set: {
-                                        incorrTimes: result.incorrTimes + 1
-                                    }
-                                }
-                            )
-                            throw new Error(USER_MESSAGES.OTP_IS_INCORRECT)
+                                        incorrTimes: result.incorrTimes + 1,
+                                    },
+                                },
+                            );
+                            throw new Error(USER_MESSAGES.OTP_IS_INCORRECT);
                         }
-                        req.body.user_id = user._id
-                    }
-                }
-            }
+                        req.body.user_id = user._id;
+                    },
+                },
+            },
         },
-        ['body']
-    )
-)
+        ["body"],
+    ),
+);
 
 export const blockPostman = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) => {
     try {
         if (
-            (req.headers['postman-token'] &&
+            (req.headers["postman-token"] &&
                 (await req.body?.code) === process.env.CODE) ||
-            isDeveloperAgent(req.headers['user-agent'] as string)
+            isDeveloperAgent(req.headers["user-agent"] as string)
         ) {
-            next()
+            next();
             // return true
         } else {
-            return res.status(403).send('m cook')
+            return res.status(403).send("m cook");
             // return false
         }
     } catch (error) {
-        console.log(error)
+        console.log(error);
     }
-}
+};
 
 export const accessTokenValidator = validate(
     checkSchema(
@@ -951,37 +959,37 @@ export const accessTokenValidator = validate(
                 trim: true,
                 custom: {
                     options: async (value: string, { req }) => {
-                        const access_token = value.split(' ')[1]
+                        const access_token = value.split(" ")[1];
                         if (!access_token) {
                             throw new ErrorWithStatus({
                                 message: USER_MESSAGES.ACCESS_TOKEN_IS_REQUIRED,
-                                status: HTTP_STATUS.UNAUTHORIZED
-                            })
+                                status: HTTP_STATUS.UNAUTHORIZED,
+                            });
                         }
                         try {
                             const decoded_authorization = await verifyToken({
                                 token: access_token,
                                 secretOrPublickey: process.env
-                                    .JWT_SECRET_ACCESS_TOKEN as string
-                            })
-                            ;(req as Request).decoded_authorization =
-                                decoded_authorization
+                                    .JWT_SECRET_ACCESS_TOKEN as string,
+                            });
+                            (req as Request).decoded_authorization =
+                                decoded_authorization;
                         } catch (error) {
                             throw new ErrorWithStatus({
                                 message: capitalize(
-                                    (error as JsonWebTokenError).message
+                                    (error as JsonWebTokenError).message,
                                 ),
-                                status: HTTP_STATUS.UNAUTHORIZED
-                            })
+                                status: HTTP_STATUS.UNAUTHORIZED,
+                            });
                         }
-                        return true
-                    }
-                }
-            }
+                        return true;
+                    },
+                },
+            },
         },
-        ['headers']
-    )
-)
+        ["headers"],
+    ),
+);
 
 export const refreshTokenValidator = validate(
     checkSchema(
@@ -997,58 +1005,58 @@ export const refreshTokenValidator = validate(
                                     verifyToken({
                                         token: value,
                                         secretOrPublickey: process.env
-                                            .JWT_SECRET_REFRESH_TOKEN as string
+                                            .JWT_SECRET_REFRESH_TOKEN as string,
                                     }),
                                     databaseService.refreshTokens.findOne({
-                                        token: value
-                                    })
-                                ])
+                                        token: value,
+                                    }),
+                                ]);
 
                             if (!refresh_token) {
                                 throw new ErrorWithStatus({
                                     message:
                                         USER_MESSAGES.REFRESH_TOKEN_NOT_FOUND,
-                                    status: HTTP_STATUS.UNAUTHORIZED
-                                })
+                                    status: HTTP_STATUS.UNAUTHORIZED,
+                                });
                             }
-                            ;(req as Request).decoded_refresh_token =
-                                decoded_refresh_token
+                            (req as Request).decoded_refresh_token =
+                                decoded_refresh_token;
                         } catch (error) {
                             if (error instanceof JsonWebTokenError) {
                                 throw new ErrorWithStatus({
                                     message: capitalize(
-                                        (error as JsonWebTokenError).message
+                                        (error as JsonWebTokenError).message,
                                     ),
-                                    status: HTTP_STATUS.UNAUTHORIZED
-                                })
+                                    status: HTTP_STATUS.UNAUTHORIZED,
+                                });
                             }
-                            throw error
+                            throw error;
                         }
-                        return true
-                    }
-                }
-            }
+                        return true;
+                    },
+                },
+            },
         },
-        ['body']
-    )
-)
+        ["body"],
+    ),
+);
 
 export const verifiedUserValidator = (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) => {
-    const { status } = req.decoded_authorization as TokenPayload
+    const { status } = req.decoded_authorization as TokenPayload;
     if (status !== UserVerifyStatus.Verified) {
         return next(
             new ErrorWithStatus({
                 message: USER_MESSAGES.USER_NOT_VERIFIED,
-                status: HTTP_STATUS.FORBIDDEN
-            })
-        )
+                status: HTTP_STATUS.FORBIDDEN,
+            }),
+        );
     }
-    next()
-}
+    next();
+};
 
 export const updateMeValidator = validate(
     checkSchema(
@@ -1059,14 +1067,14 @@ export const updateMeValidator = validate(
             phone_number: {
                 ...paramSchema,
                 optional: true,
-                ...phone_numberSchema
+                ...phone_numberSchema,
             },
             avatar_url: { ...paramSchema, optional: true, ...lastnameSchema },
-            password: { ...paramSchema, optional: true, ...passwordSchema }
+            password: { ...paramSchema, optional: true, ...passwordSchema },
         },
-        ['body']
-    )
-)
+        ["body"],
+    ),
+);
 
 export const searchAccountValidator = validate(
     // after reach the middleware checkEmailOrPhone, the request body will be modified (assume that email or phone_number is present and valid)
@@ -1087,88 +1095,135 @@ export const searchAccountValidator = validate(
     checkSchema({
         type: {
             ...paramSchema,
-            in: ['body'],
+            in: ["body"],
             trim: true,
             notEmpty: {
-                errorMessage: 'Type is required'
+                errorMessage: "Type is required",
             },
             isString: {
-                errorMessage: 'Type must be a string'
+                errorMessage: "Type must be a string",
             },
             isIn: {
-                options: [['email', 'phone_number']],
-                errorMessage: 'Type must be either "email" or "phone_number"'
-            }
+                options: [["email", "phone_number"]],
+                errorMessage: 'Type must be either "email" or "phone_number"',
+            },
         },
         email: {
             ...paramSchema,
-            in: ['body'],
+            in: ["body"],
             optional: {
                 options: {
                     nullable: true,
-                    checkFalsy: true
-                }
-            }
+                    checkFalsy: true,
+                },
+            },
         },
         phone_number: {
             ...paramSchema,
-            in: ['body'],
+            in: ["body"],
             optional: {
                 options: {
                     nullable: true,
-                    checkFalsy: true
-                }
-            }
-        }
-    })
-)
+                    checkFalsy: true,
+                },
+            },
+        },
+    }),
+);
 
 export const refreshTokenCookieValidator = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) => {
-    const value = req.cookies['refresh_token']
+    const value = req.cookies["refresh_token"];
 
     if (!value) {
         return next(
             new ErrorWithStatus({
                 message: USER_MESSAGES.REFRESH_TOKEN_IS_REQUIRED,
-                status: HTTP_STATUS.UNAUTHORIZED
-            })
-        )
+                status: HTTP_STATUS.UNAUTHORIZED,
+            }),
+        );
     }
     try {
         const [decoded_refresh_token, refresh_token] = await Promise.all([
             verifyToken({
                 token: value,
                 secretOrPublickey: process.env
-                    .JWT_SECRET_REFRESH_TOKEN as string
+                    .JWT_SECRET_REFRESH_TOKEN as string,
             }),
             databaseService.refreshTokens.findOne({
-                token: value
-            })
-        ])
+                token: value,
+            }),
+        ]);
 
         if (!refresh_token) {
             throw new ErrorWithStatus({
                 message: USER_MESSAGES.REFRESH_TOKEN_NOT_FOUND,
-                status: HTTP_STATUS.UNAUTHORIZED
-            })
+                status: HTTP_STATUS.UNAUTHORIZED,
+            });
         }
 
-        req.decoded_refresh_token = decoded_refresh_token
+        req.decoded_refresh_token = decoded_refresh_token;
     } catch (error) {
         if (error instanceof JsonWebTokenError) {
             next(
                 new ErrorWithStatus({
                     message: capitalize((error as JsonWebTokenError).message),
-                    status: HTTP_STATUS.UNAUTHORIZED
-                })
-            )
+                    status: HTTP_STATUS.UNAUTHORIZED,
+                }),
+            );
         }
-        next(error)
+        next(error);
     }
 
-    next()
-}
+    next();
+};
+
+export const isUserRole =
+    (arrayUserRole: UserRole[]) =>
+    async (req: Request, res: Response, next: NextFunction) => {
+        const payload = req.decoded_authorization as TokenPayload;
+        if (!arrayUserRole.includes(payload.role)) {
+            next(
+                new ErrorWithStatus({
+                    message: USER_MESSAGES.DONT_HAVE_PERMISSION,
+                    status: StatusCodes.UNAUTHORIZED,
+                }),
+            );
+        }
+
+        next();
+    };
+
+export const pagination = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) => {
+    const {
+        page = 1,
+        limit = 20,
+        role,
+    } = req.query as {
+        [key: string]: string | number;
+    };
+
+    if (!role) {
+        const newPage = Number(page);
+        const newLimit = Number(limit);
+        req.queryListAccount = { page: newPage, limit: newLimit };
+        next();
+    } else {
+        const newRole = role as UserRole;
+        const newPage = Number(page);
+        const newLimit = Number(limit);
+        req.queryListAccount = {
+            page: newPage,
+            limit: newLimit,
+            role: newRole,
+        };
+        next();
+    }
+};

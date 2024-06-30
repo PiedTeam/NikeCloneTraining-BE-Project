@@ -1,13 +1,13 @@
-import { Router } from 'express'
-import { wrapAsync } from '~/utils/handler'
-import { accessTokenValidator } from '../user/user.middlewares'
+import { Router } from "express";
+import { wrapAsync } from "~/utils/handler";
+import { accessTokenValidator } from "../user/user.middlewares";
 import {
     sendOtpMailController,
-    sendOtpPhoneNumberController
-} from './otp.controllers'
-import { emailValidator, phoneNumberValidator } from './otp.middlewares'
+    sendOtpPhoneNumberController,
+} from "./otp.controllers";
+import { emailValidator, phoneNumberValidator } from "./otp.middlewares";
 
-const otpRouter = Router()
+const otpRouter = Router();
 
 /*
   Description: send OTP via phone number
@@ -19,11 +19,11 @@ const otpRouter = Router()
   }
 */
 otpRouter.post(
-    '/send-otp-phone',
+    "/send-otp-phone",
     accessTokenValidator,
     phoneNumberValidator,
-    wrapAsync(sendOtpPhoneNumberController)
-)
+    wrapAsync(sendOtpPhoneNumberController),
+);
 
 /*
   Description: send OTP via mail
@@ -35,10 +35,10 @@ otpRouter.post(
   }
 */
 otpRouter.post(
-    '/send-otp-email',
+    "/send-otp-email",
     accessTokenValidator,
     emailValidator,
-    wrapAsync(sendOtpMailController)
-)
+    wrapAsync(sendOtpMailController),
+);
 
-export default otpRouter
+export default otpRouter;
