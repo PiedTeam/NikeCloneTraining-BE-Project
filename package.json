@@ -2,7 +2,6 @@
     "name": "naikila_be",
     "private": true,
     "version": "1.0.0",
-    "type": "module",
     "scripts": {
         "dev": "cross-env npx nodemon",
         "build": "tsc && tsc-alias",
