@@ -1,4 +1,4 @@
-import databaseService from '~/database/database.services'
+import databaseService from "~/database/database.services";
 
 class MenuService {
     async getMenu(language: string) {
@@ -7,25 +7,25 @@ class MenuService {
                 {
                     $match: {
                         status: true,
-                        language: language
-                    }
+                        language: language,
+                    },
                 },
                 {
                     $lookup: {
-                        from: 'subCategories',
-                        localField: '_id',
-                        foreignField: 'idMain',
-                        as: 'subCategories'
-                    }
-                }
+                        from: "subCategories",
+                        localField: "_id",
+                        foreignField: "idMain",
+                        as: "subCategories",
+                    },
+                },
             ])
-            .toArray()
-        return result
+            .toArray();
+        return result;
     }
 }
 
-const menuService = new MenuService()
-export default menuService
+const menuService = new MenuService();
+export default menuService;
 
 /**
  *

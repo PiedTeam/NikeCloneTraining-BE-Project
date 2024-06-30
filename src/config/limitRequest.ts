@@ -1,6 +1,6 @@
-import { rateLimit } from 'express-rate-limit'
-import { StatusCodes } from 'http-status-codes'
-import { USER_MESSAGES } from '~/modules/user/user.messages'
+import { rateLimit } from "express-rate-limit";
+import { StatusCodes } from "http-status-codes";
+import { USER_MESSAGES } from "~/modules/user/user.messages";
 
 //! Prevent Dos attack - one IP can only make 3 requests in 5 minutes
 export const limiter = rateLimit({
@@ -10,7 +10,7 @@ export const limiter = rateLimit({
     // legacyHeaders: true,
     handler: function (req, res, next) {
         res.status(StatusCodes.TOO_MANY_REQUESTS).json({
-            message: USER_MESSAGES.TOO_MANY_REQUESTS
-        })
-    }
-})
+            message: USER_MESSAGES.TOO_MANY_REQUESTS,
+        });
+    },
+});
