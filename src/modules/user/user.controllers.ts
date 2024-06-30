@@ -9,6 +9,7 @@ import decrypt, { encrypt } from "~/utils/crypto";
 import { OTP_MESSAGES } from "../otp/otp.messages";
 import { USER_MESSAGES } from "./user.messages";
 import {
+    ListAccountQuery,
     LoginRequestBody,
     LogoutReqBody,
     RefreshTokenReqBody,
@@ -19,6 +20,9 @@ import {
 } from "./user.requests";
 import User from "./user.schema";
 import usersService from "./user.services";
+import adminService from "../admin/admin.services";
+import { UserList } from "~/constants/user.type";
+import { UserRole } from "./user.enum";
 
 export const registerController = async (
     req: Request<ParamsDictionary, any, RegisterReqBody>,
@@ -252,4 +256,91 @@ export const refreshTokenController = async (
         message: USER_MESSAGES.REFRESH_TOKEN_SUCCESSFULLY,
         data: { access_token },
     });
+};
+
+export const getListUserController = async (req: Request, res: Response) => {
+    const query = req.queryListAccount as ListAccountQuery;
+
+    if (!query.role) {
+        const listUser = await usersService.getListCustomer();
+        const listEmployee = await adminService.getListAccountEmployee();
+        const newList = [...listUser, ...listEmployee];
+        const result: UserList[] = [];
+        for (let i = 0; i < newList.length; i++) {
+            if (
+                i >=
+                    Number(query.limit) * Number(query.page) -
+                        Number(query.limit) &&
+                i < Number(query.limit) * Number(query.page)
+            ) {
+                result.push(newList[i]);
+            }
+        }
+        const total_page = Math.ceil(newList.length / Number(query.limit));
+
+        return res.json({
+            message: "Get list user success",
+            data: {
+                list_user: result,
+                pagination: {
+                    page: query.page,
+                    limit: query.limit,
+                    total_page,
+                },
+            },
+        });
+    } else if (query.role == UserRole.Customer) {
+        const listUser = await usersService.getListCustomer();
+        const result: UserList[] = [];
+        for (let i = 0; i < listUser.length; i++) {
+            if (
+                i >=
+                    Number(query.limit) * Number(query.page) -
+                        Number(query.limit) &&
+                i < Number(query.limit) * Number(query.page)
+            ) {
+                result.push(listUser[i]);
+            }
+        }
+        const total_page = Math.ceil(listUser.length / Number(query.limit));
+
+        return res.json({
+            message: "Get list user success",
+            data: {
+                list_user: result,
+                pagination: {
+                    page: query.page,
+                    limit: query.limit,
+                    total_page,
+                },
+            },
+        });
+    } else if (query.role == UserRole.Employee) {
+        const listEmployee = await adminService.getListAccountEmployee();
+        const result: UserList[] = [];
+        for (let i = 0; i < listEmployee.length; i++) {
+            if (
+                i >=
+                    Number(query.limit) * Number(query.page) -
+                        Number(query.limit) &&
+                i < Number(query.limit) * Number(query.page)
+            ) {
+                console.log(1);
+                result.push(listEmployee[i]);
+            }
+        }
+        const total_page = Math.ceil(listEmployee.length / Number(query.limit));
+
+        return res.json({
+            message: "Get list user success",
+            data: {
+                list_user: result,
+                pagination: {
+                    page: query.page,
+                    limit: query.limit,
+                    total_page,
+                },
+            },
+        });
+    }
 };
