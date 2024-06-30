@@ -1137,15 +1137,6 @@ export const refreshTokenCookieValidator = async (
     next: NextFunction,
 ) => {
     const value = req.cookies["refresh_token"];
-
-    if (!value) {
-        return next(
-            new ErrorWithStatus({
-                message: USER_MESSAGES.REFRESH_TOKEN_IS_REQUIRED,
-                status: HTTP_STATUS.UNAUTHORIZED,
-            }),
-        );
-    }
     try {
         const [decoded_refresh_token, refresh_token] = await Promise.all([
             verifyToken({
