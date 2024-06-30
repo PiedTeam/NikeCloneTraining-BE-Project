@@ -1,17 +1,17 @@
-import { NextFunction, Request, Response } from 'express'
-import databaseService from '~/database/database.services'
-import { UserVerifyStatus } from '~/modules/user/user.enum'
+import { NextFunction, Request, Response } from "express";
+import databaseService from "~/database/database.services";
+import { UserVerifyStatus } from "~/modules/user/user.enum";
 
 export const cronJobFake = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) => {
     const result = await databaseService.users.deleteMany({
         created_at: {
-            $lte: new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000) // 30 days
+            $lte: new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days
         },
-        status: UserVerifyStatus.Unverified
-    })
-    next()
-}
+        status: UserVerifyStatus.Unverified,
+    });
+    next();
+};

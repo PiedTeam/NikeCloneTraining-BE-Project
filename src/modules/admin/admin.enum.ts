@@ -4,5 +4,5 @@ export enum EmployeeRole {
     Sales,
     Marketing,
     IT,
-    CustomerService
+    CustomerService,
 }

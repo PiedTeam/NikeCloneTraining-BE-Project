@@ -1,7 +1,7 @@
-import { Router } from 'express'
+import { Router } from "express";
 // import { limiter } from '~/config/limitRequest'
-import { cronJobFake } from '~/utils/cronJobFake'
-import { wrapAsync } from '~/utils/handler'
+import { cronJobFake } from "~/utils/cronJobFake";
+import { wrapAsync } from "~/utils/handler";
 import {
     changePasswordController,
     forgotPasswordController,
@@ -16,8 +16,8 @@ import {
     sendVerifyAccountOTPController,
     updateMeController,
     verifyAccountController,
-    verifyForgotPasswordTokenController
-} from './user.controllers'
+    verifyForgotPasswordTokenController,
+} from "./user.controllers";
 import {
     accessTokenValidator,
     changePasswordValidator,
@@ -35,11 +35,11 @@ import {
     updateMeValidator,
     verifiedUserValidator,
     verifyAccountValidator,
-    verifyOTPValidator
-} from './user.middlewares'
-import { UserRole } from './user.enum'
+    verifyOTPValidator,
+} from "./user.middlewares";
+import { UserRole } from "./user.enum";
 
-const usersRouter = Router()
+const usersRouter = Router();
 
 /*
   Description: register by username
@@ -55,12 +55,12 @@ const usersRouter = Router()
   }
 */
 usersRouter.post(
-    '/register',
+    "/register",
     wrapAsync(cronJobFake),
     checkEmailOrPhone,
     registerValidator,
-    wrapAsync(registerController)
-)
+    wrapAsync(registerController),
+);
 
 /*
   Description: User login 
@@ -72,12 +72,12 @@ usersRouter.post(
   }
 */
 usersRouter.post(
-    '/login',
+    "/login",
     // limiter,
     checkEmailOrPhone,
     loginValidator,
-    wrapAsync(loginController)
-)
+    wrapAsync(loginController),
+);
 
 /*
   Description: send otp forgot password to user's email or phone number
@@ -86,12 +86,12 @@ usersRouter.post(
   Body: { email_phone: string }
 */
 usersRouter.post(
-    '/forgot-password',
+    "/forgot-password",
     // limiter,
     checkEmailOrPhone,
     forgotPasswordValidator,
-    wrapAsync(forgotPasswordController)
-)
+    wrapAsync(forgotPasswordController),
+);
 
 /*
   Description: verify otp
@@ -103,11 +103,11 @@ usersRouter.post(
   }
 */
 usersRouter.post(
-    '/verify-otp',
+    "/verify-otp",
     checkEmailOrPhone,
     verifyOTPValidator,
-    wrapAsync(verifyForgotPasswordTokenController)
-)
+    wrapAsync(verifyForgotPasswordTokenController),
+);
 
 /*
 des: reset password
@@ -121,13 +121,13 @@ body: {
       }
 */
 usersRouter.post(
-    '/reset-password',
+    "/reset-password",
     resetPasswordValidator,
     checkEmailOrPhone,
     verifyOTPValidator,
     checkNewPasswordValidator,
-    wrapAsync(resetPasswordController)
-)
+    wrapAsync(resetPasswordController),
+);
 
 /*
   Description: Send OTP verify account to user's email or phone number
@@ -137,12 +137,12 @@ usersRouter.post(
   Body: { email_phone: string }
 */
 usersRouter.post(
-    '/send-verify-account-otp',
+    "/send-verify-account-otp",
     accessTokenValidator,
     checkEmailOrPhone,
     verifyAccountValidator,
-    wrapAsync(sendVerifyAccountOTPController)
-)
+    wrapAsync(sendVerifyAccountOTPController),
+);
 
 /*
    * Description: Verify account
@@ -152,14 +152,14 @@ usersRouter.post(
   Body: { email_phone: string, verify_account_otp: string }
 */
 usersRouter.post(
-    '/verify-account',
+    "/verify-account",
     accessTokenValidator,
     checkVerifyAccount,
     checkEmailOrPhone,
     verifyAccountValidator,
     verifyOTPValidator,
-    wrapAsync(verifyAccountController)
-)
+    wrapAsync(verifyAccountController),
+);
 
 /*
   Description: change password
@@ -169,11 +169,11 @@ usersRouter.post(
   Body: { old_password: string, new_password: string }
 */
 usersRouter.post(
-    '/change-password',
+    "/change-password",
     accessTokenValidator,
     changePasswordValidator,
-    wrapAsync(changePasswordController)
-)
+    wrapAsync(changePasswordController),
+);
 
 /*
   Description: get user's profile
@@ -182,7 +182,7 @@ usersRouter.post(
   Header: { Authorization: Bearer <access_token> }
   Body: {}
 */
-usersRouter.get('/me', accessTokenValidator, wrapAsync(getMeController))
+usersRouter.get("/me", accessTokenValidator, wrapAsync(getMeController));
 
 /*
   Description: update user's profile
@@ -192,12 +192,12 @@ usersRouter.get('/me', accessTokenValidator, wrapAsync(getMeController))
   Body: { first_name: string, last_name: string, email: string, phone_number: string, ...}
 */
 usersRouter.patch(
-    '/me',
+    "/me",
     accessTokenValidator,
     verifiedUserValidator,
     updateMeValidator,
-    wrapAsync(updateMeController)
-)
+    wrapAsync(updateMeController),
+);
 
 /*
   Description: search API account
@@ -215,32 +215,32 @@ usersRouter.patch(
 // )
 
 usersRouter.post(
-    '/search',
+    "/search",
     accessTokenValidator,
     checkEmailOrPhone,
     searchAccountValidator,
-    wrapAsync(searchAccountController)
-)
+    wrapAsync(searchAccountController),
+);
 
 usersRouter.post(
-    '/logout',
+    "/logout",
     accessTokenValidator,
     refreshTokenCookieValidator,
-    wrapAsync(logoutController)
-)
+    wrapAsync(logoutController),
+);
 
 usersRouter.post(
-    '/refresh-token',
+    "/refresh-token",
     refreshTokenCookieValidator,
-    wrapAsync(refreshTokenController)
-)
+    wrapAsync(refreshTokenController),
+);
 
 usersRouter.get(
-    '/list-account',
+    "/list-account",
     // accessTokenValidator,
     // wrapAsync(isUserRole([UserRole.Admin])),
     wrapAsync(pagination),
-    wrapAsync(getListUserController)
-)
+    wrapAsync(getListUserController),
+);
 
-export default usersRouter
+export default usersRouter;

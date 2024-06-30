@@ -1,13 +1,13 @@
-import 'dotenv/config'
-import { NextFunction, Request, Response } from 'express'
-import { ParamsDictionary } from 'express-serve-static-core'
-import { StatusCodes } from 'http-status-codes'
-import { pick } from 'lodash'
-import { ObjectId } from 'mongodb'
-import { HTTP_STATUS } from '~/constants/httpStatus'
-import decrypt, { encrypt } from '~/utils/crypto'
-import { OTP_MESSAGES } from '../otp/otp.messages'
-import { USER_MESSAGES } from './user.messages'
+import "dotenv/config";
+import { NextFunction, Request, Response } from "express";
+import { ParamsDictionary } from "express-serve-static-core";
+import { StatusCodes } from "http-status-codes";
+import { pick } from "lodash";
+import { ObjectId } from "mongodb";
+import { HTTP_STATUS } from "~/constants/httpStatus";
+import decrypt, { encrypt } from "~/utils/crypto";
+import { OTP_MESSAGES } from "../otp/otp.messages";
+import { USER_MESSAGES } from "./user.messages";
 import {
     ListAccountQuery,
     LoginRequestBody,
@@ -16,129 +16,129 @@ import {
     RegisterReqBody,
     TokenPayload,
     UpdateMeReqBody,
-    UserResponseAfterCheckEmailOrPhone
-} from './user.requests'
-import User from './user.schema'
-import usersService from './user.services'
-import adminService from '../admin/admin.services'
-import { UserList } from '~/constants/user.type'
-import { UserRole } from './user.enum'
+    UserResponseAfterCheckEmailOrPhone,
+} from "./user.requests";
+import User from "./user.schema";
+import usersService from "./user.services";
+import adminService from "../admin/admin.services";
+import { UserList } from "~/constants/user.type";
+import { UserRole } from "./user.enum";
 
 export const registerController = async (
     req: Request<ParamsDictionary, any, RegisterReqBody>,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) => {
     const { access_token, refresh_token } = await usersService.register(
-        req.body
-    )
-    res.cookie('refresh_token', refresh_token, {
+        req.body,
+    );
+    res.cookie("refresh_token", refresh_token, {
         httpOnly: true,
         secure: true,
-        maxAge: Number(process.env.COOKIE_EXPIRE)
-    })
+        maxAge: Number(process.env.COOKIE_EXPIRE),
+    });
 
     return res.json({
         message: USER_MESSAGES.REGISTER_SUCCESS,
-        data: { access_token, refresh_token }
-    })
-}
+        data: { access_token, refresh_token },
+    });
+};
 
 export const loginController = async (
     req: Request<ParamsDictionary, any, LoginRequestBody>,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) => {
-    const user = req.user as User
-    const user_id = user._id as ObjectId
-    const role = user.role
+    const user = req.user as User;
+    const user_id = user._id as ObjectId;
+    const role = user.role;
     const result = await usersService.login({
         user_id: user_id.toString(),
         status: user.status,
-        role: role
-    })
+        role: role,
+    });
 
-    const { refresh_token } = result
-    res.cookie('refresh_token', refresh_token, {
+    const { refresh_token } = result;
+    res.cookie("refresh_token", refresh_token, {
         httpOnly: true,
         secure: true,
-        maxAge: Number(process.env.COOKIE_EXPIRE)
-    })
+        maxAge: Number(process.env.COOKIE_EXPIRE),
+    });
 
     return res.json({
         message: USER_MESSAGES.LOGIN_SUCCESS,
-        data: result
-    })
-}
+        data: result,
+    });
+};
 
 export const forgotPasswordController = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) => {
     const result =
-        req.body.type === 'email'
+        req.body.type === "email"
             ? await usersService.sendForgotPasswordOTPByEmail(req.body.email)
             : await usersService.sendForgotPasswordOTPByPhone(
-                  req.body.phone_number
-              )
+                  req.body.phone_number,
+              );
     return res.status(200).json({
-        message: OTP_MESSAGES.SEND_OTP_SUCCESSFULLY
-    })
-}
+        message: OTP_MESSAGES.SEND_OTP_SUCCESSFULLY,
+    });
+};
 
 export const verifyForgotPasswordTokenController = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) => {
     return res.status(200).json({
-        message: OTP_MESSAGES.VERIFY_OTP_SUCCESSFULLY
-    })
-}
+        message: OTP_MESSAGES.VERIFY_OTP_SUCCESSFULLY,
+    });
+};
 
 export const resetPasswordController = async (req: Request, res: Response) => {
-    const user_id = req.body.user_id
-    const password = req.body.password
-    const result = await usersService.resetPassword(user_id, password)
+    const user_id = req.body.user_id;
+    const password = req.body.password;
+    const result = await usersService.resetPassword(user_id, password);
     return res.status(200).json({
         message: OTP_MESSAGES.RESET_PASSWORD_SUCCESSFULLY,
-        details: result
-    })
-}
+        details: result,
+    });
+};
 
 export const sendVerifyAccountOTPController = async (
     req: Request,
-    res: Response
+    res: Response,
 ) => {
     const result =
-        req.body.type === 'email'
+        req.body.type === "email"
             ? await usersService.sendVerifyAccountOTPByEmail(req.body.email)
             : await usersService.sendVerifyAccountOTPByPhone(
-                  req.body.phone_number
-              )
+                  req.body.phone_number,
+              );
     return res.status(200).json({
-        message: OTP_MESSAGES.SEND_OTP_SUCCESSFULLY
-    })
-}
+        message: OTP_MESSAGES.SEND_OTP_SUCCESSFULLY,
+    });
+};
 
 export const verifyAccountController = async (req: Request, res: Response) => {
-    const user_id = req.body.user_id
-    const result = await usersService.verifyAccount(user_id)
+    const user_id = req.body.user_id;
+    const result = await usersService.verifyAccount(user_id);
     return res.status(200).json({
         message: USER_MESSAGES.VERIFY_ACCOUNT_SUCCESSFULLY,
-        details: result
-    })
-}
+        details: result,
+    });
+};
 
 export const getMeController = async (req: Request, res: Response) => {
-    const { user_id } = req.decoded_authorization as TokenPayload
-    const user = await usersService.getMe(user_id)
+    const { user_id } = req.decoded_authorization as TokenPayload;
+    const user = await usersService.getMe(user_id);
 
-    const { first_name, last_name, status } = user
-    const email = user.email !== '' ? await decrypt(user.email) : ''
+    const { first_name, last_name, status } = user;
+    const email = user.email !== "" ? await decrypt(user.email) : "";
     const phone_number =
-        user.phone_number !== '' ? await decrypt(user.phone_number) : ''
+        user.phone_number !== "" ? await decrypt(user.phone_number) : "";
 
     return res.status(200).json({
         message: USER_MESSAGES.GET_ME_SUCCESSFULLY,
@@ -148,124 +148,124 @@ export const getMeController = async (req: Request, res: Response) => {
             last_name,
             email,
             phone_number,
-            status
-        }
-    })
-}
+            status,
+        },
+    });
+};
 
 export const updateMeController = async (
     req: Request<ParamsDictionary, any, UpdateMeReqBody>,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ) => {
-    const { user_id } = (req as Request).decoded_authorization as TokenPayload
+    const { user_id } = (req as Request).decoded_authorization as TokenPayload;
     const allowedFields: (keyof UpdateMeReqBody)[] = [
-        'first_name',
-        'last_name',
-        'email',
-        'phone_number',
-        'avatar_url',
-        'subscription',
-        'password'
-    ]
-    const body = pick(req.body, allowedFields)
+        "first_name",
+        "last_name",
+        "email",
+        "phone_number",
+        "avatar_url",
+        "subscription",
+        "password",
+    ];
+    const body = pick(req.body, allowedFields);
     const user = await usersService.updateMe({
         user_id,
-        payload: body as UpdateMeReqBody
-    })
+        payload: body as UpdateMeReqBody,
+    });
     return res.json({
         message: USER_MESSAGES.UPDATE_ME_SUCCESSFULLY,
-        user
-    })
-}
+        user,
+    });
+};
 
 export const changePasswordController = async (req: Request, res: Response) => {
-    const user_id = req.body.user_id
-    const new_password = req.body.new_password
-    const result = await usersService.resetPassword(user_id, new_password)
+    const user_id = req.body.user_id;
+    const new_password = req.body.new_password;
+    const result = await usersService.resetPassword(user_id, new_password);
     return res.status(StatusCodes.OK).json({
         message: USER_MESSAGES.CHANGE_PASSWORD_SUCCESSFULLY,
-        details: result
-    })
-}
+        details: result,
+    });
+};
 
 export const searchAccountController = async (req: Request, res: Response) => {
-    const data = req.body as UserResponseAfterCheckEmailOrPhone
+    const data = req.body as UserResponseAfterCheckEmailOrPhone;
 
-    let result = false
-    let user
+    let result = false;
+    let user;
 
-    if (data.type === 'email') {
+    if (data.type === "email") {
         if (await usersService.checkEmailExist(encrypt(data.email))) {
-            result = true
-            user = await usersService.findUserByEmail(encrypt(data.email))
+            result = true;
+            user = await usersService.findUserByEmail(encrypt(data.email));
         }
     } else {
         if (
             await usersService.checkPhoneNumberExist(encrypt(data.phone_number))
         ) {
-            result = true
+            result = true;
             user = await usersService.findUserByPhone(
-                encrypt(data.phone_number)
-            )
+                encrypt(data.phone_number),
+            );
         }
     }
 
     if (result) {
         res.status(HTTP_STATUS.OK).json({
             isExist: result,
-            data: user
-        })
+            data: user,
+        });
     } else {
         res.status(HTTP_STATUS.NOT_FOUND).json({
-            isExist: result
-        })
+            isExist: result,
+        });
     }
-}
+};
 
 export const logoutController = async (
     req: Request<ParamsDictionary, any, LogoutReqBody>,
-    res: Response
+    res: Response,
 ) => {
-    console.log(req.cookies['refresh_token'])
-    await usersService.logout(req.cookies['refresh_token'])
-    res.clearCookie('refresh_token')
+    console.log(req.cookies["refresh_token"]);
+    await usersService.logout(req.cookies["refresh_token"]);
+    res.clearCookie("refresh_token");
     return res.json({
-        message: USER_MESSAGES.LOGOUT_SUCCESSFULLY
-    })
-}
+        message: USER_MESSAGES.LOGOUT_SUCCESSFULLY,
+    });
+};
 
 export const refreshTokenController = async (
     req: Request<ParamsDictionary, any, RefreshTokenReqBody>,
-    res: Response
+    res: Response,
 ) => {
-    const payload = req.decoded_refresh_token as TokenPayload
-    const old_refresh_token = req.cookies['refresh_token']
+    const payload = req.decoded_refresh_token as TokenPayload;
+    const old_refresh_token = req.cookies["refresh_token"];
     const { access_token, refresh_token } = await usersService.refreshToken(
         old_refresh_token,
-        payload
-    )
+        payload,
+    );
 
-    res.cookie('refresh_token', refresh_token, {
+    res.cookie("refresh_token", refresh_token, {
         httpOnly: true,
         secure: true,
-        maxAge: Number(process.env.COOKIE_EXPIRE)
-    })
+        maxAge: Number(process.env.COOKIE_EXPIRE),
+    });
 
     return res.json({
         message: USER_MESSAGES.REFRESH_TOKEN_SUCCESSFULLY,
-        data: { access_token }
-    })
-}
+        data: { access_token },
+    });
+};
 
 export const getListUserController = async (req: Request, res: Response) => {
-    const query = req.queryListAccount as ListAccountQuery
+    const query = req.queryListAccount as ListAccountQuery;
 
     if (!query.role) {
-        const listUser = await usersService.getListCustomer()
-        const listEmployee = await adminService.getListAccountEmployee()
-        const newList = [...listUser, ...listEmployee]
-        const result: UserList[] = []
+        const listUser = await usersService.getListCustomer();
+        const listEmployee = await adminService.getListAccountEmployee();
+        const newList = [...listUser, ...listEmployee];
+        const result: UserList[] = [];
         for (let i = 0; i < newList.length; i++) {
             if (
                 i >=
@@ -273,25 +273,25 @@ export const getListUserController = async (req: Request, res: Response) => {
                         Number(query.limit) &&
                 i < Number(query.limit) * Number(query.page)
             ) {
-                result.push(newList[i])
+                result.push(newList[i]);
             }
         }
-        const total_page = Math.ceil(newList.length / Number(query.limit))
+        const total_page = Math.ceil(newList.length / Number(query.limit));
 
         return res.json({
-            message: 'Get list user success',
+            message: "Get list user success",
             data: {
                 list_user: result,
                 pagination: {
                     page: query.page,
                     limit: query.limit,
-                    total_page
-                }
-            }
-        })
+                    total_page,
+                },
+            },
+        });
     } else if (query.role == UserRole.Customer) {
-        const listUser = await usersService.getListCustomer()
-        const result: UserList[] = []
+        const listUser = await usersService.getListCustomer();
+        const result: UserList[] = [];
         for (let i = 0; i < listUser.length; i++) {
             if (
                 i >=
@@ -299,25 +299,25 @@ export const getListUserController = async (req: Request, res: Response) => {
                         Number(query.limit) &&
                 i < Number(query.limit) * Number(query.page)
             ) {
-                result.push(listUser[i])
+                result.push(listUser[i]);
             }
         }
-        const total_page = Math.ceil(listUser.length / Number(query.limit))
+        const total_page = Math.ceil(listUser.length / Number(query.limit));
 
         return res.json({
-            message: 'Get list user success',
+            message: "Get list user success",
             data: {
                 list_user: result,
                 pagination: {
                     page: query.page,
                     limit: query.limit,
-                    total_page
-                }
-            }
-        })
+                    total_page,
+                },
+            },
+        });
     } else if (query.role == UserRole.Employee) {
-        const listEmployee = await adminService.getListAccountEmployee()
-        const result: UserList[] = []
+        const listEmployee = await adminService.getListAccountEmployee();
+        const result: UserList[] = [];
         for (let i = 0; i < listEmployee.length; i++) {
             if (
                 i >=
@@ -325,22 +325,22 @@ export const getListUserController = async (req: Request, res: Response) => {
                         Number(query.limit) &&
                 i < Number(query.limit) * Number(query.page)
             ) {
-                console.log(1)
-                result.push(listEmployee[i])
+                console.log(1);
+                result.push(listEmployee[i]);
             }
         }
-        const total_page = Math.ceil(listEmployee.length / Number(query.limit))
+        const total_page = Math.ceil(listEmployee.length / Number(query.limit));
 
         return res.json({
-            message: 'Get list user success',
+            message: "Get list user success",
             data: {
                 list_user: result,
                 pagination: {
                     page: query.page,
                     limit: query.limit,
-                    total_page
-                }
-            }
-        })
+                    total_page,
+                },
+            },
+        });
     }
-}
+};

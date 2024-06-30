@@ -1,0 +1,58 @@
+{
+    "env": { "node": true, "browser": true },
+    "$schema": "https://json.schemastore.org/eslintrc",
+    "root": true,
+    "plugins": ["@typescript-eslint", "prettier", "@typescript-eslint"],
+    "extends": [
+        // extends mean use config from devDependencies that community created or recommended
+
+        // default eslint
+        "eslint:recommended", //@eslint/js (@eslint/js and eslint package in package.json is the same thing)
+
+        // PLUGIN
+
+        // typescript eslint
+        "plugin:@typescript-eslint/recommended", //@typescript-eslint/eslint-plugin
+        // "plugin:@typescript-eslint/stylistic", //@typescript-eslint/eslint-plugin
+        // "plugin:@typescript-eslint/recommended-type-checked", //@typescript-eslint/eslint-plugin
+        // "plugin:@typescript-eslint/stylistic-type-checked", //@typescript-eslint/eslint-plugin
+        // prettier THIS MUST BE LAST
+        "plugin:prettier/recommended", //eslint-PLUGIN-prettier //disable because focus on new @stylistic/eslint-plugin
+        "prettier" //eslint-CONFIG-prettier (turn off eslint **rules** that conflict with prettier), turn on prettier/prettier rules
+        //eslint-CONFIG-prettier is used in "check-conflict-prettier-eslint" in package.json
+    ],
+    "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        // override prettier
+        "prettier/prettier": [
+            "error",
+            {},
+            {
+                "usePrettierrc": true
+            }
+        ]
+    },
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "sourceType": "module",
+        "ecmaVersion": 2020,
+        "project": ["./tsconfig.json"]
+    },
+    "settings": {
+        // need to set react version for eslint-plugin-react, doesn't auto detect by default
+        "react": {
+            "version": "detect"
+        },
+        "import/resolver": {
+            //eslint-plugin-import and eslint-import-resolver-typescript
+            "node": {
+                "extensions": [".js", ".jsx", ".ts", ".tsx"]
+            },
+            "typescript": {
+                "alwaysTryTypes": true,
+                "project": ["./tsconfig.json", "./tsconfig.node.json"]
+            }
+        }
+    }
+}

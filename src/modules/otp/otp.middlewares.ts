@@ -1,25 +1,25 @@
-import { checkSchema } from 'express-validator'
-import { validate } from '~/utils/validation'
-import { emailSchema, phone_numberSchema } from '../user/user.middlewares'
+import { checkSchema } from "express-validator";
+import { validate } from "~/utils/validation";
+import { emailSchema, phone_numberSchema } from "../user/user.middlewares";
 
 export const phoneNumberValidator = validate(
     checkSchema(
         {
             phone_number: {
-                ...phone_numberSchema
-            }
+                ...phone_numberSchema,
+            },
         },
-        ['body']
-    )
-)
+        ["body"],
+    ),
+);
 
 export const emailValidator = validate(
     checkSchema(
         {
             email: {
-                ...emailSchema
-            }
+                ...emailSchema,
+            },
         },
-        ['body']
-    )
-)
+        ["body"],
+    ),
+);
