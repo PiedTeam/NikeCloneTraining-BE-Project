@@ -4,13 +4,14 @@ import { ObjectId } from "mongodb";
 import otpGenerator from "otp-generator";
 import databaseService from "~/database/database.services";
 import { capitalizePro } from "~/utils/capitalize";
-import { encrypt, hashPassword } from "~/utils/crypto";
+import decrypt, { encrypt, hashPassword } from "~/utils/crypto";
 import { signToken, verifyToken } from "~/utils/jwt";
 import { OTP_KIND } from "../otp/otp.enum";
 import otpService from "../otp/otp.services";
 import RefreshToken from "../refreshToken/refreshToken.schema";
-import { TokenType, UserRole, UserVerifyStatus } from "./user.enum";
+import { NoticeUser, TokenType, UserRole, UserVerifyStatus } from "./user.enum";
 import {
+    ListAccountQuery,
     LogoutReqBody,
     RegisterOauthReqBody,
     RegisterReqBody,
@@ -18,6 +19,7 @@ import {
     UpdateMeReqBody,
 } from "./user.requests";
 import User from "./user.schema";
+import { UserList } from "~/constants/user.type";
 
 class UsersService {
     private decodeRefreshToken(refresh_token: string) {
@@ -167,6 +169,13 @@ class UsersService {
             },
         );
         return user as User;
+    }
+
+    async isWarning(user_id: ObjectId) {
+        const user = await databaseService.users.findOne({
+            _id: user_id,
+        });
+        return user?.notice === NoticeUser.Warning;
     }
 
     async register(
@@ -405,6 +414,39 @@ class UsersService {
             }),
         );
         return { access_token, refresh_token: new_refresh_token };
+    }
+
+    async getListCustomer() {
+        const listUser = await databaseService.users
+            .find<UserList>(
+                {},
+                {
+                    projection: {
+                        password: 0,
+                        updated_at: 0,
+                        created_at: 0,
+                        notice: 0,
+                        wrongPasswordTimes: 0,
+                        reasonBanned: 0,
+                        subscription: 0,
+                    },
+                },
+            )
+            .toArray();
+        const result = listUser.map((user) => {
+            if (user.email && user.phone_number) {
+                const email = decrypt(user.email);
+                const phoneNumber = decrypt(user.phone_number);
+                return { ...user, email: email, phone_number: phoneNumber };
+            } else if (user.email) {
+                const email = decrypt(user.email);
+                return { ...user, email: email };
+            } else {
+                const phoneNumber = decrypt(user.phone_number);
+                return { ...user, phone_number: phoneNumber };
+            }
+        });
+        return result;
     }
 }
 

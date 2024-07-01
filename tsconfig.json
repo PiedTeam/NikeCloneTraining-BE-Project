@@ -3,7 +3,7 @@
         "module": "CommonJS",
         "moduleResolution": "node",
         "target": "ES2020",
-        "outDir": "dist",
+        "outDir": "./dist",
         "esModuleInterop": true /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */,
         "strict": true,
         "skipLibCheck": true /* Skip type checking all .d.ts files. */,
@@ -11,8 +11,8 @@
         "sourceMap": true,
         "useDefineForClassFields": true,
         "resolveJsonModule": true,
-        "allowImportingTsExtensions": true,
-        "noEmit": true,
+        // "allowImportingTsExtensions": true,
+        // "noEmit": false,
         "paths": {
             "~/*": ["src/*"] // Import (alias)
         }
@@ -21,5 +21,5 @@
         "require": ["tsconfig-paths/register"]
     },
     "files": ["src/type.d.ts"], // Defined global type cho dự án
-    "include": ["src/**/*.ts", "passport.config.ts"]
+    "include": ["src/**/*", "passport.config.ts"]
 }

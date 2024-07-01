@@ -6,12 +6,13 @@ import { ADMIN_MESSAGES } from "./admin.messages";
 import { CreateEmployeeReqBody, UpdateAccountReqBody } from "./admin.requests";
 import Employee from "../employee/employee.schema";
 import { capitalizePro } from "~/utils/capitalize";
-import { omit } from "lodash";
-import { encrypt, hashPassword } from "~/utils/crypto";
-import { TokenType } from "../user/user.enum";
+import { create, omit } from "lodash";
+import decrypt, { encrypt, hashPassword } from "~/utils/crypto";
+import { TokenType, UserRole } from "../user/user.enum";
 import { signToken, verifyToken } from "~/utils/jwt";
 import RefreshToken from "../refreshToken/refreshToken.schema";
 import { EmployeeRole } from "./admin.enum";
+import { UserList } from "~/constants/user.type";
 
 class AdminService {
     private decodeRefreshToken(refresh_token: string) {
@@ -156,6 +157,40 @@ class AdminService {
                 returnDocument: "after",
             },
         );
+    }
+
+    async getListAccountEmployee() {
+        const listEmployee = await databaseService.employee
+            .find<UserList>(
+                {
+                    role: 2,
+                },
+                {
+                    projection: {
+                        _id: 1,
+                        first_name: 1,
+                        last_name: 1,
+                        email: 1,
+                        phone_number: 1,
+                        role: 1,
+                    },
+                },
+            )
+            .toArray();
+        const result = listEmployee.map((user) => {
+            if (user.email && user.phone_number) {
+                const email = decrypt(user.email);
+                const phoneNumber = decrypt(user.phone_number);
+                return { ...user, email: email, phone_number: phoneNumber };
+            } else if (user.email) {
+                const email = decrypt(user.email);
+                return { ...user, email: email };
+            } else {
+                const phoneNumber = decrypt(user.phone_number);
+                return { ...user, phone_number: phoneNumber };
+            }
+        });
+        return result;
     }
 }
 

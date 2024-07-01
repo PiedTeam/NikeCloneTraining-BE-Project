@@ -1,70 +1,72 @@
-# Run: Check CI on PR
-name: Check CI on PR
+# Currently migrating backdown to npm
 
-on:
-    pull_request:
-        branches: ["main"]
+# # Run: Check CI on PR
+# name: Check CI on PR
 
-jobs:
-    lint_PR:
-        runs-on: ubuntu-latest
+# on:
+#     pull_request:
+#         branches: ["main"]
 
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+# jobs:
+#     lint_PR:
+#         runs-on: ubuntu-latest
 
-            - name: Check pnpm standalone
-              uses: actions/cache@v4
-              with:
-                  path: /home/runner/setup-pnpm/node_modules/.bin/pnpm
-                  key: ${{ runner.os }}-pnpm-standalone
-                  restore-keys: |
-                      ${{ runner.os }}-pnpm-standalone
+#         steps:
+#             - name: Checkout
+#               uses: actions/checkout@v4
 
-            - name: Install pnpm
-              uses: pnpm/action-setup@v4
-              with:
-                  version: 9
-                  run_install: false
-                  standalone: false
+#             - name: Check pnpm standalone
+#               uses: actions/cache@v4
+#               with:
+#                   path: /home/runner/setup-pnpm/node_modules/.bin/pnpm
+#                   key: ${{ runner.os }}-pnpm-standalone
+#                   restore-keys: |
+#                       ${{ runner.os }}-pnpm-standalone
 
-            - name: Install node
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 20
+#             - name: Install pnpm
+#               uses: pnpm/action-setup@v4
+#               with:
+#                   version: 9
+#                   run_install: false
+#                   standalone: false
 
-            # - name: which pnpm
-            #   shell: bash
-            #   run: |
-            #     which pnpm
-            #   env:
-            #     TEST_TEST: ${{ steps.pnpmahihi.outputs.bin_dest }}
+#             - name: Install node
+#               uses: actions/setup-node@v4
+#               with:
+#                   node-version: 20
 
-            # - name: echo echo $PNPM_HOME
-            #   shell: bash
-            #   run: |
-            #     echo $PNPM_HOME
+#             # - name: which pnpm
+#             #   shell: bash
+#             #   run: |
+#             #     which pnpm
+#             #   env:
+#             #     TEST_TEST: ${{ steps.pnpmahihi.outputs.bin_dest }}
 
-            # - name: echo pnpm store directory
-            #   shell: bash
-            #   run: |
-            #     pnpm store path
+#             # - name: echo echo $PNPM_HOME
+#             #   shell: bash
+#             #   run: |
+#             #     echo $PNPM_HOME
 
-            # - name: Get pnpm store directory
-            #   shell: bash
-            #   run: |
-            #     echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+#             # - name: echo pnpm store directory
+#             #   shell: bash
+#             #   run: |
+#             #     pnpm store path
 
-            - name: Setup pnpm node_module cache
-              uses: actions/cache@v4
-              with:
-                  path: /home/runner/setup-pnpm/node_modules/.bin/store/v3
-                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                  restore-keys: |
-                      ${{ runner.os }}-pnpm-store-
+#             # - name: Get pnpm store directory
+#             #   shell: bash
+#             #   run: |
+#             #     echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-            - name: Install dependencies
-              run: pnpm install
+#             - name: Setup pnpm node_module cache
+#               uses: actions/cache@v4
+#               with:
+#                   path: /home/runner/setup-pnpm/node_modules/.bin/store/v3
+#                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+#                   restore-keys: |
+#                       ${{ runner.os }}-pnpm-store-
 
-            - name: Lint
-              run: pnpm run prettier:check && pnpm run eslint:check-allow-warning && pnpm run check-types
+#             - name: Install dependencies
+#               run: pnpm install
+
+#             - name: Lint
+#               run: pnpm run prettier:check && pnpm run eslint:check-allow-warning && pnpm run check-types
