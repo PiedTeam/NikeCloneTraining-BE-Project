@@ -63,7 +63,7 @@ usersRouter.post(
 );
 
 /*
-  Description: User login 
+  Description: User login
   Path: user/login
   Method: POST
   Body: {
