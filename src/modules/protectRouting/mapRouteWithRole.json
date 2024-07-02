@@ -1,0 +1,192 @@
+[
+    {
+        "module": "admin",
+        "route": {
+            "login": {
+                "api": "/admin/login",
+                "method": "post",
+                "role": "admin"
+            },
+            "createEmployee": {
+                "api": "/admin/createEmployee",
+                "method": "post",
+                "role": "admin"
+            },
+            ":id": {
+                "api": "/admin/:id",
+                "method": "patch",
+                "role": "admin"
+            }
+        }
+    },
+    {
+        "module": "captcha",
+        "route": {
+            "/": {
+                "api": "/",
+                "method": "get",
+                "role": "admin"
+            },
+            "verify": {
+                "api": "/captcha/verify",
+                "method": "post",
+                "role": "admin"
+            }
+        }
+    },
+    {
+        "module": "employee",
+        "route": ""
+    },
+    {
+        "module": "menu",
+        "route": {
+            ":language": {
+                "api": "/menu/:language",
+                "method": "get",
+                "role": "admin"
+            }
+        }
+    },
+    {
+        "module": "oauth",
+        "route": {
+            "google": {
+                "api": "/oauth/google",
+                "method": "get",
+                "role": "admin"
+            },
+            "google/callback": {
+                "api": "/oauth/google/callback",
+                "method": "get",
+                "role": "admin"
+            },
+            "facebook": {
+                "api": "/oauth/facebook",
+                "method": "get",
+                "role": "admin"
+            },
+            "facebook/callback": {
+                "api": "/oauth/facebook/callback",
+                "method": "get",
+                "role": "admin"
+            },
+            "login-success": {
+                "api": "/oauth/login-success",
+                "method": "post",
+                "role": "admin"
+            },
+            "login-fail": {
+                "api": "/oauth/login-fail",
+                "method": "post",
+                "role": "admin"
+            }
+        }
+    },
+    {
+        "module": "otp",
+        "route": {
+            "send-otp-phone": {
+                "api": "/otp/send-otp-phone",
+                "method": "post",
+                "role": "admin"
+            },
+            "send-otp-email": {
+                "api": "/otp/send-otp-email",
+                "method": "post",
+                "role": "admin"
+            }
+        }
+    },
+    {
+        "module": "password",
+        "route": {
+            "updatePass": {
+                "api": "/pass/updatePass",
+                "method": "post",
+                "role": "admin"
+            }
+        }
+    },
+    {
+        "module": "refreshToken",
+        "route": ""
+    },
+    {
+        "module": "user",
+        "route": {
+            "register": {
+                "api": "/user/register",
+                "method": "post",
+                "role": "admin"
+            },
+            "login": {
+                "api": "/user/login",
+                "method": "post",
+                "role": "admin"
+            },
+            "forgot-password": {
+                "api": "/user/forgot-password",
+                "method": "post",
+                "role": "admin"
+            },
+            "verify-otp": {
+                "api": "/user/verify-otp",
+                "method": "post",
+                "role": "admin"
+            },
+            "reset-password": {
+                "api": "/user/reset-password",
+                "method": "post",
+                "role": "admin"
+            },
+            "send-verify-account-otp": {
+                "api": "/user/send-verify-account-otp",
+                "method": "post",
+                "role": "admin"
+            },
+            "verify-account": {
+                "api": "/user/verify-account",
+                "method": "post",
+                "role": "admin"
+            },
+            "change-password": {
+                "api": "/user/change-password",
+                "method": "post",
+                "role": "admin"
+            },
+            "me": [
+                {
+                    "api": "/user/me",
+                    "method": "get",
+                    "role": "admin"
+                },
+                {
+                    "api": "/user/me",
+                    "method": "patch",
+                    "role": "admin"
+                }
+            ],
+            "search": {
+                "api": "/user/search",
+                "method": "post",
+                "role": "admin"
+            },
+            "logout": {
+                "api": "/user/logout",
+                "method": "post",
+                "role": "admin"
+            },
+            "refresh-token": {
+                "api": "/user/refresh-token",
+                "method": "post",
+                "role": "admin"
+            },
+            "list-account": {
+                "api": "/user/list-account",
+                "method": "get",
+                "role": "admin"
+            }
+        }
+    }
+]
