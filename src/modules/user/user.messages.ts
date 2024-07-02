@@ -105,7 +105,7 @@ export const USER_MESSAGES = {
     WRONG_PASS_5_TIMES: "Entered wrong password over 5 times!",
 
     //token
-    REFRESH_TOKEN_IS_REQUIRED: "Refresh token is required",
+    REFRESH_TOKEN_NOT_VALID: "Refresh token is not valid",
     OTP_IS_INCORRECT: "OTP is incorrect",
 
     //don't have permission

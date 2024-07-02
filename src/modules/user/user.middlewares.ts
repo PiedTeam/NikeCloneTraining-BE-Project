@@ -22,6 +22,7 @@ import { LoginRequestBody, TokenPayload } from "./user.requests";
 import usersService from "./user.services";
 import { StatusCodes } from "http-status-codes";
 import { numberToEnum } from "~/utils/handler";
+import jwt from "jsonwebtoken";
 
 //! Prevent db injection, XSS attack
 export const paramSchema: ParamSchema = {
@@ -1151,9 +1152,41 @@ export const refreshTokenCookieValidator = async (
             });
         }
 
+        const access_token = req.headers.authorization?.split(" ")[1];
+        const decoded_access_token = jwt.verify(
+            access_token as string,
+            process.env.JWT_SECRET_ACCESS_TOKEN as string,
+            {
+                ignoreExpiration: true,
+            },
+        ) as TokenPayload;
+
+        if (decoded_access_token.user_id !== decoded_refresh_token.user_id) {
+            next(
+                new ErrorWithStatus({
+                    message: USER_MESSAGES.REFRESH_TOKEN_NOT_VALID,
+                    status: HTTP_STATUS.UNAUTHORIZED,
+                }),
+            );
+        }
+
         req.decoded_refresh_token = decoded_refresh_token;
     } catch (error) {
         if (error instanceof JsonWebTokenError) {
+            if (error.message === "jwt expired") {
+                res.clearCookie("refresh_token");
+                await databaseService.refreshTokens.deleteOne({
+                    token: value,
+                });
+                next(
+                    new ErrorWithStatus({
+                        message: capitalize(
+                            (error as JsonWebTokenError).message,
+                        ),
+                        status: HTTP_STATUS.UNAUTHORIZED,
+                    }),
+                );
+            }
             next(
                 new ErrorWithStatus({
                     message: capitalize((error as JsonWebTokenError).message),
