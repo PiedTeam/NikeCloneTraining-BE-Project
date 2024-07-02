@@ -105,9 +105,14 @@ export const USER_MESSAGES = {
     WRONG_PASS_5_TIMES: "Entered wrong password over 5 times!",
 
     //token
-    REFRESH_TOKEN_IS_REQUIRED: "Refresh token is required",
-    OTP_IS_INCORRECT: "OTP is incorrect",
+
+    REFRESH_TOKEN_IS_REQUIRED: 'Refresh token is required',
+    OTP_IS_INCORRECT: 'OTP is incorrect',
+    // block
+    USER_HAS_BEEN_BLOCKED: 'user has been blocked',
+    USER_UNBLOCK_SUCCESSFULLY: 'user unblock successfully'
 
     //don't have permission
     DONT_HAVE_PERMISSION: `You don't have permission`,
 } as const;
+

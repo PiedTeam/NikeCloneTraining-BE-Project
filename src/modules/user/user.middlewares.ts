@@ -1,27 +1,29 @@
-import "dotenv/config";
-import { NextFunction, Request, Response } from "express";
-import { ParamsDictionary } from "express-serve-static-core";
-import { ParamSchema, checkSchema } from "express-validator";
-import { JsonWebTokenError } from "jsonwebtoken";
-import { capitalize, escape } from "lodash";
-import { ObjectId } from "mongodb";
-import validator from "validator";
-import { HTTP_STATUS } from "~/constants/httpStatus";
-import databaseService from "~/database/database.services";
-import { ErrorEntity, ErrorWithStatus } from "~/errors/errors.entityError";
-import { USER_MESSAGES } from "~/modules/user/user.messages";
-import { isDeveloperAgent } from "~/utils/agent";
-import { encrypt, hashPassword } from "~/utils/crypto";
-import { verifyToken } from "~/utils/jwt";
-import { isValidPhoneNumberForCountry, validate } from "~/utils/validation";
-import { OTP_STATUS } from "../otp/otp.enum";
-import { OTP_MESSAGES } from "../otp/otp.messages";
-import otpService from "../otp/otp.services";
-import { NoticeUser, UserRole, UserVerifyStatus } from "./user.enum";
-import { LoginRequestBody, TokenPayload } from "./user.requests";
-import usersService from "./user.services";
-import { StatusCodes } from "http-status-codes";
+
+import 'dotenv/config'
+import { NextFunction, Request, Response } from 'express'
+import { ParamsDictionary } from 'express-serve-static-core'
+import { ParamSchema, checkSchema } from 'express-validator'
+import { JsonWebTokenError } from 'jsonwebtoken'
+import { capitalize, escape } from 'lodash'
+import { ObjectId } from 'mongodb'
+import validator from 'validator'
+import { HTTP_STATUS } from '~/constants/httpStatus'
+import databaseService from '~/database/database.services'
+import { ErrorEntity, ErrorWithStatus } from '~/errors/errors.entityError'
+import { USER_MESSAGES } from '~/modules/user/user.messages'
+import { isDeveloperAgent } from '~/utils/agent'
+import { encrypt, hashPassword } from '~/utils/crypto'
+import { verifyToken } from '~/utils/jwt'
+import { isValidPhoneNumberForCountry, validate } from '~/utils/validation'
+import { OTP_STATUS } from '../otp/otp.enum'
+import { OTP_MESSAGES } from '../otp/otp.messages'
+import otpService from '../otp/otp.services'
+import { NoticeUser, Subscription, UserVerifyStatus, UserRole, } from './user.enum'
+import { LoginRequestBody, TokenPayload } from './user.requests'
+import usersService from './user.services'
+import { StatusCodes } from 'http-status-codes'
 import { numberToEnum } from "~/utils/handler";
+
 
 //! Prevent db injection, XSS attack
 export const paramSchema: ParamSchema = {
@@ -284,7 +286,9 @@ export const loginValidator = validate(
 
                         if (
                             user.notice === NoticeUser.Banned ||
-                            user.reasonBanned !== ""
+                            user.reasonBanned !== '' ||
+                            user.block === Subscription.True
+
                         ) {
                             throw new ErrorWithStatus({
                                 message: USER_MESSAGES.ACCOUNT_IS_BANNED,
@@ -369,7 +373,8 @@ export const loginValidator = validate(
 
                         if (
                             user.notice === NoticeUser.Banned ||
-                            user.reasonBanned !== ""
+                            user.reasonBanned !== '' ||
+                            user.block === Subscription.True
                         ) {
                             throw new ErrorWithStatus({
                                 message: USER_MESSAGES.ACCOUNT_IS_BANNED,

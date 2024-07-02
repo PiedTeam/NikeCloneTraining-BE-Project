@@ -1,15 +1,21 @@
-import "dotenv/config";
-import { capitalize, omit } from "lodash";
-import { ObjectId } from "mongodb";
-import otpGenerator from "otp-generator";
-import databaseService from "~/database/database.services";
-import { capitalizePro } from "~/utils/capitalize";
-import decrypt, { encrypt, hashPassword } from "~/utils/crypto";
-import { signToken, verifyToken } from "~/utils/jwt";
-import { OTP_KIND } from "../otp/otp.enum";
-import otpService from "../otp/otp.services";
-import RefreshToken from "../refreshToken/refreshToken.schema";
-import { NoticeUser, TokenType, UserRole, UserVerifyStatus } from "./user.enum";
+import 'dotenv/config'
+import { capitalize, omit } from 'lodash'
+import { ObjectId } from 'mongodb'
+import otpGenerator from 'otp-generator'
+import databaseService from '~/database/database.services'
+import { capitalizePro } from '~/utils/capitalize'
+import decrypt, { encrypt, hashPassword } from '~/utils/crypto'
+import { signToken, verifyToken } from '~/utils/jwt'
+import { OTP_KIND } from '../otp/otp.enum'
+import otpService from '../otp/otp.services'
+import RefreshToken from '../refreshToken/refreshToken.schema'
+import {
+    NoticeUser,
+    Subscription,
+    TokenType,
+    UserRole,
+    UserVerifyStatus
+} from './user.enum'
 import {
     ListAccountQuery,
     LogoutReqBody,
@@ -356,6 +362,42 @@ class UsersService {
         await this.disableOTP(user_id);
 
         return true;
+    }
+
+    async blockAccount(
+        user_id: ObjectId,
+        re?: string,
+        pi?: string,
+        time?: Date
+    ) {
+        await databaseService.users.updateMany(
+            { _id: new ObjectId(user_id) },
+            {
+                $set: {
+                    block: Subscription.True,
+                    reasonBlocked: re,
+                    picture_image_prove: pi,
+                    block_time: time
+                }
+            }
+        )
+
+        return true
+    }
+
+    async unblockAccount(user_id: ObjectId) {
+        await databaseService.users.updateMany(
+            { _id: new ObjectId(user_id) },
+            {
+                $set: {
+                    block: Subscription.False,
+                    reasonBlocked: '',
+                    picture_image_prove: ''
+                }
+            }
+        )
+
+        return true
     }
 
     async updateMe({

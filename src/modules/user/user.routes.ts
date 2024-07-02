@@ -3,6 +3,7 @@ import { Router } from "express";
 import { cronJobFake } from "~/utils/cronJobFake";
 import { wrapAsync } from "~/utils/handler";
 import {
+    blockAccountController,
     changePasswordController,
     forgotPasswordController,
     getListUserController,
@@ -14,6 +15,7 @@ import {
     resetPasswordController,
     searchAccountController,
     sendVerifyAccountOTPController,
+    unblockAccountController,
     updateMeController,
     verifyAccountController,
     verifyForgotPasswordTokenController,
@@ -232,8 +234,17 @@ usersRouter.post(
 usersRouter.post(
     "/refresh-token",
     refreshTokenCookieValidator,
-    wrapAsync(refreshTokenController),
-);
+    wrapAsync(refreshTokenController)
+)
+
+usersRouter.post(
+    '/block',
+    accessTokenValidator,
+    refreshTokenCookieValidator,
+    wrapAsync(blockAccountController)
+)
+
+usersRouter.post('/unblock', wrapAsync(unblockAccountController))
 
 usersRouter.get(
     "/list-account",
