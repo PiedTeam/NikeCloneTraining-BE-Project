@@ -1,27 +1,27 @@
 import { Router } from "express";
+import { filterMiddleware } from "~/utils/common.middlewares";
 import { wrapAsync } from "~/utils/handler";
+import {
+    accessTokenValidator,
+    checkEmailOrPhone,
+} from "../user/user.middlewares";
 import {
     createEmpController,
     loginController,
     updateEmpController,
 } from "./admin.controllers";
 import {
-    accessTokenValidator,
-    checkEmailOrPhone,
-} from "../user/user.middlewares";
-import {
     checkRoleAdmin,
     createEmpValidator,
     loginValidator,
     updateAccValidator,
 } from "./admin.middlewares";
-import { filterMiddleware } from "~/utils/common.middlewares";
 import { UpdateAccountReqBody } from "./admin.requests";
 
 const adminRouter = Router();
 
 /*
-  Description: Admin login 
+  Description: Admin login
   Path: admin/login
   Method: POST
   Body: {
@@ -41,7 +41,7 @@ adminRouter.post(
  ** Description: Create new employee
  * Method: POST
  * Headers: { Authorization: 'Bearer <access_token>' }
- * Body: { 
+ * Body: {
       ...
  *  }
  */
