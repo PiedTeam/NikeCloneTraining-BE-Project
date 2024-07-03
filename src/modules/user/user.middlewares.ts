@@ -2,6 +2,7 @@ import "dotenv/config";
 import { NextFunction, Request, Response } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParamSchema, checkSchema } from "express-validator";
+import { StatusCodes } from "http-status-codes";
 import { JsonWebTokenError } from "jsonwebtoken";
 import { capitalize, escape } from "lodash";
 import { ObjectId } from "mongodb";
@@ -12,6 +13,7 @@ import { ErrorEntity, ErrorWithStatus } from "~/errors/errors.entityError";
 import { USER_MESSAGES } from "~/modules/user/user.messages";
 import { isDeveloperAgent } from "~/utils/agent";
 import { encrypt, hashPassword } from "~/utils/crypto";
+import { numberToEnum } from "~/utils/handler";
 import { verifyToken } from "~/utils/jwt";
 import { isValidPhoneNumberForCountry, validate } from "~/utils/validation";
 import { OTP_STATUS } from "../otp/otp.enum";
@@ -20,8 +22,6 @@ import otpService from "../otp/otp.services";
 import { NoticeUser, UserRole, UserVerifyStatus } from "./user.enum";
 import { LoginRequestBody, TokenPayload } from "./user.requests";
 import usersService from "./user.services";
-import { StatusCodes } from "http-status-codes";
-import { numberToEnum } from "~/utils/handler";
 
 //! Prevent db injection, XSS attack
 export const paramSchema: ParamSchema = {

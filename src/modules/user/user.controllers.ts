@@ -5,8 +5,11 @@ import { StatusCodes } from "http-status-codes";
 import { pick } from "lodash";
 import { ObjectId } from "mongodb";
 import { HTTP_STATUS } from "~/constants/httpStatus";
+import { UserList } from "~/constants/user.type";
 import decrypt, { encrypt } from "~/utils/crypto";
+import adminService from "../admin/admin.services";
 import { OTP_MESSAGES } from "../otp/otp.messages";
+import { UserRole } from "./user.enum";
 import { USER_MESSAGES } from "./user.messages";
 import {
     ListAccountQuery,
@@ -20,9 +23,6 @@ import {
 } from "./user.requests";
 import User from "./user.schema";
 import usersService from "./user.services";
-import adminService from "../admin/admin.services";
-import { UserList } from "~/constants/user.type";
-import { UserRole } from "./user.enum";
 
 export const registerController = async (
     req: Request<ParamsDictionary, any, RegisterReqBody>,

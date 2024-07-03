@@ -52,7 +52,7 @@ app.get("/", (req: Request, res: Response) => {
     res.send("Hello Developer");
 });
 
-app.use(protectRouter);
+app.all("*", protectRouter);
 
 app.use("/pass", passwordRouter);
 app.use("/user", usersRouter);
