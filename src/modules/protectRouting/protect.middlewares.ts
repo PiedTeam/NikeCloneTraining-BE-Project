@@ -1,6 +1,18 @@
 import { NextFunction, Request, Response } from "express";
-import { accessTokenValidator } from "../user/user.middlewares";
+import { ParamSchema, checkSchema } from "express-validator";
+import {
+    accessTokenValidator,
+    accessTokenValidatorV2,
+} from "../user/user.middlewares";
 import { getOpenRoutes } from "./protect.utils";
+
+export const paramSchema: ParamSchema = {
+    customSanitizer: {
+        options: async (value) => {
+            return escape(value);
+        },
+    },
+};
 
 export const protectRouterValidator = (
     req: Request,
@@ -15,5 +27,5 @@ export const protectRouterValidator = (
     }
 
     // else validate access_token
-    accessTokenValidator(req, res, next);
+    accessTokenValidatorV2(req, res, next);
 };

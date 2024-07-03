@@ -2,6 +2,7 @@ import "dotenv/config";
 import { capitalize, omit } from "lodash";
 import { ObjectId } from "mongodb";
 import otpGenerator from "otp-generator";
+import { UserList } from "~/constants/user.type";
 import databaseService from "~/database/database.services";
 import { capitalizePro } from "~/utils/capitalize";
 import decrypt, { encrypt, hashPassword } from "~/utils/crypto";
@@ -19,7 +20,6 @@ import {
     UpdateMeReqBody,
 } from "./user.requests";
 import User from "./user.schema";
-import { UserList } from "~/constants/user.type";
 
 class UsersService {
     private decodeRefreshToken(refresh_token: string) {
@@ -145,10 +145,9 @@ class UsersService {
         return Boolean(user);
     }
 
-    async findUser(user_id: string, password: string) {
+    async findUserByID(user_id: string) {
         const user = await databaseService.users.findOne({
             _id: new ObjectId(user_id),
-            password: hashPassword(password),
         });
         return user;
     }
