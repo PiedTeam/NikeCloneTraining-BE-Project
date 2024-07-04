@@ -19,6 +19,8 @@ import { isValidPhoneNumberForCountry, validate } from "~/utils/validation";
 import { OTP_STATUS } from "../otp/otp.enum";
 import { OTP_MESSAGES } from "../otp/otp.messages";
 import otpService from "../otp/otp.services";
+import { PROTECT_MESSAGES } from "../protectRouting/protect.messages";
+import { checkRole } from "../protectRouting/protect.utils";
 import { NoticeUser, UserRole, UserVerifyStatus } from "./user.enum";
 import { LoginRequestBody, TokenPayload } from "./user.requests";
 import usersService from "./user.services";
@@ -1018,15 +1020,16 @@ export const accessTokenValidatorV2 = validate(
                             const user = await usersService.findUserByID(
                                 decoded_authorization.user_id,
                             );
+
                             const role = user?.role;
 
-                            if (role === UserRole.Admin) {
-                                console.log("User is Admin");
-                            } else if (role === UserRole.Customer) {
-                                console.log("User is Customer");
-                            } else {
-                                console.log("User is Employee");
+                            if (!role) {
+                                throw new ErrorWithStatus({
+                                    message: PROTECT_MESSAGES.ROLE_NOT_FOUND,
+                                    status: HTTP_STATUS.UNAUTHORIZED,
+                                });
                             }
+                            checkRole(role);
                         } catch (error) {
                             throw new ErrorWithStatus({
                                 message: capitalize(

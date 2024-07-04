@@ -1,3 +1,5 @@
+import { UserRole } from "../user/user.enum";
+
 const routes: Module[] = require("./mapRouteWithRole.json");
 
 // Interface for a Route object within a module
@@ -27,4 +29,14 @@ export function getOpenRoutes(): string[] {
     });
 
     return openRoutes;
+}
+
+export function checkRole(role: UserRole): void {
+    if (role === UserRole.Admin) {
+        console.log("User are Admin");
+    } else if (role === UserRole.Customer) {
+        console.log("User are Customer");
+    } else {
+        console.log("User are Employee");
+    }
 }
