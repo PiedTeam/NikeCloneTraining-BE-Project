@@ -1,8 +1,8 @@
-
 import 'dotenv/config'
 import { NextFunction, Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { ParamSchema, checkSchema } from 'express-validator'
+import { StatusCodes } from "http-status-codes";
 import { JsonWebTokenError } from 'jsonwebtoken'
 import { capitalize, escape } from 'lodash'
 import { ObjectId } from 'mongodb'
@@ -13,6 +13,7 @@ import { ErrorEntity, ErrorWithStatus } from '~/errors/errors.entityError'
 import { USER_MESSAGES } from '~/modules/user/user.messages'
 import { isDeveloperAgent } from '~/utils/agent'
 import { encrypt, hashPassword } from '~/utils/crypto'
+import { numberToEnum } from "~/utils/handler";
 import { verifyToken } from '~/utils/jwt'
 import { isValidPhoneNumberForCountry, validate } from '~/utils/validation'
 import { OTP_STATUS } from '../otp/otp.enum'
@@ -22,7 +23,6 @@ import { NoticeUser, Subscription, UserVerifyStatus, UserRole, } from './user.en
 import { LoginRequestBody, TokenPayload } from './user.requests'
 import usersService from './user.services'
 import { StatusCodes } from 'http-status-codes'
-import { numberToEnum } from "~/utils/handler";
 
 
 //! Prevent db injection, XSS attack
@@ -974,6 +974,64 @@ export const accessTokenValidator = validate(
                             });
                             (req as Request).decoded_authorization =
                                 decoded_authorization;
+                        } catch (error) {
+                            throw new ErrorWithStatus({
+                                message: capitalize(
+                                    (error as JsonWebTokenError).message,
+                                ),
+                                status: HTTP_STATUS.UNAUTHORIZED,
+                            });
+                        }
+                        return true;
+                    },
+                },
+            },
+        },
+        ["headers"],
+    ),
+);
+
+export const accessTokenValidatorV2 = validate(
+    checkSchema(
+        {
+            authorization: {
+                ...paramSchema,
+                trim: true,
+                custom: {
+                    options: async (value: string, { req }) => {
+                        const access_token = value.split(" ")[1];
+                        // if do not have access_token, throw error
+                        // because we already passed openRoutes
+                        if (!access_token) {
+                            throw new ErrorWithStatus({
+                                message: USER_MESSAGES.ACCESS_TOKEN_IS_REQUIRED,
+                                status: HTTP_STATUS.UNAUTHORIZED,
+                            });
+                        }
+
+                        // if have access_token, validate it
+                        try {
+                            const decoded_authorization = await verifyToken({
+                                token: access_token,
+                                secretOrPublickey: process.env
+                                    .JWT_SECRET_ACCESS_TOKEN as string,
+                            });
+                            (req as Request).decoded_authorization =
+                                decoded_authorization;
+
+                            // find the role by user_id
+                            const user = await usersService.findUserByID(
+                                decoded_authorization.user_id,
+                            );
+                            const role = user?.role;
+
+                            if (role === UserRole.Admin) {
+                                console.log("User is Admin");
+                            } else if (role === UserRole.Customer) {
+                                console.log("User is Customer");
+                            } else {
+                                console.log("User is Employee");
+                            }
                         } catch (error) {
                             throw new ErrorWithStatus({
                                 message: capitalize(

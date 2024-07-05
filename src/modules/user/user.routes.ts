@@ -20,6 +20,7 @@ import {
     verifyAccountController,
     verifyForgotPasswordTokenController,
 } from "./user.controllers";
+import { UserRole } from "./user.enum";
 import {
     accessTokenValidator,
     changePasswordValidator,
@@ -39,7 +40,6 @@ import {
     verifyAccountValidator,
     verifyOTPValidator,
 } from "./user.middlewares";
-import { UserRole } from "./user.enum";
 
 const usersRouter = Router();
 
@@ -65,7 +65,7 @@ usersRouter.post(
 );
 
 /*
-  Description: User login 
+  Description: User login
   Path: user/login
   Method: POST
   Body: {
@@ -184,7 +184,6 @@ usersRouter.post(
   Header: { Authorization: Bearer <access_token> }
   Body: {}
 */
-usersRouter.get("/me", accessTokenValidator, wrapAsync(getMeController));
 
 /*
   Description: update user's profile
@@ -193,13 +192,15 @@ usersRouter.get("/me", accessTokenValidator, wrapAsync(getMeController));
   Header: { Authorization: Bearer <access_token> }
   Body: { first_name: string, last_name: string, email: string, phone_number: string, ...}
 */
-usersRouter.patch(
-    "/me",
-    accessTokenValidator,
-    verifiedUserValidator,
-    updateMeValidator,
-    wrapAsync(updateMeController),
-);
+usersRouter
+    .route("/me")
+    .get(accessTokenValidator, wrapAsync(getMeController))
+    .patch(
+        accessTokenValidator,
+        verifiedUserValidator,
+        updateMeValidator,
+        wrapAsync(updateMeController),
+    );
 
 /*
   Description: search API account
