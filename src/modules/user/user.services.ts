@@ -1,15 +1,22 @@
-import "dotenv/config";
-import { capitalize, omit } from "lodash";
-import { ObjectId } from "mongodb";
-import otpGenerator from "otp-generator";
-import databaseService from "~/database/database.services";
-import { capitalizePro } from "~/utils/capitalize";
-import decrypt, { encrypt, hashPassword } from "~/utils/crypto";
-import { signToken, verifyToken } from "~/utils/jwt";
-import { OTP_KIND } from "../otp/otp.enum";
-import otpService from "../otp/otp.services";
-import RefreshToken from "../refreshToken/refreshToken.schema";
-import { NoticeUser, TokenType, UserRole, UserVerifyStatus } from "./user.enum";
+import 'dotenv/config'
+import { capitalize, omit } from 'lodash'
+import { ObjectId } from 'mongodb'
+import otpGenerator from 'otp-generator'
+import { UserList } from "~/constants/user.type";
+import databaseService from '~/database/database.services'
+import { capitalizePro } from '~/utils/capitalize'
+import decrypt, { encrypt, hashPassword } from '~/utils/crypto'
+import { signToken, verifyToken } from '~/utils/jwt'
+import { OTP_KIND } from '../otp/otp.enum'
+import otpService from '../otp/otp.services'
+import RefreshToken from '../refreshToken/refreshToken.schema'
+import {
+    NoticeUser,
+    Subscription,
+    TokenType,
+    UserRole,
+    UserVerifyStatus
+} from './user.enum'
 import {
     ListAccountQuery,
     LogoutReqBody,
@@ -19,7 +26,6 @@ import {
     UpdateMeReqBody,
 } from "./user.requests";
 import User from "./user.schema";
-import { UserList } from "~/constants/user.type";
 
 class UsersService {
     private decodeRefreshToken(refresh_token: string) {
@@ -145,10 +151,9 @@ class UsersService {
         return Boolean(user);
     }
 
-    async findUser(user_id: string, password: string) {
+    async findUserByID(user_id: string) {
         const user = await databaseService.users.findOne({
             _id: new ObjectId(user_id),
-            password: hashPassword(password),
         });
         return user;
     }
@@ -356,6 +361,42 @@ class UsersService {
         await this.disableOTP(user_id);
 
         return true;
+    }
+
+    async blockAccount(
+        user_id: ObjectId,
+        re?: string,
+        pi?: string,
+        time?: Date
+    ) {
+        await databaseService.users.updateMany(
+            { _id: new ObjectId(user_id) },
+            {
+                $set: {
+                    block: Subscription.True,
+                    reasonBlocked: re,
+                    picture_image_prove: pi,
+                    block_time: time
+                }
+            }
+        )
+
+        return true
+    }
+
+    async unblockAccount(user_id: ObjectId) {
+        await databaseService.users.updateMany(
+            { _id: new ObjectId(user_id) },
+            {
+                $set: {
+                    block: Subscription.False,
+                    reasonBlocked: '',
+                    picture_image_prove: ''
+                }
+            }
+        )
+
+        return true
     }
 
     async updateMe({
