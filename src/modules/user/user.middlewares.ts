@@ -28,7 +28,6 @@ import { checkRole, routesConfig } from "../protectRouting/protect.utils";
 import { NoticeUser, UserRole, UserVerifyStatus } from "./user.enum";
 import { LoginRequestBody, TokenPayload } from "./user.requests";
 import usersService from "./user.services";
-
 //! Prevent db injection, XSS attack
 export const paramSchema: ParamSchema = {
     customSanitizer: {
@@ -290,7 +289,9 @@ export const loginValidator = validate(
 
                         if (
                             user.notice === NoticeUser.Banned ||
-                            user.reasonBanned !== ""
+                            user.reasonBanned !== '' ||
+                            user.block === Subscription.True
+
                         ) {
                             throw new ErrorWithStatus({
                                 message: USER_MESSAGES.ACCOUNT_IS_BANNED,
@@ -375,7 +376,8 @@ export const loginValidator = validate(
 
                         if (
                             user.notice === NoticeUser.Banned ||
-                            user.reasonBanned !== ""
+                            user.reasonBanned !== '' ||
+                            user.block === Subscription.True
                         ) {
                             throw new ErrorWithStatus({
                                 message: USER_MESSAGES.ACCOUNT_IS_BANNED,
