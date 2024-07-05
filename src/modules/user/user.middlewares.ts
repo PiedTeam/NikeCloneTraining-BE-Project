@@ -23,9 +23,14 @@ import { isValidPhoneNumberForCountry, validate } from "~/utils/validation";
 import { OTP_STATUS } from "../otp/otp.enum";
 import { OTP_MESSAGES } from "../otp/otp.messages";
 import otpService from "../otp/otp.services";
+import {
+    NoticeUser,
+    Subscription,
+    UserVerifyStatus,
+    UserRole,
+} from "./user.enum";
 import { PROTECT_MESSAGES } from "../protectRouting/protect.messages";
 import { checkRole, routesConfig } from "../protectRouting/protect.utils";
-import { NoticeUser, UserRole, UserVerifyStatus } from "./user.enum";
 import { LoginRequestBody, TokenPayload } from "./user.requests";
 import usersService from "./user.services";
 import jwt from "jsonwebtoken";
@@ -290,9 +295,8 @@ export const loginValidator = validate(
 
                         if (
                             user.notice === NoticeUser.Banned ||
-                            user.reasonBanned !== '' ||
+                            user.reasonBanned !== "" ||
                             user.block === Subscription.True
-
                         ) {
                             throw new ErrorWithStatus({
                                 message: USER_MESSAGES.ACCOUNT_IS_BANNED,
@@ -377,7 +381,7 @@ export const loginValidator = validate(
 
                         if (
                             user.notice === NoticeUser.Banned ||
-                            user.reasonBanned !== '' ||
+                            user.reasonBanned !== "" ||
                             user.block === Subscription.True
                         ) {
                             throw new ErrorWithStatus({
@@ -1335,3 +1339,12 @@ export const pagination = async (
         next();
     }
 };
+
+export const getLinkImg = validate(
+    checkSchema(
+        {
+            avatar_url: imageSchema,
+        },
+        ["body"],
+    ),
+);
