@@ -4,27 +4,16 @@ import { USER_MESSAGES } from "~/modules/user/user.messages";
 type ErrorsType = Record<string, { msg: string; [key: string]: string }>;
 
 interface IErrorWithStatus {
-    from?: string; // Make sure the from field is optional
     message: string;
     status: number;
 }
 
 export class ErrorWithStatus implements IErrorWithStatus {
-    from?: string; // Include the from field here
     message: string;
     status: number;
-
-    // Adjusted constructor to handle the from field
-    constructor({ from, message, status }: IErrorWithStatus) {
-        this.from = from;
+    constructor({ message, status }: IErrorWithStatus) {
         this.message = message;
         this.status = status;
-    }
-}
-
-export class ProtectRouterError extends ErrorWithStatus {
-    constructor({ message, status }: IErrorWithStatus) {
-        super({ from: "ProtectRouterError", message, status });
     }
 }
 
