@@ -6,6 +6,7 @@ import {
     blockAccountController,
     changePasswordController,
     forgotPasswordController,
+    getLinkPicture,
     getListUserController,
     getMeController,
     loginController,
@@ -28,6 +29,7 @@ import {
     checkNewPasswordValidator,
     checkVerifyAccount,
     forgotPasswordValidator,
+    getLinkImg,
     isUserRole,
     loginValidator,
     pagination,
@@ -235,17 +237,17 @@ usersRouter.post(
 usersRouter.post(
     "/refresh-token",
     refreshTokenCookieValidator,
-    wrapAsync(refreshTokenController)
-)
+    wrapAsync(refreshTokenController),
+);
 
 usersRouter.post(
-    '/block',
+    "/block",
     accessTokenValidator,
     refreshTokenCookieValidator,
-    wrapAsync(blockAccountController)
-)
+    wrapAsync(blockAccountController),
+);
 
-usersRouter.post('/unblock', wrapAsync(unblockAccountController))
+usersRouter.post("/unblock", wrapAsync(unblockAccountController));
 
 usersRouter.get(
     "/list-account",
@@ -254,5 +256,7 @@ usersRouter.get(
     wrapAsync(pagination),
     wrapAsync(getListUserController),
 );
+
+usersRouter.post("/getLinkPic", getLinkImg, wrapAsync(getLinkPicture));
 
 export default usersRouter;
