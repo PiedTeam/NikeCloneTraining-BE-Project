@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response, response } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParamSchema, checkSchema } from "express-validator";
 import { StatusCodes } from "http-status-codes";
@@ -9,7 +9,11 @@ import { ObjectId } from "mongodb";
 import validator from "validator";
 import { HTTP_STATUS } from "~/constants/httpStatus";
 import databaseService from "~/database/database.services";
-import { ErrorEntity, ErrorWithStatus } from "~/errors/errors.entityError";
+import {
+    ErrorEntity,
+    ErrorWithStatus,
+    ProtectRouterError,
+} from "~/errors/errors.entityError";
 import { USER_MESSAGES } from "~/modules/user/user.messages";
 import { isDeveloperAgent } from "~/utils/agent";
 import { encrypt, hashPassword } from "~/utils/crypto";
@@ -20,7 +24,7 @@ import { OTP_STATUS } from "../otp/otp.enum";
 import { OTP_MESSAGES } from "../otp/otp.messages";
 import otpService from "../otp/otp.services";
 import { PROTECT_MESSAGES } from "../protectRouting/protect.messages";
-import { checkRole } from "../protectRouting/protect.utils";
+import { checkRole, routesConfig } from "../protectRouting/protect.utils";
 import { NoticeUser, UserRole, UserVerifyStatus } from "./user.enum";
 import { LoginRequestBody, TokenPayload } from "./user.requests";
 import usersService from "./user.services";
@@ -997,12 +1001,12 @@ export const accessTokenValidatorV2 = validate(
                 custom: {
                     options: async (value: string, { req }) => {
                         const access_token = value.split(" ")[1];
-                        // if do not have access_token, throw error
+                        // if do not have access_token, throw error bad request (reason: lack of access_token)
                         // because we already passed openRoutes
                         if (!access_token) {
-                            throw new ErrorWithStatus({
-                                message: USER_MESSAGES.ACCESS_TOKEN_IS_REQUIRED,
-                                status: HTTP_STATUS.UNAUTHORIZED,
+                            throw new ProtectRouterError({
+                                message: PROTECT_MESSAGES.ACCESS_DENIED,
+                                status: HTTP_STATUS.BAD_REQUEST,
                             });
                         }
 
@@ -1023,20 +1027,42 @@ export const accessTokenValidatorV2 = validate(
 
                             const role = user?.role;
 
+                            // if role not found, throw error
+                            // this case only happen when data in database do not have role field
                             if (!role) {
-                                throw new ErrorWithStatus({
+                                throw new ProtectRouterError({
                                     message: PROTECT_MESSAGES.ROLE_NOT_FOUND,
-                                    status: HTTP_STATUS.UNAUTHORIZED,
+                                    status: HTTP_STATUS.BAD_REQUEST,
                                 });
                             }
-                            checkRole(role);
+
+                            const route = checkRole(req.path, "/");
+
+                            // route not found when req.path is undefined or req.path is not in routesConfig
+                            if (!route) {
+                                throw new ProtectRouterError({
+                                    message:
+                                        PROTECT_MESSAGES.ROUTE_AND_ROLE_MIS_MATCH +
+                                        PROTECT_MESSAGES.ROUTES_CONFIG_WRONG,
+                                    status: HTTP_STATUS.BAD_REQUEST,
+                                });
+                            } else if (!route.roles.includes(role)) {
+                                throw new ProtectRouterError({
+                                    message: PROTECT_MESSAGES.ACCESS_DENIED,
+                                    status: HTTP_STATUS.NOT_FOUND,
+                                });
+                            }
                         } catch (error) {
-                            throw new ErrorWithStatus({
-                                message: capitalize(
-                                    (error as JsonWebTokenError).message,
-                                ),
-                                status: HTTP_STATUS.UNAUTHORIZED,
-                            });
+                            if (error instanceof JsonWebTokenError) {
+                                throw new ProtectRouterError({
+                                    message: capitalize(
+                                        (error as JsonWebTokenError).message,
+                                    ),
+                                    status: HTTP_STATUS.UNAUTHORIZED,
+                                });
+                            } else if (error instanceof ProtectRouterError) {
+                                throw error;
+                            }
                         }
                         return true;
                     },

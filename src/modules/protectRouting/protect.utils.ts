@@ -16,6 +16,20 @@ interface Module {
     route: { [key: string]: Route };
 }
 
+interface RouteConfig {
+    path: string;
+    roles: UserRole[];
+}
+
+export const routesConfig: RouteConfig[] = [
+    {
+        path: "/admin",
+        roles: [UserRole.Employee, UserRole.Customer, UserRole.Admin],
+    }, //Admin can access all
+    { path: "/user", roles: [UserRole.Customer] }, // User only access to Customer
+    { path: "/employee", roles: [UserRole.Employee] }, // Employee only access to Employee
+];
+
 export function getOpenRoutes(): string[] {
     const openRoutes: string[] = [];
 
@@ -31,12 +45,12 @@ export function getOpenRoutes(): string[] {
     return openRoutes;
 }
 
-export function checkRole(role: UserRole): void {
-    if (role === UserRole.Admin) {
-        console.log("User are Admin");
-    } else if (role === UserRole.Customer) {
-        console.log("User are Customer");
-    } else {
-        console.log("User are Employee");
-    }
+// math the route.path with the req.path (/user/login) but take the first part only (/user)
+export function checkRole(
+    path: string,
+    pattern: string,
+): RouteConfig | undefined {
+    return routesConfig.find(
+        (route) => route.path === pattern + path.split(pattern)[1],
+    );
 }
