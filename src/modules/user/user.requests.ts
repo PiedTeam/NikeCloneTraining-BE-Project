@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb'
+import { ObjectId } from "mongodb";
 import { JwtPayload } from "jsonwebtoken";
 import {
     Subscription,
@@ -80,13 +80,13 @@ export type LogoutReqBody = {
 };
 
 export type RefreshTokenReqBody = {
-    refresh_token: string
-}
+    refresh_token: string;
+};
 export interface BlockBody {
-    _id: ObjectId
-    description_reason?: string
-    picture_image_prove?: string
-    refresh_token: string
+    _id: ObjectId;
+    description_reason?: string;
+    picture_image_prove?: string;
+    refresh_token: string;
 }
 
 export type ListAccountQuery = {
