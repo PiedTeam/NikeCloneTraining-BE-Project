@@ -1,5 +1,4 @@
 import { UserRole } from "../user/user.enum";
-
 const routes: Module[] = require("./mapRouteWithRole.json");
 
 // Interface for a Route object within a module
