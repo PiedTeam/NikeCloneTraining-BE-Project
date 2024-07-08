@@ -93,6 +93,7 @@ export const USER_MESSAGES = {
     // refresh token
     REFRESH_TOKEN_NOT_FOUND: "Refresh token is not found",
     REFRESH_TOKEN_SUCCESSFULLY: "Refresh token successfully!",
+    REFRESH_TOKEN_NOT_VALID: "Refresh token is not valid",
 
     //logout
     LOGOUT_SUCCESSFULLY: "Logout successfully!",
@@ -107,7 +108,7 @@ export const USER_MESSAGES = {
     //token
     REFRESH_TOKEN_IS_REQUIRED: "Refresh token is required",
     OTP_IS_INCORRECT: "OTP is incorrect",
-  
+
     // block
     USER_HAS_BEEN_BLOCKED: "user has been blocked",
     USER_UNBLOCK_SUCCESSFULLY: "user unblock successfully",
