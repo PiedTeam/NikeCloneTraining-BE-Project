@@ -5,19 +5,16 @@
             "login": {
                 "api": "/admin/login",
                 "method": "post",
-                "role": 0,
                 "access_token": false
             },
             "createEmployee": {
                 "api": "/admin/createEmployee",
                 "method": "post",
-                "role": 0,
                 "access_token": true
             },
             ":id": {
                 "api": "/admin/:id",
                 "method": "patch",
-                "role": 0,
                 "access_token": true
             }
         }
@@ -28,22 +25,14 @@
             "/": {
                 "api": "/",
                 "method": "get",
-                "role": 0,
                 "access_token": false
             },
             "verify": {
                 "api": "/captcha/verify",
                 "method": "post",
-                "role": 0,
                 "access_token": false
             }
         }
-    },
-    {
-        "module": "employee",
-        "route": "",
-        "role": 0,
-        "access_token": false
     },
     {
         "module": "menu",
@@ -51,7 +40,6 @@
             ":language": {
                 "api": "/menu/:language",
                 "method": "get",
-                "role": 0,
                 "access_token": false
             }
         }
@@ -62,37 +50,31 @@
             "google": {
                 "api": "/oauth/google",
                 "method": "get",
-                "role": 0,
                 "access_token": false
             },
             "google/callback": {
                 "api": "/oauth/google/callback",
                 "method": "get",
-                "role": 0,
                 "access_token": false
             },
             "facebook": {
                 "api": "/oauth/facebook",
                 "method": "get",
-                "role": 0,
                 "access_token": false
             },
             "facebook/callback": {
                 "api": "/oauth/facebook/callback",
                 "method": "get",
-                "role": 0,
                 "access_token": false
             },
             "login-success": {
                 "api": "/oauth/login-success",
                 "method": "post",
-                "role": 0,
                 "access_token": false
             },
             "login-fail": {
                 "api": "/oauth/login-fail",
                 "method": "post",
-                "role": 0,
                 "access_token": false
             }
         }
@@ -103,13 +85,11 @@
             "send-otp-phone": {
                 "api": "/otp/send-otp-phone",
                 "method": "post",
-                "role": 0,
                 "access_token": true
             },
             "send-otp-email": {
                 "api": "/otp/send-otp-email",
                 "method": "post",
-                "role": 0,
                 "access_token": true
             }
         }
@@ -120,14 +100,9 @@
             "updatePass": {
                 "api": "/pass/updatePass",
                 "method": "post",
-                "role": 0,
                 "access_token": true
             }
         }
-    },
-    {
-        "module": "refreshToken",
-        "route": ""
     },
     {
         "module": "user",
@@ -135,87 +110,73 @@
             "register": {
                 "api": "/user/register",
                 "method": "post",
-                "role": 0,
                 "access_token": false
             },
             "login": {
                 "api": "/user/login",
                 "method": "post",
-                "role": 0,
                 "access_token": false
             },
             "forgot-password": {
                 "api": "/user/forgot-password",
                 "method": "post",
-                "role": 0,
                 "access_token": false
             },
             "verify-otp": {
                 "api": "/user/verify-otp",
                 "method": "post",
-                "role": 0,
                 "access_token": false
             },
             "reset-password": {
                 "api": "/user/reset-password",
                 "method": "post",
-                "role": 0,
                 "access_token": false
             },
             "send-verify-account-otp": {
                 "api": "/user/send-verify-account-otp",
                 "method": "post",
-                "role": 0,
                 "access_token": true
             },
             "verify-account": {
                 "api": "/user/verify-account",
                 "method": "post",
-                "role": 0,
                 "access_token": true
             },
             "change-password": {
                 "api": "/user/change-password",
                 "method": "post",
-                "role": 0,
                 "access_token": true
             },
             "me": [
                 {
                     "api": "/user/me",
                     "method": "get",
-                    "role": 0,
                     "access_token": true
                 },
                 {
                     "api": "/user/me",
                     "method": "patch",
-                    "role": 0,
                     "access_token": true
                 }
             ],
             "search": {
                 "api": "/user/search",
                 "method": "post",
-                "role": 0,
                 "access_token": true
             },
             "logout": {
                 "api": "/user/logout",
                 "method": "post",
-                "role": 0,
                 "access_token": true
             },
             "refresh-token": {
                 "api": "/user/refresh-token",
                 "method": "post",
-                "role": 0,
                 "access_token": false
             },
             "list-account": {
                 "api": "/user/list-account",
                 "method": "get",
-                "role": 0,
                 "access_token": false
             }
         }

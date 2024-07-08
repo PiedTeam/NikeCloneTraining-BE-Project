@@ -3,7 +3,7 @@ import { NextFunction, Request, Response, response } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParamSchema, checkSchema } from "express-validator";
 import { StatusCodes } from "http-status-codes";
-import { JsonWebTokenError } from "jsonwebtoken";
+import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import { capitalize, escape } from "lodash";
 import { ObjectId } from "mongodb";
 import validator from "validator";
@@ -23,17 +23,17 @@ import { isValidPhoneNumberForCountry, validate } from "~/utils/validation";
 import { OTP_STATUS } from "../otp/otp.enum";
 import { OTP_MESSAGES } from "../otp/otp.messages";
 import otpService from "../otp/otp.services";
+import { PROTECT_MESSAGES } from "../protectRouting/protect.messages";
+import { RequestPath } from "../protectRouting/protect.schemas";
+import { checkRole, isValidUserRole } from "../protectRouting/protect.utils";
 import {
     NoticeUser,
     Subscription,
-    UserVerifyStatus,
     UserRole,
+    UserVerifyStatus,
 } from "./user.enum";
-import { PROTECT_MESSAGES } from "../protectRouting/protect.messages";
-import { checkRole, routesConfig } from "../protectRouting/protect.utils";
 import { LoginRequestBody, TokenPayload } from "./user.requests";
 import usersService from "./user.services";
-import jwt from "jsonwebtoken";
 //! Prevent db injection, XSS attack
 export const paramSchema: ParamSchema = {
     customSanitizer: {
@@ -304,8 +304,7 @@ export const loginValidator = validate(
                             });
                         }
 
-                        const wrongPasswordTimes =
-                            user.wrongPasswordTimes as number;
+                        const wrongPasswordTimes = user.wrongPasswordTimes!;
                         const NUMBER_LIMIT_WRONG_PASSWORD = 5;
 
                         if (user.password !== hashPassword(req.body.password)) {
@@ -329,7 +328,7 @@ export const loginValidator = validate(
                             }
 
                             if (
-                                (user.wrongPasswordTimes as number) >=
+                                user.wrongPasswordTimes! >=
                                 NUMBER_LIMIT_WRONG_PASSWORD - 1
                             ) {
                                 // Banned user
@@ -390,8 +389,7 @@ export const loginValidator = validate(
                             });
                         }
 
-                        const wrongPasswordTimes =
-                            user.wrongPasswordTimes as number;
+                        const wrongPasswordTimes = user.wrongPasswordTimes!;
                         const NUMBER_LIMIT_WRONG_PASSWORD = 5;
 
                         if (user.password !== hashPassword(req.body.password)) {
@@ -415,7 +413,7 @@ export const loginValidator = validate(
                             }
 
                             if (
-                                (user.wrongPasswordTimes as number) >=
+                                user.wrongPasswordTimes! >=
                                 NUMBER_LIMIT_WRONG_PASSWORD - 1
                             ) {
                                 // Banned user
@@ -946,7 +944,7 @@ export const blockPostman = async (
         if (
             (req.headers["postman-token"] &&
                 (await req.body?.code) === process.env.CODE) ||
-            isDeveloperAgent(req.headers["user-agent"] as string)
+            isDeveloperAgent(req.headers["user-agent"]!)
         ) {
             next();
             // return true
@@ -977,8 +975,8 @@ export const accessTokenValidator = validate(
                         try {
                             const decoded_authorization = await verifyToken({
                                 token: access_token,
-                                secretOrPublickey: process.env
-                                    .JWT_SECRET_ACCESS_TOKEN as string,
+                                secretOrPublickey:
+                                    process.env.JWT_SECRET_ACCESS_TOKEN!,
                             });
                             (req as Request).decoded_authorization =
                                 decoded_authorization;
@@ -1013,7 +1011,7 @@ export const accessTokenValidatorV2 = validate(
                         if (!access_token) {
                             throw new ProtectRouterError({
                                 message: PROTECT_MESSAGES.ACCESS_DENIED,
-                                status: HTTP_STATUS.BAD_REQUEST,
+                                status: HTTP_STATUS.NOT_FOUND,
                             });
                         }
 
@@ -1021,8 +1019,8 @@ export const accessTokenValidatorV2 = validate(
                         try {
                             const decoded_authorization = await verifyToken({
                                 token: access_token,
-                                secretOrPublickey: process.env
-                                    .JWT_SECRET_ACCESS_TOKEN as string,
+                                secretOrPublickey:
+                                    process.env.JWT_SECRET_ACCESS_TOKEN!,
                             });
                             (req as Request).decoded_authorization =
                                 decoded_authorization;
@@ -1036,35 +1034,40 @@ export const accessTokenValidatorV2 = validate(
 
                             // if role not found, throw error
                             // this case only happen when data in database do not have role field
-                            if (!role) {
+                            if (role === undefined) {
                                 throw new ProtectRouterError({
                                     message: PROTECT_MESSAGES.ROLE_NOT_FOUND,
                                     status: HTTP_STATUS.BAD_REQUEST,
                                 });
-                            }
-
-                            const route = checkRole(req.path, "/");
-
-                            // route not found when req.path is undefined or req.path is not in routesConfig
-                            if (!route) {
+                            } else if (!isValidUserRole(role)) {
                                 throw new ProtectRouterError({
-                                    message:
-                                        PROTECT_MESSAGES.ROUTE_AND_ROLE_MIS_MATCH +
-                                        PROTECT_MESSAGES.ROUTES_CONFIG_WRONG,
+                                    message: PROTECT_MESSAGES.ROLE_NOT_VALID,
                                     status: HTTP_STATUS.BAD_REQUEST,
                                 });
-                            } else if (!route.roles.includes(role)) {
-                                throw new ProtectRouterError({
-                                    message: PROTECT_MESSAGES.ACCESS_DENIED,
-                                    status: HTTP_STATUS.NOT_FOUND,
-                                });
+                            } else {
+                                const extractedUrl = req.path as RequestPath;
+
+                                // check the extractedUrl is a contextPath in routesConfig?
+                                const route = checkRole(extractedUrl, "/");
+
+                                // route not found when req.path is undefined or req.path is not in routesConfig
+                                if (!route) {
+                                    throw new ProtectRouterError({
+                                        message:
+                                            PROTECT_MESSAGES.ROUTE_AND_ROLE_MIS_MATCH_SEEM_WRONG_AT_ROUTES_CONFIG,
+                                        status: HTTP_STATUS.BAD_REQUEST,
+                                    });
+                                } else if (!route.roles.includes(role)) {
+                                    throw new ProtectRouterError({
+                                        message: PROTECT_MESSAGES.ACCESS_DENIED,
+                                        status: HTTP_STATUS.NOT_FOUND,
+                                    });
+                                }
                             }
                         } catch (error) {
                             if (error instanceof JsonWebTokenError) {
                                 throw new ProtectRouterError({
-                                    message: capitalize(
-                                        (error as JsonWebTokenError).message,
-                                    ),
+                                    message: capitalize(error.message),
                                     status: HTTP_STATUS.UNAUTHORIZED,
                                 });
                             } else if (error instanceof ProtectRouterError) {
@@ -1093,8 +1096,9 @@ export const refreshTokenValidator = validate(
                                 await Promise.all([
                                     verifyToken({
                                         token: value,
-                                        secretOrPublickey: process.env
-                                            .JWT_SECRET_REFRESH_TOKEN as string,
+                                        secretOrPublickey:
+                                            process.env
+                                                .JWT_SECRET_REFRESH_TOKEN!,
                                     }),
                                     databaseService.refreshTokens.findOne({
                                         token: value,
@@ -1113,9 +1117,7 @@ export const refreshTokenValidator = validate(
                         } catch (error) {
                             if (error instanceof JsonWebTokenError) {
                                 throw new ErrorWithStatus({
-                                    message: capitalize(
-                                        (error as JsonWebTokenError).message,
-                                    ),
+                                    message: capitalize(error.message),
                                     status: HTTP_STATUS.UNAUTHORIZED,
                                 });
                             }
@@ -1135,7 +1137,7 @@ export const verifiedUserValidator = (
     res: Response,
     next: NextFunction,
 ) => {
-    const { status } = req.decoded_authorization as TokenPayload;
+    const { status } = req.decoded_authorization!;
     if (status !== UserVerifyStatus.Verified) {
         return next(
             new ErrorWithStatus({
@@ -1225,13 +1227,12 @@ export const refreshTokenCookieValidator = async (
     res: Response,
     next: NextFunction,
 ) => {
-    const value = req.cookies["refresh_token"];
+    const value = req.cookies.refresh_token;
     try {
         const [decoded_refresh_token, refresh_token] = await Promise.all([
             verifyToken({
                 token: value,
-                secretOrPublickey: process.env
-                    .JWT_SECRET_REFRESH_TOKEN as string,
+                secretOrPublickey: process.env.JWT_SECRET_REFRESH_TOKEN!,
             }),
             databaseService.refreshTokens.findOne({
                 token: value,
@@ -1247,8 +1248,8 @@ export const refreshTokenCookieValidator = async (
 
         const access_token = req.headers.authorization?.split(" ")[1];
         const decoded_access_token = jwt.verify(
-            access_token as string,
-            process.env.JWT_SECRET_ACCESS_TOKEN as string,
+            access_token!,
+            process.env.JWT_SECRET_ACCESS_TOKEN!,
             {
                 ignoreExpiration: true,
             },
@@ -1273,16 +1274,14 @@ export const refreshTokenCookieValidator = async (
                 });
                 next(
                     new ErrorWithStatus({
-                        message: capitalize(
-                            (error as JsonWebTokenError).message,
-                        ),
+                        message: capitalize(error.message),
                         status: HTTP_STATUS.UNAUTHORIZED,
                     }),
                 );
             }
             next(
                 new ErrorWithStatus({
-                    message: capitalize((error as JsonWebTokenError).message),
+                    message: capitalize(error.message),
                     status: HTTP_STATUS.UNAUTHORIZED,
                 }),
             );
@@ -1296,7 +1295,7 @@ export const refreshTokenCookieValidator = async (
 export const isUserRole =
     (arrayUserRole: UserRole[]) =>
     async (req: Request, res: Response, next: NextFunction) => {
-        const payload = req.decoded_authorization as TokenPayload;
+        const payload = req.decoded_authorization!;
         if (!arrayUserRole.includes(payload.role)) {
             next(
                 new ErrorWithStatus({
@@ -1318,9 +1317,7 @@ export const pagination = async (
         page = 1,
         limit = 20,
         role,
-    } = req.query as {
-        [key: string]: string | number;
-    };
+    } = req.query as Record<string, string | number>;
 
     if (!role) {
         const newPage = Number(page);
