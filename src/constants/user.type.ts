@@ -1,7 +1,8 @@
 import { ObjectId } from "mongodb";
 import { UserRole, UserVerifyStatus } from "~/modules/user/user.enum";
+import User from "~/modules/user/user.schema";
 
-export type UserList = {
+export interface UserList {
     _id: ObjectId;
     first_name: string;
     last_name: string;
@@ -9,4 +10,6 @@ export type UserList = {
     email: string;
     role: UserRole;
     status: UserVerifyStatus;
-};
+}
+
+export type UserAvatarInfo = Pick<User, "_id" | "avatar_url">;

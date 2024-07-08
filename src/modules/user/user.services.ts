@@ -2,7 +2,7 @@ import "dotenv/config";
 import { capitalize, omit } from "lodash";
 import { ObjectId } from "mongodb";
 import otpGenerator from "otp-generator";
-import { UserList } from "~/constants/user.type";
+import { UserAvatarInfo, UserList } from "~/constants/user.type";
 import databaseService from "~/database/database.services";
 import { capitalizePro } from "~/utils/capitalize";
 import decrypt, { encrypt, hashPassword } from "~/utils/crypto";
@@ -31,7 +31,7 @@ class UsersService {
     private decodeRefreshToken(refresh_token: string) {
         return verifyToken({
             token: refresh_token,
-            secretOrPublickey: process.env.JWT_SECRET_REFRESH_TOKEN as string,
+            secretOrPublickey: process.env.JWT_SECRET_REFRESH_TOKEN!,
         });
     }
 
@@ -48,7 +48,7 @@ class UsersService {
                 role,
             },
             options: { expiresIn: process.env.ACCESS_TOKEN_EXPIRE_MINUTES },
-            privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string,
+            privateKey: process.env.JWT_SECRET_ACCESS_TOKEN!,
         });
     }
 
@@ -78,7 +78,7 @@ class UsersService {
                     status,
                     exp,
                 },
-                privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string,
+                privateKey: process.env.JWT_SECRET_REFRESH_TOKEN!,
             });
         } else {
             return signToken({
@@ -88,7 +88,7 @@ class UsersService {
                     status,
                 },
                 options: { expiresIn: process.env.REFRESH_TOKEN_EXPIRE_DAYS },
-                privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string,
+                privateKey: process.env.JWT_SECRET_REFRESH_TOKEN!,
             });
         }
     }
@@ -162,6 +162,35 @@ class UsersService {
     async findAllUser() {
         const users = await databaseService.users.find().toArray();
         return users;
+    }
+
+    async getAllAccountIDAndAvatarUrl(): Promise<UserAvatarInfo[]> {
+        const users = await databaseService.users
+            .find({}, { projection: { _id: 1, avatar_url: 1 } })
+            .toArray();
+        return users;
+    }
+
+    async updateAvatarUrl(
+        user_id: string,
+        avatar_url: string,
+    ): Promise<boolean> {
+        const user = await this.findUserByID(user_id);
+
+        try {
+            if (!user) {
+                throw new Error("User not found");
+            }
+
+            const { modifiedCount } = await databaseService.users.updateOne(
+                { _id: new ObjectId(user_id) },
+                { $set: { avatar_url } },
+            );
+
+            return modifiedCount > 0;
+        } catch (error) {
+            throw new Error("Fail to update avatar url");
+        }
     }
 
     async getMe(user_id: string) {
