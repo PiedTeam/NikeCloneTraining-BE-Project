@@ -178,6 +178,11 @@
                 "api": "/user/list-account",
                 "method": "get",
                 "access_token": false
+            },
+            "getLinkPic": {
+                "api": "/user/getLinkPic",
+                "method": "post",
+                "access_token": false
             }
         }
     }

@@ -1,9 +1,13 @@
 import "dotenv/config";
 import { NextFunction, Request, Response } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
+import fs from "fs";
 import { StatusCodes } from "http-status-codes";
 import { pick } from "lodash";
 import { ObjectId } from "mongodb";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
+import { storageRef } from "~/config/firebase.config";
 import { HTTP_STATUS } from "~/constants/httpStatus";
 import { UserList } from "~/constants/user.type";
 import decrypt, { encrypt } from "~/utils/crypto";
@@ -24,10 +28,6 @@ import {
 } from "./user.requests";
 import User from "./user.schema";
 import usersService from "./user.services";
-import { v4 as uuidv4 } from "uuid";
-import path from "path";
-import { storageRef } from "~/config/firebase.config";
-import fs from "fs";
 
 export const registerController = async (
     req: Request<ParamsDictionary, any, RegisterReqBody>,
@@ -54,8 +54,8 @@ export const loginController = async (
     res: Response,
     next: NextFunction,
 ) => {
-    const user = req.user as User;
-    const user_id = user._id as ObjectId;
+    const user = req.user!;
+    const user_id = user._id!;
     const role = user.role;
     const result = await usersService.login({
         user_id: user_id.toString(),
@@ -137,7 +137,7 @@ export const verifyAccountController = async (req: Request, res: Response) => {
 };
 
 export const getMeController = async (req: Request, res: Response) => {
-    const { user_id } = req.decoded_authorization as TokenPayload;
+    const { user_id } = req.decoded_authorization!;
     const user = await usersService.getMe(user_id);
 
     const { first_name, last_name, status } = user;
@@ -163,7 +163,7 @@ export const updateMeController = async (
     res: Response,
     next: NextFunction,
 ) => {
-    const { user_id } = (req as Request).decoded_authorization as TokenPayload;
+    const { user_id } = (req as Request).decoded_authorization!;
     const allowedFields: (keyof UpdateMeReqBody)[] = [
         "first_name",
         "last_name",
@@ -232,8 +232,8 @@ export const logoutController = async (
     req: Request<ParamsDictionary, any, LogoutReqBody>,
     res: Response,
 ) => {
-    console.log(req.cookies["refresh_token"]);
-    await usersService.logout(req.cookies["refresh_token"]);
+    console.log(req.cookies.refresh_token);
+    await usersService.logout(req.cookies.refresh_token);
     res.clearCookie("refresh_token");
     return res.json({
         message: USER_MESSAGES.LOGOUT_SUCCESSFULLY,
@@ -244,8 +244,8 @@ export const refreshTokenController = async (
     req: Request<ParamsDictionary, any, RefreshTokenReqBody>,
     res: Response,
 ) => {
-    const payload = req.decoded_refresh_token as TokenPayload;
-    const old_refresh_token = req.cookies["refresh_token"];
+    const payload = req.decoded_refresh_token!;
+    const old_refresh_token = req.cookies.refresh_token;
     const { access_token, refresh_token } = await usersService.refreshToken(
         old_refresh_token,
         payload,
@@ -268,8 +268,8 @@ export const blockAccountController = async (
     req: Request<ParamsDictionary, any, BlockBody>,
     res: Response,
 ) => {
-    console.log(req.cookies["refresh_token"]);
-    await usersService.logout(req.cookies["refresh_token"]);
+    console.log(req.cookies.refresh_token);
+    await usersService.logout(req.cookies.refresh_token);
     res.clearCookie("refresh_token");
     try {
         const reason = req.body.description_reason;
@@ -310,7 +310,7 @@ export const unblockAccountController = async (
 };
 
 export const getListUserController = async (req: Request, res: Response) => {
-    const query = req.queryListAccount as ListAccountQuery;
+    const query = req.queryListAccount!;
 
     if (!query.role) {
         const listUser = await usersService.getListCustomer();
@@ -435,7 +435,7 @@ export const getLinkPicture = async (
     }
     const url = await downloadAndUploadImage(imageUrl, `${user_Id}`);
     console.log(url);
-    return res.status(200).json({
+    return res.status(HTTP_STATUS.OK).json({
         message: USER_MESSAGES.UPLOAD_PICTURE_SUCCESSFULLY,
         details: url,
     });
